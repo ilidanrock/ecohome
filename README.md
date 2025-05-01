@@ -24,7 +24,9 @@ The administrator is responsible for managing tenant consumption and overseeing 
 - Generate monthly reports in **PDF format** summarizing utility usage.  
 - Upload electricity and water bills to register payments and calculate costs.  
 - Access a **multi-step form** preloaded with invoice data to automatically calculate the service costs (water, electricity, and total) for each tenant.  
+- Mark whether a tenant has **paid or not** for the services directly from the UI.  
 - Store images and documents in **Amazon S3** for secure access.  
+- View payment status in the **billing history** and include this data in the **PDF reports**.  
 
 ### **2️⃣ User (Tenant)**  
 Tenants can check their personal consumption history and view detailed cost calculations.
@@ -32,14 +34,14 @@ Tenants can check their personal consumption history and view detailed cost calc
 #### **Key Features:**  
 - Log in and access their **monthly consumption history**.  
 - Access a **multi-step form** to view a detailed breakdown of their consumption and costs.  
-- Download **PDF reports** with the final calculation of their payments.  
+- Download **PDF reports** with the final calculation of their payments, including payment status.  
 - Retrieve past consumption data stored securely.
 
 ---
 
 ## UML web app
 
-![UML Diagram](./public//nextjs_webapp_updated_class_diagram.png)
+![UML Diagram](./public//UML.png)
 
 
 ## **🛠️ Technologies Used**  
@@ -73,7 +75,7 @@ To guarantee privacy and data security, EcoHome implements:
 
 ## **📊 Benefits of EcoHome**  
 ✅ **Automation & Accuracy:** Automatically calculates **each tenant’s monthly consumption**.  
-✅ **Transparency & Control:** Keeps **detailed records of consumption history and costs**.  
+✅ **Transparency & Control:** Keeps **detailed records of consumption history, costs, and payment status**.  
 ✅ **Secure & Centralized Access:** Stores **essential documents in the cloud**.  
 ✅ **User-Friendly Interface:** Optimized UI, responsive for all devices.  
 ✅ **Sustainability:** Encourages **efficient resource usage** through reports and consumption analysis.  
@@ -140,6 +142,7 @@ Bienvenido a EcoHome - Administra tu consumo de energía y agua de manera eficie
 🔹 Agua consumida: 15.8 m³  
 🔹 Electricidad consumida: 120.3 kWh  
 🔹 Costo total: $85.75  
+🔹 Estado de pago: Pagado / Pendiente
 ```  
 
 👆 **Acciones disponibles:**  
@@ -157,10 +160,11 @@ Bienvenido a EcoHome - Administra tu consumo de energía y agua de manera eficie
 ✅ Consultar consumo mensual en una tabla o gráfico.  
 ✅ Comparar el consumo de diferentes meses.  
 ✅ Filtrar por rango de fechas.  
+✅ Ver estado de pago de cada factura.  
 ✅ Descargar reporte en PDF.  
 
 👆 **Ejemplo de interacción:**  
-- El usuario selecciona un mes para ver cuánto ha consumido en comparación con meses anteriores.
+- El usuario selecciona un mes para ver cuánto ha consumido en comparación con meses anteriores y si ya ha pagado.
 
 ---
 
@@ -171,10 +175,11 @@ Bienvenido a EcoHome - Administra tu consumo de energía y agua de manera eficie
 🔹 **Acciones disponibles:**  
 ✅ Ver facturas de agua y luz de meses anteriores.  
 ✅ Consultar costos calculados automáticamente.  
+✅ Ver y modificar el estado de pago desde la UI (solo admin).  
 ✅ Descargar PDF con resumen de pagos.  
 
 👆 **Ejemplo de interacción:**  
-- El usuario selecciona una factura y la plataforma muestra el cálculo detallado de su consumo.
+- El administrador cambia el estado de una factura a "Pagado", y el inquilino puede ver la actualización.
 
 ---
 
@@ -185,9 +190,10 @@ Bienvenido a EcoHome - Administra tu consumo de energía y agua de manera eficie
 🔹 **Acciones disponibles:**  
 ✅ Generar reportes en PDF con datos detallados del consumo.  
 ✅ Filtrar reportes por fechas y tipos de servicio.  
+✅ Incluir estado de pago en los reportes.  
 
 👆 **Ejemplo de interacción:**  
-- El usuario selecciona el período **"Últimos 6 meses"** y descarga un reporte en PDF con gráficos y costos desglosados.
+- El usuario selecciona el período **"Últimos 6 meses"** y descarga un reporte en PDF con gráficos, costos desglosados y estados de pago.
 
 ---
 
@@ -229,4 +235,4 @@ Bienvenido a EcoHome - Administra tu consumo de energía y agua de manera eficie
 
 
 ## **🚀 Conclusion**  
-EcoHome **revolutionizes the way tenants and administrators manage utility consumption** in rental properties. Through its **intuitive and optimized digital platform**, it enables **detailed tracking of consumption**, facilitates **cost administration**, and promotes **efficient energy management**.  
+EcoHome **revolutionizes the way tenants and administrators manage utility consumption** in rental properties. Through its **intuitive and optimized digital platform**, it enables **detailed tracking of consumption**, facilitates **cost administration**, and promotes **efficient energy management**, including **clear tracking of payment status**.

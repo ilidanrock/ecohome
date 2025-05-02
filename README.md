@@ -233,6 +233,81 @@ Bienvenido a EcoHome - Administra tu consumo de energía y agua de manera eficie
 5️⃣ **Puede descargar reportes o consultar costos.**  
 6️⃣ **Cierra sesión y regresa a la landing page.**  
 
+## **Estrucutra del proyecto **
+
+/
+├── public/
+│   ├── og-image.png
+│   └── logo.svg
+
+├── src/
+│   ├── app/                          # Rutas y páginas (App Router)
+│   │   ├── layout.tsx
+│   │   ├── page.tsx                  # Landing pública
+│   │   ├── auth/
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
+│   │   ├── dashboard/page.tsx        # Inquilino
+│   │   ├── admin/dashboard/page.tsx  # Admin
+│   │   ├── billing/page.tsx
+│   │   ├── reports/page.tsx
+│   │   ├── consumption-history/page.tsx
+│   │   ├── settings/page.tsx
+│   │   └── api/
+│   │       ├── auth/[...nextauth]/route.ts
+│   │       ├── billing/route.ts
+│   │       ├── reports/route.ts
+│   │       └── users/route.ts
+
+│   ├── components/                   # Componentes reutilizables
+│   │   ├── layout/                   # Navegación
+│   │   │   ├── Header.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── DashboardShell.tsx
+│   │   ├── billing/                  # Subcomponentes de facturación
+│   │   │   ├── BillingTable.tsx
+│   │   │   └── BillingStatusToggle.tsx
+│   │   ├── charts/                   # Visualización de consumo
+│   │   │   └── ConsumptionChart.tsx
+│   │   ├── forms/
+│   │   │   ├── ConsumptionForm.tsx
+│   │   │   └── InvoiceUploadForm.tsx
+│   │   └── ui/                       # Base Shadcn
+
+│   ├── lib/                          # Lógica pura y utilidades
+│   │   ├── auth.ts                   # Roles y sesión
+│   │   ├── s3.ts                     # Amazon S3 client
+│   │   ├── pdf.ts                    # Generación de PDF
+│   │   └── utils.ts
+
+│   ├── services/                     # Capa de negocio (usa fetch o react-query)
+│   │   ├── billingService.ts
+│   │   ├── reportService.ts
+│   │   └── userService.ts
+
+│   ├── store/                        # Zustand stores
+│   │   ├── useUserStore.ts
+│   │   └── useBillStore.ts
+
+│   ├── types/                        # Tipos TypeScript compartidos
+│   │   ├── user.ts
+│   │   ├── bill.ts
+│   │   └── consumption.ts
+
+│   ├── styles/
+│   │   └── globals.css
+
+│   └── config/                       # Configuraciones externas (opcional)
+│       ├── auth.config.ts
+│       └── site.ts                   # Nombre del proyecto, metadata global
+
+├── .env.local
+├── next.config.mjs
+├── tailwind.config.ts
+├── tsconfig.json
+├── README.md
+├── middleware.ts
+└── package.json
 
 ## **🚀 Conclusion**  
 EcoHome **revolutionizes the way tenants and administrators manage utility consumption** in rental properties. Through its **intuitive and optimized digital platform**, it enables **detailed tracking of consumption**, facilitates **cost administration**, and promotes **efficient energy management**, including **clear tracking of payment status**.

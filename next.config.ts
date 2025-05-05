@@ -7,7 +7,7 @@ const nextConfig = {
     config.plugins = config.plugins || [];
     config.plugins.push(new MiniCssExtractPlugin());
     return config;
-  },
+  }
 };
 
 export default nextConfig;

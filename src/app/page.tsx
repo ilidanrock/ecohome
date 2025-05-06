@@ -1,10 +1,35 @@
+
 import Image from "next/image"
 import Link from "next/link"
 import { BarChart3, Droplets, Leaf, LightbulbIcon, Mountain, Shield, Zap } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { client } from "@/sanity/lib/client"
+import { urlFor } from "@/sanity/lib/image"
 
-export default function LandingPage() {
+
+export const dynamic = "force-static";
+
+
+
+export default async function LandingPage( ) {
+
+  const heroData: Array<{
+    name: string;
+    description: string;
+    imgURL: string;
+  }> = await client.fetch(`
+    *[_type == "heroImg"]
+  `);
+  
+
+  // 2) Genera la URL optimizada
+  const heroUrl = urlFor(heroData[0].imgURL)
+    .width(600)
+    .height(600)
+    .auto("format")
+    .url();
+  
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header */}
@@ -67,14 +92,14 @@ export default function LandingPage() {
                   Más de 10,000 hogares ya confían en EcoHome para su gestión energética
                 </p>
               </div>
-              <div className="relative mx-auto aspect-video w-full max-w-[600px] overflow-hidden rounded-xl lg:aspect-square">
+              <div className="relative mx-auto w-full max-w-[600px] overflow-hidden rounded-xl lg:aspect-square">
                 <Image
-                  src="/placeholder.png"
+                  src={ heroUrl }
                   alt="EcoHome Dashboard"
                   width={600}
                   height={600}
                   className="object-cover"
-                  priority
+                  blurDataURL="/globe.svg"
                 />
               </div>
             </div>

@@ -8,9 +8,6 @@ const nextConfig = {
     config.plugins.push(new MiniCssExtractPlugin());
     return config;
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     remotePatterns: [{
       protocol: 'https',

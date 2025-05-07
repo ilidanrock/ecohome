@@ -29,6 +29,15 @@ export default async function LandingPage( ) {
     .height(600)
     .auto("format")
     .url();
+
+  const companiesData: Array<{
+    name: string;
+    description: string;
+    imgURL: string;
+  }> = await client.fetch(`
+    *[_type == "companiesImg"]
+  `);
+  
   
   return (
     <div className="flex min-h-screen flex-col">
@@ -110,18 +119,20 @@ export default async function LandingPage( ) {
         <section className="border-y border-[#F8F9FA] py-12">
           <div className="container mx-auto px-4 md:px-6">
             <h2 className="mb-8 text-center text-lg font-medium text-[#343A40]/70">Empresas que confían en nosotros</h2>
-            <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-center">
-                  <Image
-                    src="/logo.png"
-                    alt={`Logo de empresa ${i + 1}`}
-                    width={120}
-                    height={40}
-                    className="opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0"
-                  />
-                </div>
-              ))}
+            <div className=" grid grid-cols-2 gap-8 md:place-content-evenly md:grid-cols-4  ">
+              {
+                companiesData.map((company, i) => (
+                  <div key={i} className="flex items-center justify-center">
+                    <Image
+                      src={urlFor(company.imgURL).width(120).height(40).auto("format").url()}
+                      alt={`Logo de ${company.name}`}
+                      width={120}
+                      height={40}
+                      className="opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                    />
+                  </div>
+                ))
+              }
             </div>
           </div>
         </section>

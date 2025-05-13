@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Roboto } from "next/font/google";
 import "./styles/globals.css";
 import TanstackProvider from "../../providers/TanstackProvider";
+import { SessionProvider } from "next-auth/react";
 
 const geistSans = Inter({
   variable: "--font-inter",
@@ -30,12 +31,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-
-        <TanstackProvider>
-          <div>{children}</div>
-        </TanstackProvider>
-
-
+        <SessionProvider>
+          <TanstackProvider>
+            <div>{children}</div>
+          </TanstackProvider>
+        </SessionProvider>
       </body>
     </html>
   );

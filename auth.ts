@@ -1,4 +1,5 @@
 
+
 import NextAuth, { CredentialsSignin, User, DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { getUserFromDb } from "@/services/userService"
@@ -110,6 +111,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return token
     },
+
+    async session({ session, token }) {
+      // Aquí puedes modificar la sesión que recibe el cliente
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.role = token.role as string
+        session.user.email = token.email as string
+        session.user.name = token.name as string
+      }
+      return session
+    }
 
   }
 })

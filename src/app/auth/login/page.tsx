@@ -18,17 +18,16 @@ export default function LoginPage() {
 
   async function handleSubmit(formData: FormData) {
     try {
-      // Validate the form data
+
       await signInSchema.parseAsync({
         email: formData.get("email"),
         password: formData.get("password"),
       })
-      
-      // If validation passes, proceed with sign in
+
       await signInAction(formData)
     } catch (err) {
       const error = err as Error
-      // Handle validation errors
+
       if (err instanceof ZodError && err.errors[0]?.message) {
         setError(err.errors[0].message)
       } else {
@@ -38,16 +37,17 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full max-w-md shadow-lg border-0">
+    <div className="flex justify-center items-center min-h-screen">
+          <Card className="w-full max-w-md shadow-lg border-0 ">
       <CardHeader className="space-y-2 text-center">
         <div className="flex justify-center mb-2">
           <div className="flex items-center gap-2">
-            <Leaf className="h-8 w-8 text-[#28A745]" />
-            <span className="text-2xl font-bold text-[#007BFF]">EcoHome</span>
+            <Leaf className="h-8 w-8 text-ecogreen" />
+            <span className="text-2xl font-bold text-ecoblue">EcoHome</span>
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold text-[#343A40]">Iniciar Sesión</CardTitle>
-        <CardDescription className="text-[#343A40]/70">
+        <CardTitle className="text-2xl font-bold text-darkgray">Iniciar Sesión</CardTitle>
+        <CardDescription className="text-darkgray/70">
           Accede a tu cuenta para gestionar tu consumo energético
         </CardDescription>
       </CardHeader>
@@ -59,7 +59,7 @@ export default function LoginPage() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-[#343A40]">
+            <Label htmlFor="email" className="text-darkgray">
               Correo electrónico
             </Label>
             <Input
@@ -67,16 +67,16 @@ export default function LoginPage() {
               name="email"
               type="email"
               placeholder="tu@ejemplo.com"
-              className="rounded-lg border-[#F8F9FA] bg-white focus:border-[#007BFF] focus:ring-[#007BFF]"
+              className="rounded-lg border-lightgray bg-white focus:border-ecoblue focus:ring-ecoblue"
               required
             />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-[#343A40]">
+              <Label htmlFor="password" className="text-darkgray">
                 Contraseña
               </Label>
-              <Link href="#" className="text-sm text-[#007BFF] hover:text-[#007BFF]/80 transition-colors">
+              <Link href="#" className="text-sm text-ecoblue hover:text-ecoblue/80 transition-colors">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
@@ -87,25 +87,27 @@ export default function LoginPage() {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full bg-[#007BFF] hover:bg-[#007BFF]/90 text-white">
+          <Button type="submit" className="w-full bg-ecoblue hover:bg-ecoblue/90 text-white">
             Iniciar Sesión
           </Button>
           <Button
             type="button"
             variant="outline"
-            className="w-full border-[#28A745] text-[#28A745] hover:bg-[#28A745]/10"
+            className="w-full border-ecogreen text-ecogreen hover:bg-ecogreen/10"
           >
             Iniciar con Google
           </Button>
-          <div className="text-center text-sm text-[#343A40]/70">
+          <div className="text-center text-sm text-darkgray/70">
             ¿No tienes una cuenta?{" "}
-            <Link href="/auth/register" className="text-[#28A745] hover:text-[#28A745]/80 font-medium">
+            <Link href="/auth/register" className="text-ecogreen hover:text-ecogreen/80 font-medium">
               Regístrate
             </Link>
           </div>
         </CardFooter>
       </form>
     </Card>
+    </div>
+
   )
 }
 

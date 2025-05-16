@@ -1,9 +1,5 @@
-
-
 import NextAuth, { CredentialsSignin, User, DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { getUserFromDb } from "@/services/userService"
-import { compare } from "bcryptjs"
 import { signInSchema } from "@/zod/sign-in-schema"
 
 
@@ -47,43 +43,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" , placeholder: "********"}
       },
       async authorize(credentials) {
-        let user = null
-        let pwHash = null
         const { email, password } = await signInSchema.parseAsync(credentials)
         
-        try {
-            const userFromDb = await getUserFromDb(email as string)
-            
-            if (!userFromDb) {
-              console.log(Object.values(new CustomError("Usuario no registrado con ese email", "UserNotFound", 401)).toString());
-              
-              throw new CustomError("Usuario no registrado con ese email", "UserNotFound", 401)
-            }
-            user = {
-                id: userFromDb.id,
-                email: userFromDb.email,
-                password: userFromDb.password,
-                name: userFromDb.name,
-                role: userFromDb.role
-            }
-            pwHash = user?.password
+        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+        const response = await fetch(`${baseUrl}/api/auth/${email}`, {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password })
+        })
 
-        } catch (error) {
-            console.error('Error getting user from database:', error);
-            throw error;
+        if (!response.ok) {
+          const error = await response.json()
+          throw new CustomError(error.error || 'Error de autenticación')
         }
 
-        if (!user || !pwHash) {
-            throw new Error('User not found')
-        }
-
-        const passwordsMatch = await compare(password as string, pwHash)
-        
-        if (!passwordsMatch) {
-            throw  new CustomError()
-        }
-        
-        return user
+         
+        return await response.json()
       }
     })
   ],
@@ -96,7 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-
+      
       if (user as {
         id: string
         email: string
@@ -113,7 +90,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
 
     async session({ session, token }) {
-      // Aquí puedes modificar la sesión que recibe el cliente
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string

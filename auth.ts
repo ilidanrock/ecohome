@@ -6,7 +6,7 @@ import { getUserFromDb } from "@/services/userService"
 import { compare } from "bcryptjs"
 import { signInSchema } from "@/zod/sign-in-schema"
 
-// Extend NextAuth types to include 'role'
+
 declare module "next-auth" {
   interface Session {
     user: {

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Leaf } from "lucide-react"
-import { useState } from "react"
+import { useActionState } from "react"
 import { ZodError } from "zod"
 
 import { Button } from "@/components/ui/button"
@@ -14,27 +14,31 @@ import { signInAction } from "@/actions/signIn"
 import { signInSchema } from "@/zod/sign-in-schema"
 
 export default function LoginPage() {
-  const [error, setError] = useState<string>("")
+  const [error, formAction] = useActionState<string | undefined, FormData>(
+    async (prevState, formData) => {
+      try {
+        await signInSchema.parseAsync({
+          email: formData.get("email"),
+          password: formData.get("password"),
+        })
 
-  async function handleSubmit(formData: FormData) {
-    try {
+        return await signInAction(formData)
 
-      await signInSchema.parseAsync({
-        email: formData.get("email"),
-        password: formData.get("password"),
-      })
+      } catch (err) {
 
-      await signInAction(formData)
-    } catch (err) {
-      const error = err as Error
+        
+        const error = err as Error
 
-      if (err instanceof ZodError && err.errors[0]?.message) {
-        setError(err.errors[0].message)
-      } else {
-        setError(`${error.message.replace("Read more at https://errors.authjs.dev#credentialssignin", "")}`)
+        if (err instanceof ZodError && err.errors[0]?.message) {
+          return err.errors[0].message
+        } else {
+          return `${error.message.replace("Read more at https://errors.authjs.dev#credentialssignin", "")}`
+        }
       }
-    }
-  }
+    },
+    ""
+  )
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -51,7 +55,7 @@ export default function LoginPage() {
           Accede a tu cuenta para gestionar tu consumo energético
         </CardDescription>
       </CardHeader>
-      <form action={handleSubmit}>
+      <form action={formAction}>
         <CardContent className="space-y-4">
           {error && (
             <div className="p-3 text-sm text-red-500 bg-red-50 rounded-lg">

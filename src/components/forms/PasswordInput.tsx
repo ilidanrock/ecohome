@@ -3,29 +3,38 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-export function PasswordInput() {
+interface PasswordInputProps {
+  name?: string
+}
+
+export function PasswordInput({ name = "password" }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false)
 
   return (
     <div className="relative">
       <Input
-        id="password"
-        name="password"
         type={showPassword ? "text" : "password"}
-        placeholder="••••••••"
-        className="rounded-lg border-[#F8F9FA] bg-white pr-10 focus:border-[#007BFF] focus:ring-[#007BFF]"
+        name={name}
+        className="rounded-lg border-lightgray bg-white focus:border-ecoblue focus:ring-ecoblue pr-10"
         required
       />
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="sm"
+        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-        aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
       >
-        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-      </button>
+        {showPassword ? (
+          <EyeOff className="h-4 w-4 text-gray-500" />
+        ) : (
+          <Eye className="h-4 w-4 text-gray-500" />
+        )}
+        <span className="sr-only">{showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}</span>
+      </Button>
     </div>
   )
 }

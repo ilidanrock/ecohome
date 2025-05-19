@@ -13,7 +13,15 @@ declare module "next-auth" {
     } & DefaultSession["user"]
   }
   interface User  {
-    role: string
+  email: string;
+  name: string;
+  surname: string;
+  role: 'tenant' | 'admin' | string;
+  is_active: boolean;
+  last_login: string | null;
+  deleted_at: string | null;
+  created_at: string;
+  updated_at: string;
   }
 }
 
@@ -53,13 +61,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           },
           body: JSON.stringify({ password })
         })
+        
 
         if (!response.ok) {
           const error = await response.json()
+          
           throw new CustomError(error.error || 'Error de autenticación')
         }
 
-         
         return await response.json()
       }
     })
@@ -74,17 +83,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       
-      if (user as {
-        id: string
-        email: string
-        name: string
-        role: string
-      } | User ) {
+      if (user as User ) {
 
         token.id = user.id
         token.email = user.email
         token.name = user.name
         token.role = user.role
+        token.surname = user.surname
       }
       return token
     },
@@ -95,9 +100,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.role = token.role as string
         session.user.email = token.email as string
         session.user.name = token.name as string
+        session.user.surname = token.surname as string
       }
       return session
     }
 
-  }
+  },
+  trustHost: true
 })

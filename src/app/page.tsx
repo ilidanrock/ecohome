@@ -1,4 +1,3 @@
-
 import Image from "next/image"
 import Link from "next/link"
 import { BarChart3, Droplets, Leaf, LightbulbIcon, Mountain, Shield, Zap } from "lucide-react"
@@ -69,7 +68,9 @@ export default async function LandingPage( ) {
             >
               Iniciar sesión
             </Link>
-            <Button className="bg-[#007BFF] hover:bg-[#007BFF]/90">Registrarse</Button>
+            <Link href="/auth/register">
+              <Button className="bg-[#007BFF] hover:bg-[#007BFF]/90">Registrarse</Button>
+            </Link>
           </div>
         </div>
       </header>

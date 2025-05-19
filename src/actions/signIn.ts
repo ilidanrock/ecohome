@@ -17,9 +17,8 @@ export async function signInAction(formData: FormData) {
         })
         
         
-        
         if (session?.user.role === "tenant") {
-
+            
             redirect("/dashboard")
         }
     

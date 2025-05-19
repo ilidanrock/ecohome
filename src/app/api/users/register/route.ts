@@ -1,46 +1,45 @@
-import { NextResponse } from "next/server"
-import { hash } from "bcryptjs"
-import { sql } from "@vercel/postgres"
+import { NextRequest, NextResponse } from "next/server"
 
-export async function POST(request: Request) {
+import { postRegisterUser } from "@/services/userService";
+
+
+export async function POST(request: NextRequest) {
+
   try {
-    const { email, name, password } = await request.json()
+    
+    const { email, name, password , role , surname } = await request.json()
 
     // Check if user already exists
-    const existingUser = await sql`
-      SELECT * FROM users WHERE email = ${email}
-    `
+    const result = await postRegisterUser({
+      email,
+      name,
+      password,
+      role,
+      surname
+    })
 
-    if (existingUser.rows.length > 0) {
+    console.log("RESULT",result);
+    
+
+    if (result && Array.isArray(result) && result.length > 0) {
       return NextResponse.json(
-        { error: "Este correo electrónico ya está registrado" },
+        { 
+          message: "Usuario registrado exitosamente",
+          user: result[0]
+        },
+        { status: 201 }
+      )
+    } else {
+      return NextResponse.json(
+        { error: "No se pudo registrar el usuario" },
         { status: 400 }
       )
     }
 
-    // Hash the password
-    const hashedPassword = await hash(password, 12)
-
-    // Create the user
-    const result = await sql`
-      INSERT INTO users (email, name, password, role) 
-      VALUES (${email}, ${name}, ${hashedPassword}, 'user') 
-      RETURNING id, email, name, role
-    `
-    
-
-    return NextResponse.json(
-      { 
-        message: "Usuario registrado exitosamente",
-        user: result.rows[0]
-      },
-      { status: 201 }
-    )
-
   } catch (error) {
     console.error("Error en el registro:", error)
     return NextResponse.json(
-      { error: "Error al registrar el usuario" },
+      { error: `Error al registrar el usuario ${error}`  },
       { status: 500 }
     )
   }

@@ -19,6 +19,9 @@ import { loginAction } from '@/actions/auth-action'
 import { loginSchema } from '@/zod/login-schema'
 import { useRouter } from 'next/navigation';
 import { getSession } from "next-auth/react"
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
+import { Leaf } from 'lucide-react'
+import Link from 'next/link'
 
 
 function FormLogin() {
@@ -68,9 +71,23 @@ function FormLogin() {
       })
   }
   return (
-    <div className="max-w-sm">
-            <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+
+          <div className="flex justify-center items-center min-h-screen">
+      <Card className="w-full max-w-md shadow-lg border-0 ">
+      <CardHeader className="space-y-2 text-center">
+        <div className="flex justify-center mb-2">
+          <div className="flex items-center gap-2">
+            <Leaf className="h-8 w-8 text-ecogreen" />
+            <span className="text-2xl font-bold text-ecoblue">EcoHome</span>
+          </div>
+        </div>
+        <CardTitle className="text-2xl font-bold text-darkgray">Iniciar Sesión</CardTitle>
+        <CardDescription className="text-darkgray/70">
+          Accede a tu cuenta para gestionar tu consumo energético
+        </CardDescription>
+      </CardHeader>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 px-6 py-4">
         <FormField
           control={form.control}
           name="email"
@@ -78,7 +95,15 @@ function FormLogin() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="juan@gmail.com" {...field} />
+                <Input 
+                id="email"
+
+              type="email"
+              placeholder="tu@ejemplo.com"
+              className="rounded-lg border-lightgray bg-white focus:border-ecoblue focus:ring-ecoblue"
+              required
+              {...field}
+                 />
               </FormControl>
               <FormDescription>
                 This is the email you will use to login.
@@ -103,7 +128,24 @@ function FormLogin() {
             </FormItem>
           )}
         />
-        <Button type="submit" aria-disabled={isPending}>Submit</Button>
+          <CardFooter className="flex flex-col space-y-4">
+          <Button type="submit" className="w-full bg-ecoblue hover:bg-ecoblue/90 text-white" disabled={isPending} >
+            Iniciar Sesión
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full border-ecogreen text-ecogreen hover:bg-ecogreen/10"
+          >
+            Iniciar con Google
+          </Button>
+          <div className="text-center text-sm text-darkgray/70">
+            ¿No tienes una cuenta?{" "}
+            <Link href="/register" className="text-ecogreen hover:text-ecogreen/80 font-medium">
+              Regístrate
+            </Link>
+          </div>
+        </CardFooter>
         {error && (
           <FormMessage className="text-red-500">
             {error}
@@ -111,7 +153,10 @@ function FormLogin() {
         )}
       </form>
     </Form>
+    </Card>
     </div>
+
+
 
   )
 }

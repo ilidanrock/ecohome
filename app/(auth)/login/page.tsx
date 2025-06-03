@@ -2,10 +2,13 @@
 import FormLogin from '@/components/form-login'
 import React from 'react'
 
-function LoginPage() {
+export async function LoginPage({ searchParams }: { searchParams: { verified?: string } }) {
+  const params = await searchParams
+  const verified = params.verified === "true"
+
   return (
     <div>
-        <FormLogin />
+      <FormLogin verified={verified} />
     </div>
   )
 }

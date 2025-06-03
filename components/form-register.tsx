@@ -33,10 +33,11 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "./forms/PasswordInput";
 
+
 export default function RegisterForm() {
+  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-  const router = useRouter()
 
         const form = useForm<z.infer<typeof signUpSchema>>({
         resolver: zodResolver(signUpSchema),
@@ -56,12 +57,13 @@ export default function RegisterForm() {
           setError(null)
           const res = await registerAction(values)
           
-          if (typeof res === 'string' && (res === "Invalid credentials" || res === "An error occurred during sign in")) {
-            setError(res)
+          if (typeof res === 'object' && res?.error === "El correo ya esta registrado") {
+            setError(res.error)
             form.reset()
             return
-          } else {
-            router.push("/dashboard")
+          }
+          if (typeof res === 'object' && res?.success === true) {
+            router.push("/register-success")
           }
         })
       }

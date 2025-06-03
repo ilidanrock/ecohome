@@ -1,9 +1,11 @@
 
-import { CredentialsSignin, type NextAuthConfig } from "next-auth"
+import { AuthError, type NextAuthConfig } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import { loginSchema } from "./zod/login-schema"
 import compare from "bcryptjs"
 import { prisma } from "./prisma"
+import { nanoid } from 'nanoid'
+import { sendVerificationEmail } from "./lib/mail"
 
 // Extend User and AdapterUser types to include 'role'
 declare module "next-auth" {
@@ -20,15 +22,17 @@ declare module "next-auth" {
   }
 }
 
-export class CustomError extends CredentialsSignin {
+export class CustomError extends AuthError   {
   code: string;
   status: number;
+  message: string;
 
   constructor(message = "Contraseña invalida", code = "InvalidCredentials", status = 401) {
-    super(message);
-    this.name = "CustomError";
+
+    super()
     this.code = code;
     this.status = status;
+    this.message = message;
   }
   
   toString(){
@@ -51,12 +55,40 @@ export default {
             email: email}
         })
         if (!user || !user.password) {
-          throw new CustomError("Invalid credentials")
+          throw new CustomError("Email no encontrado", "InvalidCredentials", 401)
         }
         const isPasswordValid = await compare.compare(password, user.password)
 
         if (!isPasswordValid) {
-          throw new Error("Invalid password")
+          throw new CustomError("Contraseña invalida", "InvalidCredentials", 401)
+        }
+
+        if (!user.emailVerified) {
+          const verifyTokenExist = await prisma.verificationToken.findFirst({
+            where: {
+              identifier: user.email
+            }
+          })
+          if (verifyTokenExist?.identifier) {
+            await prisma.verificationToken.delete({
+              where: {
+                identifier: user.email
+              }
+            })
+          }
+          const token = nanoid()
+          await prisma.verificationToken.create({
+            data: {
+              identifier: user.email,
+              token,
+              expires: new Date(Date.now() + 60 * 60 * 1000)
+            }
+          })
+          const result = await sendVerificationEmail(user.email, token)
+          if (!result.success) {
+            throw new CustomError(result.message, "VerifyEmail", 401)
+          }
+          throw new CustomError("Verifica tu correo", "VerifyEmail", 401)
         }
 
         return {

@@ -6,6 +6,9 @@ import { signUpSchema } from "@/zod/register-schema"
 import bcrypt from "bcryptjs"
 import { AuthError } from "next-auth"
 
+
+
+
 import { z } from "zod"
 export const loginAction = async (values : z.infer<typeof loginSchema>) => {
     try {
@@ -16,21 +19,13 @@ export const loginAction = async (values : z.infer<typeof loginSchema>) => {
         })
     } catch (error) {
         if (error instanceof AuthError) {
-            console.error("AuthError:", Object.entries(error))
-  
-            switch (error.type) {
-                case "CredentialsSignin":
-                    
-                    return "Invalid credentials"
-            
-                default:
-                    return "An error occurred during sign in"
-            }
+            return error.message
         }
     }
 }
 
 export const registerAction = async (values : z.infer<typeof signUpSchema>) => {
+
     const { name, surname, email, role, password } = values
     try {
 
@@ -42,7 +37,7 @@ export const registerAction = async (values : z.infer<typeof signUpSchema>) => {
         
         if (user) {
             return {
-                error: "User already exists"
+                error: "El correo ya esta registrado"
             }
         }
 
@@ -58,27 +53,18 @@ export const registerAction = async (values : z.infer<typeof signUpSchema>) => {
             }
         })
 
-        await signIn("credentials", {
-            email,
-            password,
-            redirect: false,
-        })
+        console.log("Usuario creado exitosamente");
+
         return {
-            success: "User created successfully"
+            success : true,
+            message : "Usuario creado exitosamente"
         }
 
     } catch (error) {
         if (error instanceof AuthError) {
             console.error("AuthError:", Object.entries(error))
   
-            switch (error.type) {
-                case "CredentialsSignin":
-                    
-                    return "Invalid credentials"
-            
-                default:
-                    return "An error occurred during sign in"
-            }
+            return error.message
         }
     }
 }

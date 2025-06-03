@@ -2,7 +2,7 @@
 import FormLogin from '@/components/form-login'
 import React from 'react'
 
-export async function LoginPage({ searchParams }: { searchParams: { verified?: string } }) {
+export default async function LoginPage({ searchParams }: { searchParams: { verified?: string } }) {
   const params = await searchParams
   const verified = params.verified === "true"
 
@@ -13,4 +13,3 @@ export async function LoginPage({ searchParams }: { searchParams: { verified?: s
   )
 }
 
-export default LoginPage

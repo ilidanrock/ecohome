@@ -23,13 +23,15 @@ export async function GET(request: NextRequest) {
     }
   })
 
+  if (!verifyTokenExist) {
+    return NextResponse.json({ error: 'Token no encontrado' }, { status: 404 })
+  }
+
   if(user?.emailVerified){
     return NextResponse.json({ error: 'Correo ya verificado' }, { status: 400 })
   }
 
-  if (!verifyTokenExist) {
-    return NextResponse.json({ error: 'Token no encontrado' }, { status: 404 })
-  }
+
 
   if (verifyTokenExist.expires < new Date()) {
     return NextResponse.json({ error: 'Token expirado' }, { status: 401 })

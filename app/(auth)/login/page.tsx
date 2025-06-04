@@ -10,7 +10,7 @@ export default function LoginPage(
   return (
     <div>
       <Suspense fallback={<div>Loading...</div>}>
-      <FormLogin />
+        <FormLogin />
       </Suspense>
      
     </div>

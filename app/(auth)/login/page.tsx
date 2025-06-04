@@ -1,14 +1,18 @@
 
 import FormLogin from '@/components/form-login'
-import React from 'react'
 
-export default function LoginPage({ searchParams }: { searchParams: { verified?: string } }) {
-  const params = searchParams
-  const verified = params.verified === "true"
+import React, { Suspense } from 'react'
+
+export default function LoginPage(
+) {
+
 
   return (
     <div>
-      <FormLogin verified={verified} />
+      <Suspense fallback={<div>Loading...</div>}>
+      <FormLogin />
+      </Suspense>
+     
     </div>
   )
 }

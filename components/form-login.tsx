@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { loginAction } from "@/actions/auth-action";
 import { loginSchema } from "@/zod/login-schema";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSession } from "next-auth/react";
 import {
   Card,
@@ -36,7 +36,7 @@ enum Error {
     InvalidEmail = "Email no encontrado"
 }
 
-function FormLogin({verified}: {verified?: boolean}) {
+function FormLogin() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -48,6 +48,9 @@ function FormLogin({verified}: {verified?: boolean}) {
       password: "",
     },
   });
+
+  const searchParams = useSearchParams()
+  const verified = searchParams.get('verified') === 'true'
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     startTransition(async () => {

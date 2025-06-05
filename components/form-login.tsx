@@ -29,6 +29,7 @@ import {
 import { Leaf } from "lucide-react";
 import Link from "next/link";
 import { PasswordInput } from "./forms/PasswordInput";
+import { Session } from "next-auth";
 
 enum Error {
     InvalidCredentials = "Contraseña invalida",
@@ -62,12 +63,13 @@ function FormLogin() {
         form.reset();
         return;
       }
-      const session = await getSession();
-      if (session?.user.role === "ADMIN") {
+      const session = await getSession() as Session
+      
+      if (session?.user?.role === "ADMIN") {
         router.push("/admin/dashboard");
         form.reset();
       }
-      if (session?.user.role === "USER") {
+      if (session?.user?.role === "USER") {
         router.push("/dashboard");
         form.reset();
       }

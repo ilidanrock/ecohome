@@ -1,0 +1,12 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "CallExpression[callee.object.name='require']",
+        "message": "CommonJS require() is not allowed. Use ES modules import/export instead."
+      }
+    ]
+  }
+}

@@ -5,7 +5,7 @@ import { loginSchema } from "./zod/login-schema"
 import compare from "bcryptjs"
 import { prisma } from "./prisma"
 import { nanoid } from 'nanoid'
-import { sendVerificationEmail } from "./lib/mail"
+
 
 // Extend User and AdapterUser types to include 'role'
 declare module "next-auth" {
@@ -84,9 +84,23 @@ export default {
               expires: new Date(Date.now() + 60 * 60 * 1000)
             }
           })
-          const result = await sendVerificationEmail(user.email, token)
-          if (!result.success) {
-            throw new CustomError(result.message, "VerifyEmail", 401)
+          // const result = await sendVerificationEmail(user.email, token)
+          // if (!result.success) {
+          //   throw new CustomError(result.message, "VerifyEmail", 401)
+          // }
+          const result = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/send-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: user.email,
+              token,
+            }),
+          })
+          if (!result.ok) {
+            throw new CustomError(`Error enviando email de verificación : ${
+              result.statusText } , ${process.env.NEXTAUTH_URL}/api/auth/send-email, ${user.email} , ${token}`, "VerifyEmail", 401, )
           }
           throw new CustomError("Verifica tu correo", "VerifyEmail", 401)
         }

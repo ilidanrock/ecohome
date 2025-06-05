@@ -1,7 +1,6 @@
 "use server";
 import { signIn } from "@/auth";
 import { CustomError } from "@/auth.config";
-import { sendVerificationEmail } from "@/lib/mail";
 import { prisma } from "@/prisma";
 import { loginSchema } from "@/zod/login-schema";
 import { signUpSchema } from "@/zod/register-schema";
@@ -63,9 +62,24 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
       },
     });
 
-    const result = await sendVerificationEmail(email, token);
-    if (!result.success) {
-      throw new CustomError(result.message, "VerifyEmail", 401);
+    // const result = await sendVerificationEmail(email, token);
+    // if (!result.success) {
+    //   throw new CustomError(result.message, "VerifyEmail", 401);
+    // }
+    console.log("Enviando email de verificación", `${process.env.NEXTAUTH_URL}/api/auth/send-email`);
+    
+    const result = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        token,
+      }),
+    })
+    if (!result.ok) {
+      throw new CustomError("Error enviando email de verificación", "VerifyEmail", 401)
     }
 
     return {

@@ -65,7 +65,7 @@ export default function RegisterSuccess() {
           <div className="text-center">
             <Button
               variant="ghost"
-              onClick={() => router.push("/auth/login")}
+              onClick={() => router.push("/login")}
               className="text-[#343A40]/70 hover:text-[#007BFF]"
             >
               ¿Ya verificaste tu email? Iniciar sesión

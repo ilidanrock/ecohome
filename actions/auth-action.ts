@@ -1,6 +1,7 @@
+
 "use server";
 import { signIn } from "@/auth";
-import { CustomError } from "@/auth.config";
+import { CustomError } from '@/auth.config';
 import { prisma } from "@/prisma";
 import { loginSchema } from "@/zod/login-schema";
 import { signUpSchema } from "@/zod/register-schema";

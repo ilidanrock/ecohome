@@ -18,7 +18,7 @@ import { z } from "zod";
 import { loginAction } from "@/actions/auth-action";
 import { loginSchema } from "@/zod/login-schema";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSession } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import {
   Card,
   CardDescription,
@@ -176,6 +176,13 @@ function FormLogin() {
                 type="button"
                 variant="outline"
                 className="w-full border-ecogreen text-ecogreen hover:bg-ecogreen/10"
+                onClick={() => {
+                  try {
+                    signIn("google")
+                  } catch (error) {
+                    console.log(error)
+                  }
+                }}
               >
                 Iniciar con Google
               </Button>

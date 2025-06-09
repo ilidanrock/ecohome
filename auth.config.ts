@@ -1,28 +1,30 @@
 
-import { AuthError, type NextAuthConfig } from "next-auth"
+import type { NextAuthConfig, DefaultSession } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
 import { loginSchema } from "./zod/login-schema"
 import compare from "bcryptjs"
 import { prisma } from "./prisma"
 import { nanoid } from 'nanoid'
 
-
-// Extend User and AdapterUser types to include 'role'
+// Extender tipos de NextAuth
 declare module "next-auth" {
   interface User {
     role?: string;
   }
+
   interface Session {
     user: {
       id: string;
       role?: string;
-      name?: string | null;
-      email?: string | null;
-    }
+    } & DefaultSession["user"]
+    accessToken?: string;
   }
 }
 
-export class CustomError extends AuthError   {
+
+
+export class CustomError extends Error {
   code: string;
   status: number;
   message: string;
@@ -40,9 +42,29 @@ export class CustomError extends AuthError   {
   }
 }
 
-// Notice this is only an object, not a full Auth.js instance
-export default {
+// Configuración de NextAuth
+const authConfig: NextAuthConfig = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          role: 'USER' // Rol por defecto para usuarios de Google
+        };
+      }
+    }),
         Credentials({
   
       authorize: async (credentials) => {
@@ -120,22 +142,33 @@ export default {
     
     
   ],
+  session: {
+    strategy: "jwt" as const,
+  },
+  debug: process.env.NODE_ENV === 'development',
+  trustHost: true,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      // Pasar el rol del usuario al token
       if (user) {
-        token.id = user.id
-        token.role = user.role
+        token.role = user.role;
       }
-      return token
+      // Pasar el access_token de Google al token
+      if (account?.access_token) {
+        token.accessToken = account.access_token;
+      }
+      return token;
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string
-        session.user.role = token.role as string
+      // Pasar el rol del token a la sesión
+      if (session.user) {
+        session.user.id = token.sub || '';
+        session.user.role = token.role as string;
+        session.accessToken = token.accessToken as string;
       }
-      return session
+      return session;
     },
-
   },
-    trustHost: true
-} satisfies NextAuthConfig
+};
+
+export default authConfig;

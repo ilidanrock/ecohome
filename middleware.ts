@@ -1,42 +1,63 @@
-import { auth } from '@/auth';
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { auth } from './auth';
 
 export async function middleware(request: NextRequest) {
-  const session = await auth();
-
   const { nextUrl } = request;
+  const { pathname } = nextUrl;
 
   // Rutas públicas que no requieren autenticación
-  const publicRoutes = ["/",'/login', '/register', '/api/auth/verify-email', '/api/auth/send-email', '/register-success'];
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+  const publicRoutes = [
+    "/",
+    "/login",
+    "/register",
+    "/register-success",
+    "/api/auth/signin",
+    "/api/auth/csrf",
+    "/api/auth/session",
+    "/api/auth/providers",
+    "/api/auth/callback/google",
+    "/api/auth/verify-email",
+    "/api/auth/send-email",
+  ];
 
-  // Si es una ruta pública, permitir el acceso
-  if (isPublicRoute) {
+  // Permitir todas las rutas de autenticación de NextAuth
+  if (pathname.startsWith('/api/auth/')) {
     return NextResponse.next();
   }
 
-  // Si no hay sesión, redirigir a login
+  // Permitir rutas públicas
+  if (publicRoutes.includes(pathname) || 
+      pathname.startsWith('/_next/') || 
+      pathname.endsWith('.css') || 
+      pathname.endsWith('.js') ||
+      pathname.endsWith('.png') ||
+      pathname.endsWith('.jpg') ||
+      pathname.endsWith('.jpeg') ||
+      pathname.endsWith('.svg') ||
+      pathname.endsWith('.ico')) {
+    return NextResponse.next();
+  }
+
+  const session = await auth()
+
   if (!session) {
-    const loginUrl = new URL('/login', nextUrl);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL('/login', nextUrl))
   }
 
-  // Protección de rutas de administrador
-  const adminRoutes = ['/admin'];
-  const isAdminRoute = adminRoutes.some(route => nextUrl.pathname.startsWith(route));
+  const protectedRoutes = ['/dashboard', '/profile', '/billing']
 
-  if (isAdminRoute && session.user.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/unauthorized', nextUrl));
+  if (protectedRoutes.some(route => nextUrl.pathname.startsWith(route)) && session.user.role !== 'USER') {
+    return NextResponse.redirect(new URL('/unauthorized', nextUrl))
   }
 
-  // Protección de rutas de usuario
-  const userRoutes = ['/dashboard', '/profile', '/billing'];
-  const isUserRoute = userRoutes.some(route => nextUrl.pathname.startsWith(route));
+  const adminRoutes = ['/admin']
 
-  if (isUserRoute && session.user.role !== 'USER') {
-    return NextResponse.redirect(new URL('/unauthorized', nextUrl));
+  if (adminRoutes.some(route => nextUrl.pathname.startsWith(route)) && session.user.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/unauthorized', nextUrl))
   }
+
 
   return NextResponse.next();
 }

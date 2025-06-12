@@ -8,10 +8,11 @@ export async function POST(request: NextRequest) {
 
     const {email, token} = await request.json()
 
-    console.log({email, token});
     
 
     const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`
+
+    console.log("verificationUrl", verificationUrl)
 
     const transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
@@ -30,7 +31,6 @@ export async function POST(request: NextRequest) {
           subject: "✉️ Verifica tu correo electrónico",
           html: getVerificationEmailTemplate(verificationUrl),
         });
-        console.log({info});
         
         return NextResponse.json({ message: "Correo enviado", id: info.messageId });
       } catch (error) {

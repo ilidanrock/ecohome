@@ -36,12 +36,6 @@ export async function GET(request: NextRequest) {
   if (verifyTokenExist.expires < new Date()) {
     return NextResponse.json({ error: 'Token expirado' }, { status: 401 })
   }
-
-  console.log({
-    user,
-    verifyTokenExist,
-    token
-  });
   
 
   const userUpdated = await prisma.user.update({

@@ -10,6 +10,26 @@ import { nanoid } from "nanoid";
 import { AuthError } from "next-auth";
 
 import { z } from "zod";
+
+export async function updateUserRole(role: "USER" | "ADMIN", email: string) {
+  try {
+    if (!email) {
+      return { error: "No se proporcionó un correo electrónico" };
+    }
+
+    // Actualizar el rol del usuario
+    await prisma.user.update({
+      where: { email },
+      data: { role },
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    return { error: "Error al actualizar el rol del usuario" };
+  }
+}
+
 export const loginAction = async (values: z.infer<typeof loginSchema>) => {
   try {
     await signIn("credentials", {
@@ -18,6 +38,7 @@ export const loginAction = async (values: z.infer<typeof loginSchema>) => {
       redirect: false,
     });
   } catch (error) {
+    console.log("Error in loginAction")
     if (error instanceof AuthError) {
       return error.message;
     }
@@ -63,11 +84,6 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
       },
     });
 
-    // const result = await sendVerificationEmail(email, token);
-    // if (!result.success) {
-    //   throw new CustomError(result.message, "VerifyEmail", 401);
-    // }
-    console.log("Enviando email de verificación", `${process.env.NEXTAUTH_URL}/api/auth/send-email`);
     
     const result = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/send-email`, {
       method: "POST",
@@ -79,6 +95,7 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
         token,
       }),
     })
+    console.log("result", result)
     if (!result.ok) {
       throw new CustomError("Error enviando email de verificación", "VerifyEmail", 401)
     }

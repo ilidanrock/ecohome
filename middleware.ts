@@ -4,15 +4,15 @@ import type { NextRequest } from 'next/server';
 import { auth } from './auth';
 
 export async function middleware(request: NextRequest) {
-  const { nextUrl } = request;
-  const { pathname } = nextUrl;
 
-  // Rutas públicas que no requieren autenticación
+  const session = await auth()
+
   const publicRoutes = [
     "/",
     "/login",
     "/register",
     "/register-success",
+    "/select-role",
     "/api/auth/signin",
     "/api/auth/csrf",
     "/api/auth/session",
@@ -22,42 +22,25 @@ export async function middleware(request: NextRequest) {
     "/api/auth/send-email",
   ];
 
-  // Permitir todas las rutas de autenticación de NextAuth
-  if (pathname.startsWith('/api/auth/')) {
-    return NextResponse.next();
+  if (publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
+    return NextResponse.next()
   }
-
-  // Permitir rutas públicas
-  if (publicRoutes.includes(pathname) || 
-      pathname.startsWith('/_next/') || 
-      pathname.endsWith('.css') || 
-      pathname.endsWith('.js') ||
-      pathname.endsWith('.png') ||
-      pathname.endsWith('.jpg') ||
-      pathname.endsWith('.jpeg') ||
-      pathname.endsWith('.svg') ||
-      pathname.endsWith('.ico')) {
-    return NextResponse.next();
-  }
-
-  const session = await auth()
 
   if (!session) {
-    return NextResponse.redirect(new URL('/login', nextUrl))
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   const protectedRoutes = ['/dashboard', '/profile', '/billing']
 
-  if (protectedRoutes.some(route => nextUrl.pathname.startsWith(route)) && session.user.role !== 'USER') {
-    return NextResponse.redirect(new URL('/unauthorized', nextUrl))
+  if (protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route)) && session.user.role !== 'USER') {
+    return NextResponse.redirect(new URL('/unauthorized', request.url))
   }
 
   const adminRoutes = ['/admin']
 
-  if (adminRoutes.some(route => nextUrl.pathname.startsWith(route)) && session.user.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/unauthorized', nextUrl))
+  if (adminRoutes.some(route => request.nextUrl.pathname.startsWith(route)) && session.user.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/unauthorized', request.url))
   }
-
 
   return NextResponse.next();
 }

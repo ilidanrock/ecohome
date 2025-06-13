@@ -45,20 +45,25 @@ export function FormLogin() {
 
   // Efecto para manejar la redirección cuando el usuario está autenticado
   useEffect(() => {
-    console.log('Session status:', status);
-    console.log('Session data:', session);
-    
-    if (status === 'authenticated' && session?.user) {
-      console.log('Usuario autenticado:', session.user);
-      console.log('Email del usuario:', session.user.email);
+    const handleAuth = async () => {
+      console.log('Session status:', status);
+      console.log('Session data:', session);
       
-      // Redirigir según el rol del usuario
-      if (session.user.role === 'ADMIN') {
-        router.push('/admin/dashboard');
-      } else if (session.user.role === 'USER') {
-        router.push('/dashboard');
+      if (status === 'authenticated' && session?.user) {
+        try {
+          console.log('Usuario autenticado:', session.user);
+          console.log('Email del usuario:', session.user.email);
+
+          router.push('/select-role');
+
+        } catch (error) {
+          console.error('Error during redirection:', error);
+          setError('Error al redirigir. Por favor, intente nuevamente.');
+        }
       }
-    }
+    };
+
+    handleAuth();
   }, [session, status, router]);
 
   const form = useForm<z.infer<typeof loginSchema>>({

@@ -11,7 +11,7 @@ import { useSession } from "next-auth/react"
 
 export default function SelectRole() {
 
-
+  const { data: session, status, update: updateSession } = useSession();
   const [selectedRole, setSelectedRole] = useState<"USER" | "ADMIN">()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -23,10 +23,10 @@ export default function SelectRole() {
   //     return;
   //   }
   // }, [searchParams, router])
-  const { data: session, status } = useSession();
+
   
   const handleRoleSelect = async () => {
-    console.log(session);
+
     if (status !== 'authenticated' || !session?.user?.email) {
       setErrorMessage("No se pudo obtener la información de la sesión. Por favor, inicia sesión nuevamente.");
       return;
@@ -42,6 +42,14 @@ export default function SelectRole() {
     }
     
     // Session is already checked at the start of the function
+
+    await updateSession({
+      ...session,
+      user: {
+        ...session.user,
+        role: selectedRole
+      }
+    });
     
     setIsLoading(true);
     setErrorMessage(null);

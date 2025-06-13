@@ -150,7 +150,7 @@ const authConfig: NextAuthConfig = {
   },
   trustHost: true,
   callbacks: {
-    jwt: async ({ token, user, account }) => {
+    jwt: async ({ token, user, account, trigger, session }) => {
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -161,6 +161,10 @@ const authConfig: NextAuthConfig = {
         if (user.email) {
           token.email = user.email;
         }
+      }
+      if (trigger === "update") {
+        
+        token.role = session.user.role
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;

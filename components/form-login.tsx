@@ -102,7 +102,7 @@ export function FormLogin() {
           </CardDescription>
           {verified && (
           <div className="mx-6 mb-4">
-            <div className="bg-[#28A745]/10 border border-[#28A745]/20 text-[#28A745] rounded-lg p-4 flex items-center gap-3">
+            <div className="bg-ecogreen/10 border border-ecogreen/20 text-ecogreen rounded-lg p-4 flex items-center gap-3">
               <div className="flex-shrink-0">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +122,7 @@ export function FormLogin() {
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-sm">¡Correo verificado exitosamente!</p>
-                <p className="text-xs text-[#28A745]/80 mt-1">Ya puedes iniciar sesión con tu cuenta</p>
+                <p className="text-xs text-ecogreen/80 mt-1">Ya puedes iniciar sesión con tu cuenta</p>
               </div>
             </div>
           </div>

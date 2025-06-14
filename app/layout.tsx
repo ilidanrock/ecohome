@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "EcoHome",
   description: "Energy consumption monitoring and management",
-  metadataBase: new URL("https://ecohome.com"),
+  metadataBase: new URL("https://ecohome-two.vercel.app"),
 };
 
 export default async function RootLayout({

@@ -3,10 +3,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { auth } from './auth';
 
+
 export async function middleware(request: NextRequest) {
+  const session = await auth();
+  const { pathname } = request.nextUrl;
 
-  const session = await auth()
-
+  // Define public routes that don't require authentication
   const publicRoutes = [
     "/",
     "/login",
@@ -20,46 +22,45 @@ export async function middleware(request: NextRequest) {
     "/api/auth/callback/google",
     "/api/auth/verify-email",
     "/api/auth/send-email",
+    "/api/auth/signout"
   ];
 
-  if (session?.user.role === 'NULL' && request.nextUrl.pathname.startsWith('/login')) {
-    return NextResponse.redirect(new URL('/select-role', request.url))
-  }
-
-  if (session?.user.role !== 'NULL' && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register'))) {
-
-    
-    if (session?.user.role === 'USER') {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-    if (session?.user.role === 'ADMIN') {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
-    }
-  }
-
+  // Allow access to public routes
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register');
   
-
-  if (publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
-    return NextResponse.next()
+  // If it's a public route, allow access
+  if (isPublicRoute) {
+    // If user is logged in and tries to access login/register, redirect based on role
+    if (session && isAuthRoute) {
+      if (session.user.role === 'USER') {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      } else if (session.user.role === 'ADMIN') {
+        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+      } else if (session.user.role === 'NULL' && pathname.startsWith('/login')) {
+        return NextResponse.redirect(new URL('/select-role', request.url));
+      }
+    }
+    return NextResponse.next();
   }
 
-
+  // If no session and not on a public route, redirect to login
   if (!session) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  
+  // Handle role-based access control for protected routes
+  const protectedRoutes = ['/dashboard', '/profile', '/billing'];
+  const adminRoutes = ['/admin'];
 
-  const protectedRoutes = ['/dashboard', '/profile', '/billing']
-
-  if (protectedRoutes.some(route => request.nextUrl.pathname.startsWith(route)) && session.user.role !== 'USER') {
-    return NextResponse.redirect(new URL('/unauthorized', request.url))
+  // Check user access to protected routes
+  if (protectedRoutes.some(route => pathname.startsWith(route)) && session.user.role !== 'USER') {
+    return NextResponse.redirect(new URL('/unauthorized', request.url));
   }
 
-  const adminRoutes = ['/admin']
-
-  if (adminRoutes.some(route => request.nextUrl.pathname.startsWith(route)) && session.user.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/unauthorized', request.url))
+  // Check admin access to admin routes
+  if (adminRoutes.some(route => pathname.startsWith(route)) && session.user.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/unauthorized', request.url));
   }
 
   return NextResponse.next();

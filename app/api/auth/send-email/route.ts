@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
 
     const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`
 
-    console.log("verificationUrl", verificationUrl)
 
     const transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",

@@ -37,8 +37,9 @@ export const loginAction = async (values: z.infer<typeof loginSchema>) => {
       password: values.password,
       redirect: false,
     });
+
   } catch (error) {
-    console.log("Error in loginAction")
+
     if (error instanceof AuthError) {
       return error.message;
     }
@@ -62,17 +63,29 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.create({
-      data: {
-        name,
-        surname,
-        email,
-        role,
-        password: hashedPassword,
-      },
-    });
+    // Crear el usuario y su cuenta de credenciales en una transacción
+    await prisma.$transaction(async (tx) => {
+      // 1. Crear el usuario
+      const user = await tx.user.create({
+        data: {
+          name,
+          surname,
+          email,
+          role,
+          password: hashedPassword
+        },
+      });
 
-    console.log("Usuario creado exitosamente");
+      // 2. Crear la cuenta de credenciales
+      await tx.account.create({
+        data: {
+          userId: user.id,
+          type: 'credentials',
+          provider: 'credentials',
+          providerAccountId: user.id, // Usamos el ID de usuario como providerAccountId
+        },
+      });
+    });
 
     const token = nanoid();
 
@@ -95,7 +108,6 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
         token,
       }),
     })
-    console.log("result", result)
     if (!result.ok) {
       throw new CustomError("Error enviando email de verificación", "VerifyEmail", 401)
     }
@@ -106,7 +118,6 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
     };
   } catch (error) {
     if (error instanceof AuthError) {
-      console.error("AuthError:", Object.entries(error));
 
       return error.message;
     }

@@ -5,6 +5,7 @@ import { loginSchema } from "./zod/login-schema";
 import compare from "bcryptjs";
 import { prisma } from "./prisma";
 import { nanoid } from "nanoid";
+import { AuthError } from "next-auth";
 
 // Extender tipos de NextAuth
 declare module "next-auth" {
@@ -23,7 +24,7 @@ declare module "next-auth" {
   }
 }
 
-export class CustomError extends Error {
+export class CustomError extends AuthError {
   code: string;
   status: number;
   message: string;
@@ -58,13 +59,14 @@ const authConfig: NextAuthConfig = {
           surname: profile.family_name,
           email: profile.email,
           emailVerified: profile.email_verified,
-          image: profile.picture,
-          role: "USER", // Rol por defecto para usuarios de Google
+          image: profile.picture
         };
       },
     }),
     Credentials({
       authorize: async (credentials) => {
+
+
         const { email, password } = await loginSchema.parseAsync(credentials);
 
         const user = await prisma.user.findFirst({
@@ -72,9 +74,17 @@ const authConfig: NextAuthConfig = {
             email: email,
           },
         });
+
         if (!user) {
           throw new CustomError(
             "Email no encontrado",
+            "InvalidCredentials",
+            401
+          );
+        }
+        if (!user.password) {
+          throw new CustomError(
+            "Usuario registrado con Google",
             "InvalidCredentials",
             401
           );
@@ -149,7 +159,58 @@ const authConfig: NextAuthConfig = {
     strategy: "jwt" as const,
   },
   trustHost: true,
+  events: {
+    async linkAccount({ user, account }) {
+      // Este evento se dispara cuando se vincula una cuenta exitosamente
+      console.log(`Cuenta de ${account?.provider} vinculada para el usuario:`, user.email);
+    },
+  },
   callbacks: {
+    async signIn({ user, account }) {
+      // Permitir el inicio de sesión con credenciales o si el usuario ya existe
+      if (account?.provider === 'credentials') {
+        return true;
+      }
+
+      // Para proveedores OAuth como Google
+      if (account?.provider === 'google' && user?.email) {
+        // Buscar si el usuario ya existe
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+
+        if (existingUser) {
+          // Si el usuario existe, vincular la cuenta si no está ya vinculada
+          const existingAccount = await prisma.account.findFirst({
+            where: {
+              userId: existingUser.id,
+              provider: account.provider,
+            },
+          });
+
+          if (!existingAccount) {
+            // Vincular la cuenta de Google al usuario existente
+            await prisma.account.create({
+              data: {
+                userId: existingUser.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId as string,
+                refresh_token: account.refresh_token,
+                access_token: account.access_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state as string,
+              },
+            });
+          }
+          return true;
+        }
+      }
+      return true;
+    },
     jwt: async ({ token, user, account, trigger, session }) => {
       if (user) {
         token.id = user.id;

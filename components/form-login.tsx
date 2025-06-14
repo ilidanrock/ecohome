@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import {  useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,7 @@ import { z } from "zod";
 import { loginAction } from "@/actions/auth-action";
 import { loginSchema } from "@/zod/login-schema";
 import { useRouter, useSearchParams } from "next/navigation";
-import { getSession, signIn, useSession } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import {
   Card,
   CardDescription,
@@ -34,37 +34,17 @@ import { Session } from "next-auth";
 enum Error {
   InvalidCredentials = "Contraseña invalida",
   VerifyEmail = "Verifica tu correo",
-  InvalidEmail = "Email no encontrado"
+  InvalidEmail = "Email no encontrado",
+  UserGoogle = "Usuario registrado con Google"
 }
 
 export function FormLogin() {
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null | undefined>(null);
   const [isPending, startTransition] = useTransition();
-  const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Efecto para manejar la redirección cuando el usuario está autenticado
-  useEffect(() => {
-    const handleAuth = async () => {
-      console.log('Session status:', status);
-      console.log('Session data:', session);
-      
-      if (status === 'authenticated' && session?.user) {
-        try {
-          console.log('Usuario autenticado:', session.user);
-          console.log('Email del usuario:', session.user.email);
 
-          router.push('/select-role');
-
-        } catch (error) {
-          console.error('Error during redirection:', error);
-          setError('Error al redirigir. Por favor, intente nuevamente.');
-        }
-      }
-    };
-
-    handleAuth();
-  }, [session, status, router]);
+  
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -78,14 +58,16 @@ export function FormLogin() {
 
   const searchParams = useSearchParams()
   const verified = searchParams.get('verified') === 'true'
+  const allErrorValues = Object.values(Error) as string[] ;
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     startTransition(async () => {
       setError(null);
       const res = await loginAction(values);
-      
 
-      if ( Error.InvalidCredentials === res || Error.VerifyEmail === res || Error.InvalidEmail === res) {
+      
+      
+      if ( allErrorValues.includes(res as string)) {
         setError(res);
         form.reset();
         return;
@@ -204,11 +186,9 @@ export function FormLogin() {
                 variant="outline"
                 className="w-full border-ecogreen text-ecogreen hover:bg-ecogreen/10"
                 onClick={() => {
-                  try {
+
                     signIn("google")
-                  } catch (error) {
-                    console.log(error)
-                  }
+
                 }}
               >
                 Iniciar con Google

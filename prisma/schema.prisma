@@ -10,6 +10,7 @@ generator client {
 enum Role {
   USER
   ADMIN
+  NULL
 }
  
 model User {
@@ -17,7 +18,7 @@ model User {
   name          String?
   surname       String?
   password      String?
-  role          Role          @default(USER)
+  role          Role          @default(NULL)
   email         String          @unique
   emailVerified DateTime?
   image         String?

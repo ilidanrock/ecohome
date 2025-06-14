@@ -22,13 +22,33 @@ export async function middleware(request: NextRequest) {
     "/api/auth/send-email",
   ];
 
+  if (session?.user.role === 'NULL' && request.nextUrl.pathname.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/select-role', request.url))
+  }
+
+  if (session?.user.role !== 'NULL' && request.nextUrl.pathname.startsWith('/login')) {
+
+    
+    if (session?.user.role === 'USER') {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+    if (session?.user.role === 'ADMIN') {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+    }
+  }
+
+  
+
   if (publicRoutes.some(route => request.nextUrl.pathname.startsWith(route))) {
     return NextResponse.next()
   }
 
+
   if (!session) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
+
+  
 
   const protectedRoutes = ['/dashboard', '/profile', '/billing']
 

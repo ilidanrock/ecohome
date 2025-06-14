@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/select-role', request.url))
   }
 
-  if (session?.user.role !== 'NULL' && request.nextUrl.pathname.startsWith('/login')) {
+  if (session?.user.role !== 'NULL' && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/register'))) {
 
     
     if (session?.user.role === 'USER') {

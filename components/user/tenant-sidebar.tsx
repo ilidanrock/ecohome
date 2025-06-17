@@ -1,246 +1,193 @@
 "use client"
 
-import { useState } from "react"
+import type React from "react"
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import {
-  Home,
-  BarChart3,
-  Zap,
-  Droplets,
-  FileText,
-  CreditCard,
-  Bell,
-  Settings,
-  MessageSquare,
-  Lightbulb,
-  Calendar,
-  LogOut,
-  Menu,
-  X,
-  Leaf,
-  User,
-} from "lucide-react"
+import { Home, BarChart3, Zap, Droplets, Settings, Lightbulb, LogOut, Leaf, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useSession } from "next-auth/react"
+import { signOut, useSession } from "next-auth/react"
 import Image from "next/image"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+} from "@/components/ui/sidebar"
 
 const navigation = [
-  {
-    name: "Dashboard",
-    href: "/tenant/dashboard",
-    icon: Home,
-    current: false,
-  },
-  {
-    name: "Mi Consumo",
-    href: "/tenant/consumption",
-    icon: BarChart3,
-    current: false,
-  },
-  {
-    name: "Energía",
-    href: "/tenant/energy",
-    icon: Zap,
-    current: false,
-  },
-  {
-    name: "Agua",
-    href: "/tenant/water",
-    icon: Droplets,
-    current: false,
-  },
-  {
-    name: "Facturas",
-    href: "/tenant/bills",
-    icon: CreditCard,
-    current: false,
-  },
-  {
-    name: "Reportes",
-    href: "/tenant/reports",
-    icon: FileText,
-    current: false,
-  },
-  {
-    name: "Alertas",
-    href: "/tenant/alerts",
-    icon: Bell,
-    current: false,
-  },
+  { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Mi Consumo", href: "/tenant/consumption", icon: BarChart3 },
+  { name: "Energía", href: "/tenant/energy", icon: Zap },
+  { name: "Agua", href: "/tenant/water", icon: Droplets },
 ]
 
 const secondaryNavigation = [
-  {
-    name: "Consejos de Ahorro",
-    href: "/tenant/tips",
-    icon: Lightbulb,
-  },
-  {
-    name: "Mantenimiento",
-    href: "/tenant/maintenance",
-    icon: Calendar,
-  },
-  {
-    name: "Mensajes",
-    href: "/tenant/messages",
-    icon: MessageSquare,
-  },
-  {
-    name: "Mi Perfil",
-    href: "/tenant/profile",
-    icon: User,
-  },
-  {
-    name: "Configuración",
-    href: "/tenant/settings",
-    icon: Settings,
-  },
+  { name: "Consejos de Ahorro", href: "/tenant/tips", icon: Lightbulb },
+  { name: "Mi Perfil", href: "/tenant/profile", icon: User },
+  { name: "Configuración", href: "/tenant/settings", icon: Settings },
 ]
 
 export function TenantSidebar() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const { data: session } = useSession()
 
   return (
-    <>
-      {/* Mobile sidebar */}
-      <div className={cn("relative z-50 lg:hidden", sidebarOpen ? "block" : "hidden")}>
-        <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)} />
-        <div className="fixed inset-0 flex">
-          <div className="relative mr-16 flex w-full max-w-xs flex-1">
-            <div className="absolute left-full top-0 flex w-16 justify-center pt-5">
-              <button type="button" className="-m-2.5 p-2.5" onClick={() => setSidebarOpen(false)}>
-                <X className="h-6 w-6 text-white" />
-              </button>
+    <Sidebar className="border-r border-gray-200">
+      <SidebarHeader className="border-b border-gray-100 bg-gradient-to-r from-blue-50 to-green-50">
+        {/* Logo */}
+        <div className="flex h-16 items-center px-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-green-500">
+              <Leaf className="h-6 w-6 text-white" />
             </div>
-            <SidebarContent pathname={pathname} />
+            <div>
+              <span className="text-xl font-bold text-blue-600">EcoHome</span>
+              <div className="text-xs font-medium text-gray-600">Mi Hogar</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-        <SidebarContent pathname={pathname} />
-      </div>
+        {/* User Info */}
+        <div className="mx-4 mb-4 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-green-50 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-blue-100">
+              {session?.user?.image ? (
+                <Image
+                  src={session.user.image || "/placeholder.svg"}
+                  alt="User avatar"
+                  width={48}
+                  height={48}
+                  className="rounded-full object-cover"
+                />
+              ) : (
+                <User className="h-6 w-6 text-blue-600" />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-gray-900">{session?.user?.name || "Usuario"}</p>
+              <p className="text-xs text-gray-600">Apartamento 3B</p>
+            </div>
+          </div>
+        </div>
+      </SidebarHeader>
 
-      {/* Mobile menu button */}
-      <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
-        <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
-          <Menu className="h-6 w-6" />
-        </button>
-        <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">Mi Dashboard</div>
-      </div>
-    </>
+      <SidebarContent className="px-2">
+        {/* Main Navigation */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigation.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    className={cn(
+                      "w-full justify-start transition-all duration-200",
+                      pathname === item.href
+                        ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium"
+                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-700",
+                    )}
+                  >
+                    <Link href={item.href}>
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Secondary Navigation */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            Herramientas
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {secondaryNavigation.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href}
+                    className={cn(
+                      "w-full justify-start transition-all duration-200",
+                      pathname === item.href
+                        ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium"
+                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-700",
+                    )}
+                  >
+                    <Link href={item.href}>
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter className="border-t border-gray-100 p-2">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+              onClick={() => signOut({ callbackUrl: "/" })}
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Cerrar Sesión</span>
+            </Button>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   )
 }
 
-function SidebarContent({ pathname }: { pathname: string }) {
-    const {data: session} = useSession()
+// Layout wrapper component
+export function TenantLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+
+  // Get current page name for mobile header
+  const getCurrentPageName = () => {
+    const currentNav = [...navigation, ...secondaryNavigation].find(
+      (n) => pathname === n.href || pathname.startsWith(n.href),
+    )
+    return currentNav?.name || "Dashboard"
+  }
+
   return (
-    <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 pb-4 shadow-lg">
-      <div className="flex h-16 shrink-0 items-center">
-        <div className="flex items-center gap-2">
-          <Leaf className="h-8 w-8 text-ecogreen" />
-          <div>
-            <span className="text-xl font-bold text-ecoblue">EcoHome</span>
-            <div className="text-xs text-[#343A40]/60 font-medium">Mi Hogar</div>
-          </div>
-        </div>
-      </div>
-
-      {/* User info card */}
-      <div className="bg-gradient-to-r from-ecoblue/10 to-ecogreen/10 rounded-lg p-4 border border-ecoblue/20">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-ecoblue/20 flex items-center justify-center">
-          {
-            session?.user?.image ? (
-              <Image
-                src={session.user.image}
-                alt="User"
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-            ) : (
-              <User className="h-5 w-5 text-ecoblue" />
-            )
-          }
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-[#343A40]">{session?.user?.name}</p>
-            <p className="text-xs text-[#343A40]/70">Apartamento 3B</p>
-          </div>
-        </div>
-      </div>
-
-      <nav className="flex flex-1 flex-col">
-        <ul role="list" className="flex flex-1 flex-col gap-y-7">
-          <li>
-            <ul role="list" className="-mx-2 space-y-1">
-              {navigation.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      pathname === item.href
-                        ? "bg-[#007BFF]/10 text-[#007BFF] border-r-2 border-[#007BFF]"
-                        : "text-[#343A40]/70 hover:text-[#007BFF] hover:bg-[#007BFF]/5",
-                      "group flex gap-x-3 rounded-l-md p-3 text-sm leading-6 font-medium transition-all duration-200",
-                    )}
-                  >
-                    <item.icon
-                      className={cn(
-                        pathname === item.href ? "text-[#007BFF]" : "text-[#343A40]/60 group-hover:text-[#007BFF]",
-                        "h-5 w-5 shrink-0",
-                      )}
-                    />
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </li>
-          <li>
-            <div className="text-xs font-semibold leading-6 text-[#343A40]/60 uppercase tracking-wide">
-              Herramientas
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex min-h-screen w-full">
+        <TenantSidebar />
+        <SidebarInset className="flex-1">
+          {/* Mobile header */}
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 lg:hidden">
+            <SidebarTrigger className="h-8 w-8" />
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold text-gray-900">{getCurrentPageName()}</h1>
             </div>
-            <ul role="list" className="-mx-2 mt-2 space-y-1">
-              {secondaryNavigation.map((item) => (
-                <li key={item.name}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      pathname === item.href
-                        ? "bg-[#007BFF]/10 text-[#007BFF] border-r-2 border-[#007BFF]"
-                        : "text-[#343A40]/70 hover:text-[#007BFF] hover:bg-[#007BFF]/5",
-                      "group flex gap-x-3 rounded-l-md p-3 text-sm leading-6 font-medium transition-all duration-200",
-                    )}
-                  >
-                    <item.icon
-                      className={cn(
-                        pathname === item.href ? "text-[#007BFF]" : "text-[#343A40]/60 group-hover:text-[#007BFF]",
-                        "h-5 w-5 shrink-0",
-                      )}
-                    />
-                    {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </li>
-          <li className="mt-auto">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-[#343A40]/70 hover:text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="h-5 w-5 mr-3" />
-              Cerrar Sesión
-            </Button>
-          </li>
-        </ul>
-      </nav>
-    </div>
+          </header>
+
+          {/* Main content */}
+          <main className="flex-1 overflow-auto">{children}</main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   )
 }

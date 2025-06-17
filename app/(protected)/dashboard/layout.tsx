@@ -10,7 +10,7 @@ export default function TenantLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-[#F8F9FA]">
+    <div className="min-h-screen w-full bg-[#F8F9FA]">
       <TenantSidebar />
       <div className="lg:pl-64">
         <TenantHeader />

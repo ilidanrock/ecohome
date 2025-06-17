@@ -1,5 +1,4 @@
 import React from 'react'
-import LogoutButton from '@/components/logout-button'
 import { auth } from '@/auth'
 
 async function pageAdmin() {
@@ -13,8 +12,7 @@ async function pageAdmin() {
     }
   return (
     <div>
-      <pre>{JSON.stringify(session, null, 2)}</pre>
-      <LogoutButton />
+      
     </div>
   )
 }

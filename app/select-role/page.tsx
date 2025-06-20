@@ -78,7 +78,7 @@ export default function SelectRole() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
+    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl border-0 overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-green-600 p-6 text-white text-center">
           <h1 className="text-2xl font-bold">¡Bienvenido a EcoHome!</h1>

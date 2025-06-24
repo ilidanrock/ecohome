@@ -30,6 +30,7 @@ import { Leaf } from "lucide-react";
 import Link from "next/link";
 import { PasswordInput } from "./forms/PasswordInput";
 import { Session } from "next-auth";
+import { GoogleIcon } from "./icons/google";
 
 enum Error {
   InvalidCredentials = "Contraseña invalida",
@@ -191,6 +192,7 @@ export function FormLogin() {
 
                 }}
               >
+                <GoogleIcon className="h-4 w-4 " />
                 Iniciar con Google
               </Button>
               <div className="text-center text-sm text-darkgray/70">

@@ -33,6 +33,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "./forms/PasswordInput";
 import { signIn } from "next-auth/react";
+import { GoogleIcon } from "./icons/google";
 
 
 export default function RegisterForm() {
@@ -220,9 +221,10 @@ export default function RegisterForm() {
             </Button>
             <Button
               type="button"
-              className="w-full border-ecogreen text-ecogreen hover:bg-ecogreen/10"
+              className="w-full border-ecogreen text-white hover:bg-ecoblue/90"
               onClick={() => signIn('google')}
             >
+              <GoogleIcon className="h-4 w-4 " />
               Registrarse con Google
             </Button>
             <div className="text-center text-sm text-darkgray/70">

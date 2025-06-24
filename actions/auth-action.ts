@@ -17,6 +17,10 @@ export async function updateUserRole(role: "USER" | "ADMIN", email: string) {
       return { error: "No se proporcionó un correo electrónico" };
     }
 
+    console.log("Updating user role for email:", email);
+    console.log("Updating user role to:", role);
+    
+
     // Actualizar el rol del usuario
     await prisma.user.update({
       where: { email },

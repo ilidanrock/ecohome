@@ -16,14 +16,6 @@ export default function SelectRole() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  // useEffect(() => {
-  //   // Verificar si el usuario llegó aquí desde el flujo de registro
-  //   if (!searchParams.get("newUser") || !searchParams.get("email")) {
-  //     router.push("/");
-  //     return;
-  //   }
-  // }, [searchParams, router])
-
   
   const handleRoleSelect = async () => {
 

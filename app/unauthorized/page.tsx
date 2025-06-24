@@ -1,10 +1,21 @@
+"use client"
+
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Leaf, Home, ArrowLeft, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { signOut } from "next-auth/react"
+
 
 export default function UnauthorizedPage() {
+  const router = useRouter();
+  
+  const handleGoBack = () => {
+    router.back();
+  };
+
   return (
-    <div className="h-[100dvh] grid place-items-center bg-[#F8F9FA] p-4">
+    <div className="h-[100dvh] w-full grid place-items-center bg-[#F8F9FA] p-4">
       <div className="w-full max-w-md text-center space-y-6 md:space-y-8">
         {/* Logo */}
         <div className="flex justify-center">
@@ -39,11 +50,13 @@ export default function UnauthorizedPage() {
 
         {/* Botones */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild variant="outline" className="border-ecoblue text-ecoblue hover:bg-ecoblue/10">
-            <Link href="javascript:history.back()" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Volver atrás
-            </Link>
+          <Button 
+            onClick={handleGoBack} 
+            variant="outline" 
+            className="border-ecoblue text-ecoblue hover:bg-ecoblue/10 flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver atrás
           </Button>
           <Button asChild className="bg-ecoblue hover:bg-ecoblue/90 text-white">
             <Link href="/" className="flex items-center gap-2">
@@ -57,7 +70,9 @@ export default function UnauthorizedPage() {
         <div className="pt-6 border-t border-lightgray text-sm space-y-3">
           <p className="text-darkgray/70">¿Necesitas ayuda? Prueba:</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="/auth/login" className="text-ecoblue hover:text-ecoblue/80">
+            <Link href="#" onClick={()=>signOut({
+              redirectTo: "/login"
+            })} className="text-ecoblue hover:text-ecoblue/80">
               Iniciar sesión con otra cuenta
             </Link>
             <Link href="/contact" className="text-ecoblue hover:text-ecoblue/80">

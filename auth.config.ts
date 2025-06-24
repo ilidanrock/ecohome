@@ -152,11 +152,24 @@ const authConfig: NextAuthConfig = {
           email: user.email,
           role: user.role,
         };
-      },
+      }
     }),
   ],
   session: {
     strategy: "jwt" as const,
+    maxAge: 60 * 60 * 24 * 30,
+    updateAge: 60 * 60 * 24,
+
+  },
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
   },
   trustHost: true,
   events: {

@@ -1,11 +1,12 @@
 import type { NextAuthConfig, DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google"
+import Google from "next-auth/providers/google";
 import { loginSchema } from "./zod/login-schema";
 import compare from "bcryptjs";
 import { prisma } from "./prisma";
 import { nanoid } from "nanoid";
-import { AuthError } from "next-auth";
+import { CustomError } from "./lib/auth";
+import { createVerificationTokenEmail, sendEmail } from "./services/verify-email";
 
 // Extender tipos de NextAuth
 declare module "next-auth" {
@@ -24,27 +25,6 @@ declare module "next-auth" {
   }
 }
 
-export class CustomError extends AuthError {
-  code: string;
-  status: number;
-  message: string;
-
-  constructor(
-    message = "Contraseña invalida",
-    code = "InvalidCredentials",
-    status = 401
-  ) {
-    super();
-    this.code = code;
-    this.status = status;
-    this.message = message;
-  }
-
-  toString() {
-    return this.message;
-  }
-}
-
 // Configuración de NextAuth
 const authConfig: NextAuthConfig = {
   providers: [
@@ -52,22 +32,20 @@ const authConfig: NextAuthConfig = {
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
       profile(profile) {
-        
         return {
           id: profile.sub,
           name: profile.given_name,
           surname: profile.family_name,
           email: profile.email,
           emailVerified: profile.email_verified,
-          image: profile.picture
+          image: profile.picture,
         };
       },
     }),
     Credentials({
       authorize: async (credentials) => {
-
-
         const { email, password } = await loginSchema.parseAsync(credentials);
+        const token = nanoid();
 
         const user = await prisma.user.findFirst({
           where: {
@@ -82,6 +60,7 @@ const authConfig: NextAuthConfig = {
             401
           );
         }
+
         if (!user.password) {
           throw new CustomError(
             "Usuario registrado con Google",
@@ -112,38 +91,10 @@ const authConfig: NextAuthConfig = {
               },
             });
           }
-          const token = nanoid();
-          await prisma.verificationToken.create({
-            data: {
-              identifier: user.email,
-              token,
-              expires: new Date(Date.now() + 60 * 60 * 1000),
-            },
-          });
 
-          const result = await fetch(
-            `${process.env.NEXTAUTH_URL}/api/auth/send-email`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                email: user.email,
-                token,
-              }),
-            }
-          );
-          if (!result.ok) {
-            throw new CustomError(
-              `Error enviando email de verificación : ${
-                result.statusText
-              } , ${process.env.NEXTAUTH_URL}/api/auth/send-email, ${user.email} , ${token}`,
-              "VerifyEmail",
-              401
-            );
-          }
-          throw new CustomError("Verifica tu correo", "VerifyEmail", 401);
+          await createVerificationTokenEmail(user.email, token);
+
+          await sendEmail(user.email, token);
         }
 
         return {
@@ -152,14 +103,13 @@ const authConfig: NextAuthConfig = {
           email: user.email,
           role: user.role,
         };
-      }
+      },
     }),
   ],
   session: {
     strategy: "jwt" as const,
     maxAge: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
-
   },
   cookies: {
     sessionToken: {
@@ -175,18 +125,21 @@ const authConfig: NextAuthConfig = {
   events: {
     async linkAccount({ user, account }) {
       // Este evento se dispara cuando se vincula una cuenta exitosamente
-      console.log(`Cuenta de ${account?.provider} vinculada para el usuario:`, user.email);
+      console.log(
+        `Cuenta de ${account?.provider} vinculada para el usuario:`,
+        user.email
+      );
     },
   },
   callbacks: {
     async signIn({ user, account }) {
       // Permitir el inicio de sesión con credenciales o si el usuario ya existe
-      if (account?.provider === 'credentials') {
+      if (account?.provider === "credentials") {
         return true;
       }
 
       // Para proveedores OAuth como Google
-      if (account?.provider === 'google' && user?.email) {
+      if (account?.provider === "google" && user?.email) {
         // Buscar si el usuario ya existe
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email },
@@ -237,8 +190,7 @@ const authConfig: NextAuthConfig = {
         }
       }
       if (trigger === "update") {
-        
-        token.role = session.user.role
+        token.role = session.user.role;
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
@@ -249,7 +201,7 @@ const authConfig: NextAuthConfig = {
       if (session?.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
-        session.user.email = token.email as string; 
+        session.user.email = token.email as string;
         session.accessToken = token.accessToken as string;
 
         session.user = {
@@ -257,7 +209,7 @@ const authConfig: NextAuthConfig = {
           email: token.email as string,
           name: token.name as string,
           image: token.picture as string,
-          token: JSON.stringify(token)
+          token: JSON.stringify(token),
         };
       }
       return session;

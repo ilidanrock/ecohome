@@ -8,32 +8,32 @@ import { Card, CardContent } from "@/components/ui/card"
 import { updateUserRole } from "@/actions/auth-action"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useSession } from "next-auth/react"
+import { role } from "@/types/user"
 
 export default function SelectRole() {
 
   const { data: session, status, update: updateSession } = useSession();
-  const [selectedRole, setSelectedRole] = useState<"USER" | "ADMIN">()
+  const [selectedRole, setSelectedRole] = useState<role>()
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   
   const handleRoleSelect = async () => {
+    const userEmail = session?.user?.email;
 
-    if (status !== 'authenticated' || !session?.user?.email) {
+
+    if (status !== 'authenticated' || !userEmail) {
       setErrorMessage("No se pudo obtener la información de la sesión. Por favor, inicia sesión nuevamente.");
       return;
     }
 
-    
-    
-    
-    const userEmail = session.user.email;
+
     if (!selectedRole) {
       setErrorMessage("Por favor selecciona un rol");
       return;
     }
     
-    // Session is already checked at the start of the function
+
 
     await updateSession({
       ...session,

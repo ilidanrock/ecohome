@@ -32,12 +32,6 @@ import { PasswordInput } from "./forms/PasswordInput";
 import { Session } from "next-auth";
 import { GoogleIcon } from "./icons/google";
 
-enum Error {
-  InvalidCredentials = "Contraseña invalida",
-  VerifyEmail = "Verifica tu correo",
-  InvalidEmail = "Email no encontrado",
-  UserGoogle = "Usuario registrado con Google"
-}
 
 export function FormLogin() {
   const [error, setError] = useState<string | null | undefined>(null);
@@ -59,17 +53,15 @@ export function FormLogin() {
 
   const searchParams = useSearchParams()
   const verified = searchParams.get('verified') === 'true'
-  const allErrorValues = Object.values(Error) as string[] ;
+
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     startTransition(async () => {
       setError(null);
       const res = await loginAction(values);
 
-      
-      
-      if ( allErrorValues.includes(res as string)) {
-        setError(res);
+      if (res.error) {
+        setError(res.error);
         form.reset();
         return;
       }

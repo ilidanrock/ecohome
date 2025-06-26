@@ -1,8 +1,10 @@
 
 "use server";
 import { signIn } from "@/auth";
-import { CustomError } from '@/auth.config';
 import { prisma } from "@/prisma";
+import { createVerificationTokenEmail, sendEmail } from "@/services/verify-email";
+import { ResponseAPI } from "@/types/https";
+import { role } from "@/types/user";
 import { loginSchema } from "@/zod/login-schema";
 import { signUpSchema } from "@/zod/register-schema";
 import bcrypt from "bcryptjs";
@@ -11,14 +13,11 @@ import { AuthError } from "next-auth";
 
 import { z } from "zod";
 
-export async function updateUserRole(role: "USER" | "ADMIN", email: string) {
+export async function updateUserRole(role: role, email: string): Promise<ResponseAPI> {
   try {
     if (!email) {
-      return { error: "No se proporcionó un correo electrónico" };
+      return { success: false, error: "No se proporcionó un correo electrónico" };
     }
-
-    console.log("Updating user role for email:", email);
-    console.log("Updating user role to:", role);
     
 
     // Actualizar el rol del usuario
@@ -30,28 +29,33 @@ export async function updateUserRole(role: "USER" | "ADMIN", email: string) {
     return { success: true };
   } catch (error) {
     console.error("Error updating user role:", error);
-    return { error: "Error al actualizar el rol del usuario" };
+    return { success: false, error: "Error al actualizar el rol del usuario" };
   }
 }
 
-export const loginAction = async (values: z.infer<typeof loginSchema>) => {
+export const loginAction = async (values: z.infer<typeof loginSchema>): Promise<ResponseAPI> => {
   try {
     await signIn("credentials", {
       email: values.email,
       password: values.password,
       redirect: false,
     });
-
+    return { success: true };
   } catch (error) {
 
     if (error instanceof AuthError) {
-      return error.message;
+      return { success: false, error: error.message };
     }
+    return { success: false, error: 'An unknown error occurred' };
   }
 };
 
-export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
+export const registerAction = async (values: z.infer<typeof signUpSchema>): Promise<ResponseAPI> => {
   const { name, surname, email, role, password } = values;
+
+  // Generar un token aleatorio para verificar el correo electrónico
+  const token = nanoid();
+
   try {
     const user = await prisma.user.findUnique({
       where: {
@@ -60,9 +64,7 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
     });
 
     if (user) {
-      return {
-        error: "El correo ya esta registrado",
-      };
+      return { success: false, error: "El correo ya esta registrado" };
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -91,39 +93,20 @@ export const registerAction = async (values: z.infer<typeof signUpSchema>) => {
       });
     });
 
-    const token = nanoid();
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires: new Date(Date.now() + 60 * 60 * 1000),
-      },
-    });
-
+  await createVerificationTokenEmail(email, token);
     
-    const result = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/send-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email,
-        token,
-      }),
-    })
-    if (!result.ok) {
-      throw new CustomError("Error enviando email de verificación", "VerifyEmail", 401)
-    }
+  await sendEmail(email, token);
 
-    return {
-      success: true,
-      message: "Usuario creado exitosamente",
-    };
   } catch (error) {
     if (error instanceof AuthError) {
 
-      return error.message;
+      return { success: false, error: error.message };
     }
+
+    return { success: false, error: "Error al crear el usuario" };
   }
+  return {
+    success: true,
+    message: "Usuario creado exitosamente",
+  };
 };

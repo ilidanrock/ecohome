@@ -2,8 +2,9 @@ export const runtime = "nodejs";
 
 import nodemailer from "nodemailer";
 import { NextResponse, type NextRequest } from "next/server";
-import { getVerificationEmailTemplate } from "@/lib/email-tamplates";
+
 import { withCORS } from "@/lib/cors";
+import { getVerificationEmailTemplate } from "@/lib/email-templates";
 
 export async function POST(request: NextRequest) {
   const { email, token } = await request.json();

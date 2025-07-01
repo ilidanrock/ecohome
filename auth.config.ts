@@ -4,9 +4,8 @@ import Google from "next-auth/providers/google";
 import { loginSchema } from "./zod/login-schema";
 import compare from "bcryptjs";
 import { prisma } from "./prisma";
-import { nanoid } from "nanoid";
 import { CustomError } from "./lib/auth";
-import { createVerificationTokenEmail, sendEmail } from "./services/verify-email";
+import { VerificationToken } from "./lib/verificationToken";
 
 // Extender tipos de NextAuth
 declare module "next-auth" {
@@ -44,8 +43,9 @@ const authConfig: NextAuthConfig = {
     }),
     Credentials({
       authorize: async (credentials) => {
+
         const { email, password } = await loginSchema.parseAsync(credentials);
-        const token = nanoid();
+        const { writeTokenInDB, sendEmailWithToken}= new VerificationToken(email, new Date(Date.now() + 60 * 60 * 1000));
 
         const user = await prisma.user.findFirst({
           where: {
@@ -84,6 +84,7 @@ const authConfig: NextAuthConfig = {
               identifier: user.email,
             },
           });
+
           if (verifyTokenExist?.identifier) {
             await prisma.verificationToken.delete({
               where: {
@@ -92,9 +93,9 @@ const authConfig: NextAuthConfig = {
             });
           }
 
-          await createVerificationTokenEmail(user.email, token);
+          await writeTokenInDB();
 
-          await sendEmail(user.email, token);
+          await sendEmailWithToken();
         }
 
         return {

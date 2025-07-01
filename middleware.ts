@@ -25,8 +25,6 @@ export async function middleware(request: NextRequest) {
     "/api/auth/signout"
   ];
 
-  
-
 
   // Allow access to public routes
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
@@ -36,6 +34,7 @@ export async function middleware(request: NextRequest) {
   if (isPublicRoute) {
     // If user is logged in and tries to access login/register, redirect based on role
     if (session && isAuthRoute) {
+      
       if (session.user.role === 'USER') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
       } else if (session.user.role === 'ADMIN') {
@@ -64,7 +63,6 @@ export async function middleware(request: NextRequest) {
   if (!session) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-
 
 
 }

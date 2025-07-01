@@ -1,6 +1,6 @@
 
 import { CustomError } from "@/lib/auth"
-import { prisma } from "@/prisma"
+
 import { ResponseAPI } from "@/types/https"
 
 
@@ -29,29 +29,3 @@ export  async function sendEmail(email: string, token: string): Promise<Response
 
 }
 
-/**
- * Crea un token de verificación para un correo electrónico
- * @param email Correo electrónico a verificar
- * @param token Token de verificación
- * @returns Promesa que se resuelve con un objeto con una propiedad `success` que indica si se creó correctamente el token de verificación
- */
-export  async function createVerificationTokenEmail (email: string, token: string): Promise<ResponseAPI> {
-    try {
-            await prisma.verificationToken.create({
-              data: {
-                identifier: email,
-                token: token,
-                expires: new Date(Date.now() + 60 * 60 * 1000),
-              },
-            });
-            
-        
-    } catch (error: unknown){
-        if (error) {
-            throw new CustomError("Error creando token de verificación", "VerifyEmail", 401)
-        }
-
-    }
-    return {success: true}
-    
-}

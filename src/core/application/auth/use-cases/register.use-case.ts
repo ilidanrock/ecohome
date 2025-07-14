@@ -1,5 +1,6 @@
 import { User } from "@/src/core/domain/user/entities/user.entity";
 import { UserRepositoryPort } from "@/src/core/domain/user/ports/user.repository.port";
+import { IPasswordService } from "@/src/core/domain/auth/ports/password.service.port";
 
 
 export interface RegisterCommand {
@@ -11,9 +12,13 @@ export interface RegisterCommand {
 }
 
 export class RegisterUseCase {
-  constructor(private readonly userRepository: UserRepositoryPort) {}
+  constructor(
+    private readonly userRepository: UserRepositoryPort,
+    private readonly passwordService: IPasswordService
+  ) {}
 
   async execute(command: RegisterCommand): Promise<{ success: boolean; error?: string; user?: User }> {
+    
     try {
       // Verificar si el correo ya está registrado
       const existingUser = await this.userRepository.findByEmail(command.email);
@@ -25,22 +30,25 @@ export class RegisterUseCase {
       }
 
       // Crear el usuario (sin guardar aún)
-      const user = User.fromPrisma({
+      // Hash the password before creating the user
+      const hashedPassword = await this.passwordService.hashPassword(command.password);
+
+      // Create user with hashed password
+      const userProps = {
         name: command.name,
         surname: command.surname,
-        password: command.password,
+        password: hashedPassword,
         email: command.email,
         emailVerified: null,
         image: null,
         role: command.role,
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      }
+      
+      const user = new User(userProps);
 
-      // Aquí iría la lógica para hashear la contraseña
-      // const hashedPassword = await this.passwordService.hash(command.password);
-
-      // Guardar el usuario
+      // Save the user to the database
       await this.userRepository.save(user);
 
       return { 

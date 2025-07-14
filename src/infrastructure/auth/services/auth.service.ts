@@ -1,13 +1,18 @@
 import { RegisterCommand, RegisterUseCase } from '@/src/core/application/auth/use-cases/register.use-case';
 import { signIn, signOut, getSession } from 'next-auth/react';
 import { PrismaUserRepository } from '@/src/infrastructure/persistence/prisma/user.repository';
-
+import { PasswordService } from './password.service';
 
 class AuthService {
   private registerUseCase: RegisterUseCase;
+  private passwordService: PasswordService;
 
   constructor() {
-    this.registerUseCase = new RegisterUseCase(new PrismaUserRepository());
+    this.passwordService = new PasswordService();
+    this.registerUseCase = new RegisterUseCase(
+      new PrismaUserRepository(),
+      this.passwordService
+    );
   }
 
   async login(email: string, password: string) {
@@ -41,6 +46,8 @@ class AuthService {
     const session = await getSession();
     return !!session?.user;
   }
+
+  
 }
 
 export const authService = new AuthService();

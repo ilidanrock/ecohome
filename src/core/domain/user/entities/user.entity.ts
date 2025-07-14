@@ -18,7 +18,7 @@ export class User {
   constructor(private readonly props: UserProps) {}
 
   // Factory method para crear un usuario desde Prisma
-  static fromPrisma(user: Omit<PrismaUser, 'id'>): User {
+  static createUserObject(user: Omit<PrismaUser, 'id'>): User {
     return new User({
       name: user.name,
       surname: user.surname,
@@ -33,7 +33,8 @@ export class User {
   }
 
   // Getters
-
+  get surname(): string | null { return this.props.surname; }
+  get password(): string | null { return this.props.password; }
   get name(): string | null { return this.props.name; }
   get email(): string { return this.props.email; }
   get emailVerified(): Date | null { return this.props.emailVerified; }

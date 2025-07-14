@@ -1,13 +1,11 @@
 import { prisma } from "@/prisma";
-import { role } from "@/types/user";
-import bcrypt from "bcryptjs";
 
 export async function findUser(email: string) {
-    return await prisma.user.findUnique({
-            where: {
-                email,
-            },
-        });
+  return await prisma.user.findUnique({
+    where: {
+      email,
+    },
+  });
 }
 
 /**
@@ -19,30 +17,32 @@ export async function findUser(email: string) {
  * @param password Contrase a del usuario
  * @returns Promesa que se resuelve con el usuario creado
  */
-export async function createUser(email: string, name: string, surname: string, role: role, password: string) {
-    const hashedPassword = await bcrypt.hash(password, 10);
+import { User } from '@/src/core/domain/user/entities/user.entity';
+import { PrismaUserRepository } from '@/src/infrastructure/persistence/prisma/user.repository';
+import { PasswordService } from '@/src/infrastructure/auth/services/password.service';
 
-    // Crear el usuario y su cuenta de credenciales en una transacción
-    await prisma.$transaction(async (tx) => {
-      // 1. Crear el usuario
-      const user = await tx.user.create({
-        data: {
-          name,
-          surname,
-          email,
-          role,
-          password: hashedPassword
-        },
-      });
-
-      // 2. Crear la cuenta de credenciales
-      await tx.account.create({
-        data: {
-          userId: user.id,
-          type: 'credentials',
-          provider: 'credentials',
-          providerAccountId: user.id, // Usamos el ID de usuario como providerAccountId
-        },
-      });
+export async function createUser(email: string, name: string, surname: string, role: 'USER' | 'ADMIN' | 'NULL', password: string) {
+    const passwordService = new PasswordService();
+    const userRepository = new PrismaUserRepository();
+    
+    // Hash the password
+    const hashedPassword = await passwordService.hashPassword(password);
+    
+    // Create user entity
+    const user = new User({
+        name,
+        surname,
+        email,
+        role,
+        password: hashedPassword,
+        emailVerified: null,
+        image: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
     });
+    
+    // Save the user (this will also create the account in the transaction)
+    await userRepository.save(user);
+    
+    return user;
 }

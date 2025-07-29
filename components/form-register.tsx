@@ -40,10 +40,11 @@ import { useRouter } from "next/navigation";
 import { PasswordInput } from "./forms/PasswordInput";
 import { signIn } from "next-auth/react";
 import { GoogleIcon } from "./icons/google";
+import { ErrorAuthTypes } from "@/types/https";
 
 export default function RegisterForm() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorAuthTypes | string | undefined>(undefined);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof signUpSchema>>({
@@ -60,20 +61,16 @@ export default function RegisterForm() {
 
   const onSubmit = async (values: z.infer<typeof signUpSchema>) => {
     startTransition(async () => {
-      setError(null);
+      setError(undefined);
       const res = await registerAction(values);
-
-      if (
-        typeof res === "object" &&
-        res?.error === "El correo ya esta registrado"
-      ) {
+      console.log(res);
+      
+      if (!res.success) {
         setError(res.error);
         form.reset();
         return;
       }
-      if (typeof res === "object" && res?.success === true) {
-        router.push("/register-success");
-      }
+      router.push("/register-success");
     });
   };
 

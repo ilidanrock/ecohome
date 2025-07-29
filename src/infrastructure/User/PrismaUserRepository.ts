@@ -7,21 +7,37 @@ export class PrismaUserRepository implements IUserRepository {
     constructor(private prisma: PrismaClient) {}
 
     async createUser(user: User): Promise<User> {
-        const createdUser = await this.prisma.user.create({
-            data: {
-                name: user.name,
-                surname: user.surname,
-                password: user.password,
-                email: user.email,
-                emailVerified: user.emailVerified,
-                image: user.image,
-                role: user.role,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt,
-            },
-        });
+        const newUser = await this.prisma.$transaction(async (tx) => {
+            // 1. Create the user
+            const createdUser = await tx.user.create({
+                data: {
+                    name: user.name,
+                    surname: user.surname,
+                    email: user.email,
+                    role: user.role,
+                    password: user.password,
+                    emailVerified: user.emailVerified,
+                    image: user.image,
+                },
+            });
 
-        return this.mapToDomain(createdUser);
+            console.log(createdUser);
+            
+    
+            // 2. Create the credentials account
+            await tx.account.create({
+                data: {
+                    userId: createdUser.id,
+                    type: 'credentials',
+                    provider: 'credentials',
+                    providerAccountId: createdUser.id,
+                },
+            });
+
+            return createdUser;
+        });
+                
+        return this.mapToDomain(newUser);
     }
     
     async findUserById(id: string): Promise<User | null> {

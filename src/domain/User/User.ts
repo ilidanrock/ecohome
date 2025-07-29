@@ -32,28 +32,28 @@ export class User {
     this.updatedAt = updatedAt;
   }
 
-  private get nameUser() {
+  public nameUser() {
     return this.name;
   }
-  private get surnameUser() {
+  public surnameUser() {
     return this.surname;
   }
-  private get emailUser() {
+  public emailUser() {
     return this.email;
   }
-  private get roleUser() {
+  public roleUser() {
     return this.role;
   }
-  private get createdAtUser() {
+  public createdAtUser() {
     return this.createdAt;
   }
-  private get updatedAtUser() {
+  public updatedAtUser() {
     return this.updatedAt;
   }
-  public get passwordUser() {
+  public passwordUser() {
     return this.password;
   }
-  public set passwordUser(password: string) {
+  public setPasswordUser(password: string) {
     this.password = password;
   }
 }

@@ -1,9 +1,10 @@
 "use server";
 import { signIn } from "@/auth";
-import User from "@/lib/user";
-import { VerificationToken } from "@/lib/verificationToken";
+import { CustomError } from "@/lib/auth";
 import { prisma } from "@/prisma";
-import { createUser } from "@/services/user";
+
+import { User } from "@/src/domain/User/User";
+import { serviceContainer } from "@/src/Shared/infrastructure/ServiceContainer";
 import { ResponseAPI } from "@/types/https";
 import { role } from "@/types/user";
 import { loginSchema } from "@/zod/login-schema";
@@ -60,33 +61,26 @@ export const registerAction = async (
 ): Promise<ResponseAPI> => {
   const { name, surname, email, role, password } = values;
 
-  // Generar un token aleatorio para verificar el correo electrónico
-
-  const { writeTokenInDB, sendEmailWithToken } = new VerificationToken(
-    email,
-    new Date(Date.now() + 60 * 60 * 1000)
-  );
-  const { findUser } = new User();
-
   try {
-    const user = await findUser(email);
-    if (user) {
-      return { success: false, error: "El correo ya esta registrado" };
-    }
-    await createUser(email, name, surname, role, password);
+    const user = new User(
+      name,
+      surname,
+      password,
+      email,
+      null,
+      null,
+      role,
+      new Date(),
+      new Date()
+    );
+    await serviceContainer.user.createUser.execute(user);
 
-    await writeTokenInDB();
-
-    await sendEmailWithToken();
+    return { success: true };
   } catch (error) {
-    if (error instanceof AuthError) {
+    if (error instanceof CustomError) {
       return { success: false, error: error.message };
     }
 
     return { success: false, error: "Error al crear el usuario" };
   }
-  return {
-    success: true,
-    message: "Usuario creado exitosamente",
-  };
 };

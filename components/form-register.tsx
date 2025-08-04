@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { Leaf } from "lucide-react";
+import Link from 'next/link';
+import { Leaf } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,8 +11,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 import {
   Select,
@@ -20,27 +20,20 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "./ui/form";
-import { useForm } from "react-hook-form";
-import { signUpSchema } from "@/zod/register-schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { registerAction } from "@/actions/auth-action";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { PasswordInput } from "./forms/PasswordInput";
-import { signIn } from "next-auth/react";
-import { GoogleIcon } from "./icons/google";
-import { ErrorAuthTypes } from "@/types/https";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from './ui/form';
+import { useForm } from 'react-hook-form';
+import { signUpSchema } from '@/zod/register-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { registerAction } from '@/actions/auth-action';
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { PasswordInput } from './forms/PasswordInput';
+import { signIn } from 'next-auth/react';
+import { GoogleIcon } from './icons/google';
+import { ErrorAuthTypes } from '@/types/https';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -50,12 +43,12 @@ export default function RegisterForm() {
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      name: "",
-      surname: "",
-      role: "USER", // Default role
-      email: "",
-      password: "",
-      confirmPassword: "",
+      name: '',
+      surname: '',
+      role: 'USER', // Default role
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -64,13 +57,13 @@ export default function RegisterForm() {
       setError(undefined);
       const res = await registerAction(values);
       console.log(res);
-      
+
       if (!res.success) {
         setError(res.error);
         form.reset();
         return;
       }
-      router.push("/register-success");
+      router.push('/register-success');
     });
   };
 
@@ -83,9 +76,7 @@ export default function RegisterForm() {
             <span className="text-2xl font-bold text-ecoblue">EcoHome</span>
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold text-darkgray">
-          Crear cuenta
-        </CardTitle>
+        <CardTitle className="text-2xl font-bold text-darkgray">Crear cuenta</CardTitle>
         <CardDescription className="text-darkgray/70">
           Regístrate para comenzar a gestionar tu consumo energético
         </CardDescription>
@@ -161,10 +152,7 @@ export default function RegisterForm() {
                   <FormItem>
                     <FormLabel>Rol</FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <SelectTrigger className="rounded-lg border-lightgray bg-white focus:border-ecoblue focus:ring-ecoblue">
                           <SelectValue placeholder="Selecciona tu rol" />
                         </SelectTrigger>
@@ -227,17 +215,14 @@ export default function RegisterForm() {
             <Button
               type="button"
               className="w-full border-ecogreen text-white hover:bg-ecoblue/90"
-              onClick={() => signIn("google")}
+              onClick={() => signIn('google')}
             >
               <GoogleIcon className="h-4 w-4 " />
               Registrarse con Google
             </Button>
             <div className="text-center text-sm text-darkgray/70">
-              ¿Ya tienes una cuenta?{" "}
-              <Link
-                href="/login"
-                className="text-ecogreen hover:text-ecogreen/80 font-medium"
-              >
+              ¿Ya tienes una cuenta?{' '}
+              <Link href="/login" className="text-ecogreen hover:text-ecogreen/80 font-medium">
                 Iniciar sesión
               </Link>
               {error && <p className="text-red-500">{error}</p>}

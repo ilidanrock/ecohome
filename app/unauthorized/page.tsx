@@ -1,15 +1,14 @@
-"use client"
+'use client';
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Leaf, Home, ArrowLeft, ShieldAlert } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { signOut } from "next-auth/react"
-
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Leaf, Home, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { signOut } from 'next-auth/react';
 
 export default function UnauthorizedPage() {
   const router = useRouter();
-  
+
   const handleGoBack = () => {
     router.back();
   };
@@ -20,20 +19,16 @@ export default function UnauthorizedPage() {
         {/* Logo */}
         <div className="flex justify-center">
           <Leaf className="h-10 w-10 md:h-12 md:w-12 text-ecogreen" />
-          <span className="ml-2 text-2xl md:text-3xl font-bold text-ecoblue">
-            EcoHome
-          </span>
+          <span className="ml-2 text-2xl md:text-3xl font-bold text-ecoblue">EcoHome</span>
         </div>
 
         {/* Error 403 */}
         <div className="space-y-2 md:space-y-4">
           <h1 className="text-6xl md:text-8xl font-bold text-ecoblue">403</h1>
-          <h2 className="text-xl md:text-2xl font-bold text-darkgray">
-            Acceso denegado
-          </h2>
+          <h2 className="text-xl md:text-2xl font-bold text-darkgray">Acceso denegado</h2>
           <p className="text-darkgray/70 text-base md:text-lg">
-            No tienes permisos para acceder a esta página. Si crees que es un error,
-            contacta con el administrador.
+            No tienes permisos para acceder a esta página. Si crees que es un error, contacta con el
+            administrador.
           </p>
         </div>
 
@@ -50,9 +45,9 @@ export default function UnauthorizedPage() {
 
         {/* Botones */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button 
-            onClick={handleGoBack} 
-            variant="outline" 
+          <Button
+            onClick={handleGoBack}
+            variant="outline"
             className="border-ecoblue text-ecoblue hover:bg-ecoblue/10 flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -70,9 +65,15 @@ export default function UnauthorizedPage() {
         <div className="pt-6 border-t border-lightgray text-sm space-y-3">
           <p className="text-darkgray/70">¿Necesitas ayuda? Prueba:</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="#" onClick={()=>signOut({
-              redirectTo: "/login"
-            })} className="text-ecoblue hover:text-ecoblue/80">
+            <Link
+              href="#"
+              onClick={() =>
+                signOut({
+                  redirectTo: '/login',
+                })
+              }
+              className="text-ecoblue hover:text-ecoblue/80"
+            >
               Iniciar sesión con otra cuenta
             </Link>
             <Link href="/contact" className="text-ecoblue hover:text-ecoblue/80">
@@ -85,5 +86,5 @@ export default function UnauthorizedPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

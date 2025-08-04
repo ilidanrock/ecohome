@@ -1,3 +1,3 @@
 export interface GeneratorIdRepository {
-    generateId(): string;
+  generateId(): string;
 }

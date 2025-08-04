@@ -1,14 +1,24 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Home, BarChart3, Zap, Droplets, Settings, Lightbulb, LogOut, Leaf, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { signOut, useSession } from "next-auth/react"
-import Image from "next/image"
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import {
+  Home,
+  BarChart3,
+  Zap,
+  Droplets,
+  Settings,
+  Lightbulb,
+  LogOut,
+  Leaf,
+  User,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { signOut, useSession } from 'next-auth/react';
+import Image from 'next/image';
 import {
   Sidebar,
   SidebarContent,
@@ -23,24 +33,24 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarInset,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar';
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Mi Consumo", href: "/tenant/consumption", icon: BarChart3 },
-  { name: "Energía", href: "/tenant/energy", icon: Zap },
-  { name: "Agua", href: "/tenant/water", icon: Droplets },
-]
+  { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Mi Consumo', href: '/tenant/consumption', icon: BarChart3 },
+  { name: 'Energía', href: '/tenant/energy', icon: Zap },
+  { name: 'Agua', href: '/tenant/water', icon: Droplets },
+];
 
 const secondaryNavigation = [
-  { name: "Consejos de Ahorro", href: "/tenant/tips", icon: Lightbulb },
-  { name: "Mi Perfil", href: "/tenant/profile", icon: User },
-  { name: "Configuración", href: "/tenant/settings", icon: Settings },
-]
+  { name: 'Consejos de Ahorro', href: '/tenant/tips', icon: Lightbulb },
+  { name: 'Mi Perfil', href: '/tenant/profile', icon: User },
+  { name: 'Configuración', href: '/tenant/settings', icon: Settings },
+];
 
 export function TenantSidebar() {
-  const pathname = usePathname()
-  const { data: session } = useSession()
+  const pathname = usePathname();
+  const { data: session } = useSession();
 
   return (
     <Sidebar className="border-r border-gray-200">
@@ -64,7 +74,7 @@ export function TenantSidebar() {
             <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-blue-100">
               {session?.user?.image ? (
                 <Image
-                  src={session.user.image || "/placeholder.svg"}
+                  src={session.user.image || '/placeholder.svg'}
                   alt="User avatar"
                   width={48}
                   height={48}
@@ -75,7 +85,9 @@ export function TenantSidebar() {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900">{session?.user?.name || "Usuario"}</p>
+              <p className="truncate text-sm font-semibold text-gray-900">
+                {session?.user?.name || 'Usuario'}
+              </p>
               <p className="text-xs text-gray-600">Apartamento 3B</p>
             </div>
           </div>
@@ -93,10 +105,10 @@ export function TenantSidebar() {
                     asChild
                     isActive={pathname === item.href}
                     className={cn(
-                      "w-full justify-start transition-all duration-200",
+                      'w-full justify-start transition-all duration-200',
                       pathname === item.href
-                        ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium"
-                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-700",
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium'
+                        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                     )}
                   >
                     <Link href={item.href}>
@@ -123,10 +135,10 @@ export function TenantSidebar() {
                     asChild
                     isActive={pathname === item.href}
                     className={cn(
-                      "w-full justify-start transition-all duration-200",
+                      'w-full justify-start transition-all duration-200',
                       pathname === item.href
-                        ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium"
-                        : "text-gray-700 hover:bg-blue-50 hover:text-blue-700",
+                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium'
+                        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                     )}
                   >
                     <Link href={item.href}>
@@ -147,7 +159,7 @@ export function TenantSidebar() {
             <Button
               variant="ghost"
               className="w-full justify-start text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: '/' })}
             >
               <LogOut className="h-5 w-5" />
               <span>Cerrar Sesión</span>
@@ -156,20 +168,20 @@ export function TenantSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
 
 // Layout wrapper component
 export function TenantLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   // Get current page name for mobile header
   const getCurrentPageName = () => {
     const currentNav = [...navigation, ...secondaryNavigation].find(
-      (n) => pathname === n.href || pathname.startsWith(n.href),
-    )
-    return currentNav?.name || "Dashboard"
-  }
+      (n) => pathname === n.href || pathname.startsWith(n.href)
+    );
+    return currentNav?.name || 'Dashboard';
+  };
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -189,5 +201,5 @@ export function TenantLayout({ children }: { children: React.ReactNode }) {
         </SidebarInset>
       </div>
     </SidebarProvider>
-  )
+  );
 }

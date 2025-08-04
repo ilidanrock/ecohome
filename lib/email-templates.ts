@@ -1,5 +1,5 @@
 export const getVerificationEmailTemplate = (verificationUrl: string, userName?: string) => {
-    return `
+  return `
       <!DOCTYPE html>
       <html lang="es">
       <head>
@@ -24,7 +24,7 @@ export const getVerificationEmailTemplate = (verificationUrl: string, userName?:
                                       <span style="color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">EcoHome</span>
                                   </div>
                                   <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
-                                      ¡Bienvenido${userName ? ` ${userName}` : ""}!
+                                      ¡Bienvenido${userName ? ` ${userName}` : ''}!
                                   </h1>
                                   <p style="color: #e2e8f0; margin: 8px 0 0 0; font-size: 16px;">
                                       Confirma tu dirección de correo electrónico
@@ -128,11 +128,11 @@ export const getVerificationEmailTemplate = (verificationUrl: string, userName?:
           </table>
       </body>
       </html>
-    `
-  }
-  
-  export const getPasswordResetEmailTemplate = (resetUrl: string, userName?: string) => {
-    return `
+    `;
+};
+
+export const getPasswordResetEmailTemplate = (resetUrl: string, userName?: string) => {
+  return `
       <!DOCTYPE html>
       <html lang="es">
       <head>
@@ -177,7 +177,7 @@ export const getVerificationEmailTemplate = (verificationUrl: string, userName?:
                                   </div>
                                   
                                   <h2 style="color: #343A40; margin: 0 0 16px 0; font-size: 24px; font-weight: 600; text-align: center;">
-                                      ${userName ? `Hola ${userName}` : "Hola"}
+                                      ${userName ? `Hola ${userName}` : 'Hola'}
                                   </h2>
                                   
                                   <p style="color: #343A40; opacity: 0.8; margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; text-align: center;">
@@ -233,11 +233,11 @@ export const getVerificationEmailTemplate = (verificationUrl: string, userName?:
           </table>
       </body>
       </html>
-    `
-  }
-  
-  export const getWelcomeEmailTemplate = (userName: string, dashboardUrl: string) => {
-    return `
+    `;
+};
+
+export const getWelcomeEmailTemplate = (userName: string, dashboardUrl: string) => {
+  return `
       <!DOCTYPE html>
       <html lang="es">
       <head>
@@ -358,6 +358,5 @@ export const getVerificationEmailTemplate = (verificationUrl: string, userName?:
           </table>
       </body>
       </html>
-    `
-  }
-  
+    `;
+};

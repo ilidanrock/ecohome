@@ -1,9 +1,9 @@
-import { IUserRepository } from "@/src/domain/User/UserRepository";
-import { HasherRepository } from "@/src/domain/User/HasherRepository";
-import { CustomError } from "@/lib/auth";
-import { VerifyTokenRepository } from "@/src/domain/VerifyToken/VerifyTokenRepository";
-import { VerifyToken } from "@/src/domain/VerifyToken/VerifyToken";
-import { EmailRepository } from "@/src/domain/VerifyToken/EmailRepository";
+import { IUserRepository } from '@/src/domain/User/UserRepository';
+import { HasherRepository } from '@/src/domain/User/HasherRepository';
+import { CustomError } from '@/lib/auth';
+import { VerifyTokenRepository } from '@/src/domain/VerifyToken/VerifyTokenRepository';
+import { VerifyToken } from '@/src/domain/VerifyToken/VerifyToken';
+import { EmailRepository } from '@/src/domain/VerifyToken/EmailRepository';
 
 export class UserLogin {
   constructor(
@@ -30,18 +30,14 @@ export class UserLogin {
   async execute(email: string, password: string, verifyToken: VerifyToken) {
     const findUser = await this.userRepository.findUserByEmail(email);
     if (!findUser) {
-      throw new CustomError("Email no encontrado", "InvalidCredentials", 401);
+      throw new CustomError('Email no encontrado', 'InvalidCredentials', 401);
     }
-    const isPasswordValid = await this.hasherRepository.compare(
-      password,
-      findUser.password
-    );
+    const isPasswordValid = await this.hasherRepository.compare(password, findUser.password);
     if (!isPasswordValid) {
-      throw new CustomError("Contraseña invalida", "InvalidCredentials", 401);
+      throw new CustomError('Contraseña invalida', 'InvalidCredentials', 401);
     }
     if (!findUser.emailVerified) {
-      const verifyTokenExist =
-        await this.verifyTokenRepository.findVerifyTokenByIdentifier(email);
+      const verifyTokenExist = await this.verifyTokenRepository.findVerifyTokenByIdentifier(email);
       if (verifyTokenExist?.identifier) {
         await this.verifyTokenRepository.deleteVerifyToken(email);
       }

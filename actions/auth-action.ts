@@ -1,27 +1,24 @@
-"use server";
-import { signIn } from "@/auth";
-import { CustomError } from "@/lib/auth";
-import { prisma } from "@/prisma";
+'use server';
+import { signIn } from '@/auth';
+import { CustomError } from '@/lib/auth';
+import { prisma } from '@/prisma';
 
-import { User } from "@/src/domain/User/User";
-import { serviceContainer } from "@/src/Shared/infrastructure/ServiceContainer";
-import { ResponseAPI } from "@/types/https";
-import { role } from "@/types/user";
-import { loginSchema } from "@/zod/login-schema";
-import { signUpSchema } from "@/zod/register-schema";
-import { AuthError } from "next-auth";
+import { User } from '@/src/domain/User/User';
+import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
+import { ResponseAPI } from '@/types/https';
+import { role } from '@/types/user';
+import { loginSchema } from '@/zod/login-schema';
+import { signUpSchema } from '@/zod/register-schema';
+import { AuthError } from 'next-auth';
 
-import { z } from "zod";
+import { z } from 'zod';
 
-export async function updateUserRole(
-  role: role,
-  email: string
-): Promise<ResponseAPI> {
+export async function updateUserRole(role: role, email: string): Promise<ResponseAPI> {
   try {
     if (!email) {
       return {
         success: false,
-        error: "No se proporcionó un correo electrónico",
+        error: 'No se proporcionó un correo electrónico',
       };
     }
 
@@ -33,16 +30,14 @@ export async function updateUserRole(
 
     return { success: true };
   } catch (error) {
-    console.error("Error updating user role:", error);
-    return { success: false, error: "Error al actualizar el rol del usuario" };
+    console.error('Error updating user role:', error);
+    return { success: false, error: 'Error al actualizar el rol del usuario' };
   }
 }
 
-export const loginAction = async (
-  values: z.infer<typeof loginSchema>
-): Promise<ResponseAPI> => {
+export const loginAction = async (values: z.infer<typeof loginSchema>): Promise<ResponseAPI> => {
   try {
-    await signIn("credentials", {
+    await signIn('credentials', {
       email: values.email,
       password: values.password,
       redirect: false,
@@ -52,7 +47,7 @@ export const loginAction = async (
     if (error instanceof AuthError) {
       return { success: false, error: error.message };
     }
-    return { success: false, error: "An unknown error occurred" };
+    return { success: false, error: 'An unknown error occurred' };
   }
 };
 
@@ -62,17 +57,7 @@ export const registerAction = async (
   const { name, surname, email, role, password } = values;
 
   try {
-    const user = new User(
-      name,
-      surname,
-      password,
-      email,
-      null,
-      null,
-      role,
-      new Date(),
-      new Date()
-    );
+    const user = new User(name, surname, password, email, null, null, role, new Date(), new Date());
     await serviceContainer.user.createUser.execute(user);
 
     return { success: true };
@@ -81,6 +66,6 @@ export const registerAction = async (
       return { success: false, error: error.message };
     }
 
-    return { success: false, error: "Error al crear el usuario" };
+    return { success: false, error: 'Error al crear el usuario' };
   }
 };

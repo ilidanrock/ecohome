@@ -1,12 +1,12 @@
-import type { NextAuthConfig, DefaultSession } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
-import { loginSchema } from "./zod/login-schema";
-import { serviceContainer } from "./src/Shared/infrastructure/ServiceContainer";
-import { VerifyToken } from "./src/domain/VerifyToken/VerifyToken";
+import type { NextAuthConfig, DefaultSession } from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
+import { loginSchema } from './zod/login-schema';
+import { serviceContainer } from './src/Shared/infrastructure/ServiceContainer';
+import { VerifyToken } from './src/domain/VerifyToken/VerifyToken';
 
 // Extender tipos de NextAuth
-declare module "next-auth" {
+declare module 'next-auth' {
   interface User {
     id?: string;
     role?: string;
@@ -20,7 +20,7 @@ declare module "next-auth" {
       id: string;
       role?: string;
       token?: string;
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
     accessToken?: string;
   }
 }
@@ -44,10 +44,13 @@ const authConfig: NextAuthConfig = {
     }),
     Credentials({
       authorize: async (credentials) => {
-
         const { email, password } = await loginSchema.parseAsync(credentials);
 
-        const user = await serviceContainer.user.userLogin.execute(email, password, new VerifyToken(email, new Date(Date.now() + 60 * 60 * 1000)));
+        const user = await serviceContainer.user.userLogin.execute(
+          email,
+          password,
+          new VerifyToken(email, new Date(Date.now() + 60 * 60 * 1000))
+        );
 
         return {
           name: user.name,
@@ -58,7 +61,7 @@ const authConfig: NextAuthConfig = {
     }),
   ],
   session: {
-    strategy: "jwt" as const,
+    strategy: 'jwt' as const,
     maxAge: 60 * 60 * 24 * 30,
     updateAge: 60 * 60 * 24,
   },
@@ -66,9 +69,9 @@ const authConfig: NextAuthConfig = {
     sessionToken: {
       options: {
         httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
       },
     },
   },
@@ -76,13 +79,13 @@ const authConfig: NextAuthConfig = {
   callbacks: {
     async signIn({ user, account }) {
       try {
-        const result = account && await serviceContainer.account.accountOAuthSignIn.execute(user, account)
-        return result ?? true; 
+        const result =
+          account && (await serviceContainer.account.accountOAuthSignIn.execute(user, account));
+        return result ?? true;
       } catch (error) {
         console.error('Sign in error:', error);
         return false; // Or return a string URL to redirect to on error
       }
-
     },
     jwt: async ({ token, user, account, trigger, session }) => {
       if (user) {
@@ -95,7 +98,7 @@ const authConfig: NextAuthConfig = {
           token.email = user.email;
         }
       }
-      if (trigger === "update") {
+      if (trigger === 'update') {
         token.role = session.user.role;
       }
       if (account?.access_token) {

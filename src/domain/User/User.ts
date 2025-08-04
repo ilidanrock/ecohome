@@ -1,4 +1,4 @@
-import { role } from "@/types/user";
+import { role } from '@/types/user';
 
 export class User {
   id?: string;
@@ -13,7 +13,7 @@ export class User {
   updatedAt: Date;
   constructor(
     name: string,
-    surname:string,
+    surname: string,
     password: string,
     email: string,
     emailVerified: Date | null,
@@ -21,7 +21,7 @@ export class User {
     role: role,
     createdAt: Date,
     updatedAt: Date,
-    id?: string,
+    id?: string
   ) {
     this.id = id;
     this.name = name;

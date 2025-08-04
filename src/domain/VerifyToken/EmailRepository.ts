@@ -1,5 +1,5 @@
-import { ResponseAPI } from "@/types/https";
+import { ResponseAPI } from '@/types/https';
 
 export interface EmailRepository {
-    sendEmail(email: string, token: string): Promise<ResponseAPI>;
+  sendEmail(email: string, token: string): Promise<ResponseAPI>;
 }

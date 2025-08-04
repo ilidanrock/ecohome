@@ -6,8 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "next lint --fix && pnpm format"
   },
   "dependencies": {
     "@auth/prisma-adapter": "~2.9.1",
@@ -51,11 +53,15 @@
     "@eslint/eslintrc": "~3",
     "@types/node": "~20",
     "@types/nodemailer": "~6.4.17",
+    "@types/prettier": "^3.0.0",
     "@types/react": "~19",
     "@types/react-dom": "~19",
     "eslint": "~9",
     "eslint-config-next": "~15.1.8",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
     "postcss": "~8",
+    "prettier": "^3.6.2",
     "prisma": "~6.10.1",
     "tailwindcss": "~3.4.1",
     "typescript": "~5"

@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { usePathname } from "next/navigation"
-import { signOut, useSession } from "next-auth/react"
-import { cn } from "@/lib/utils"
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
+import { cn } from '@/lib/utils';
 import {
   BarChart3,
   Building2,
@@ -23,88 +23,88 @@ import {
   Home,
   AlertTriangle,
   User,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const navigation = [
   {
-    name: "Dashboard",
-    href: "/admin/dashboard",
+    name: 'Dashboard',
+    href: '/admin/dashboard',
     icon: Home,
     current: false,
   },
   {
-    name: "Estadísticas",
-    href: "/admin/analytics",
+    name: 'Estadísticas',
+    href: '/admin/analytics',
     icon: BarChart3,
     current: false,
   },
   {
-    name: "Usuarios",
-    href: "/admin/users",
+    name: 'Usuarios',
+    href: '/admin/users',
     icon: Users,
     current: false,
   },
   {
-    name: "Propiedades",
-    href: "/admin/properties",
+    name: 'Propiedades',
+    href: '/admin/properties',
     icon: Building2,
     current: false,
   },
   {
-    name: "Consumo Energético",
-    href: "/admin/energy",
+    name: 'Consumo Energético',
+    href: '/admin/energy',
     icon: Zap,
     current: false,
   },
   {
-    name: "Gestión de Agua",
-    href: "/admin/water",
+    name: 'Gestión de Agua',
+    href: '/admin/water',
     icon: Droplets,
     current: false,
   },
   {
-    name: "Reportes",
-    href: "/admin/reports",
+    name: 'Reportes',
+    href: '/admin/reports',
     icon: FileText,
     current: false,
   },
   {
-    name: "Alertas",
-    href: "/admin/alerts",
+    name: 'Alertas',
+    href: '/admin/alerts',
     icon: AlertTriangle,
     current: false,
   },
   {
-    name: "Notificaciones",
-    href: "/admin/notifications",
+    name: 'Notificaciones',
+    href: '/admin/notifications',
     icon: Bell,
     current: false,
   },
-]
+];
 
 const secondaryNavigation = [
   {
-    name: "Configuración",
-    href: "/admin/settings",
+    name: 'Configuración',
+    href: '/admin/settings',
     icon: Settings,
   },
   {
-    name: "Seguridad",
-    href: "/admin/security",
+    name: 'Seguridad',
+    href: '/admin/security',
     icon: Shield,
   },
-]
+];
 
 export function AdminSidebar() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const pathname = usePathname()
-  const { data: session } = useSession()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+  const { data: session } = useSession();
 
   return (
     <>
       {/* Mobile sidebar */}
-      <div className={cn("relative z-50 lg:hidden", sidebarOpen ? "block" : "hidden")}>
+      <div className={cn('relative z-50 lg:hidden', sidebarOpen ? 'block' : 'hidden')}>
         <div className="fixed inset-0 bg-gray-900/80" onClick={() => setSidebarOpen(false)} />
         <div className="fixed inset-0 flex">
           <div className="relative mr-16 flex w-full max-w-xs flex-1">
@@ -125,24 +125,28 @@ export function AdminSidebar() {
 
       {/* Mobile menu button */}
       <div className="sticky top-0 z-40 flex items-center gap-x-6 bg-white px-4 py-4 shadow-sm sm:px-6 lg:hidden">
-        <button type="button" className="-m-2.5 p-2.5 text-gray-700 lg:hidden" onClick={() => setSidebarOpen(true)}>
+        <button
+          type="button"
+          className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+          onClick={() => setSidebarOpen(true)}
+        >
           <Menu className="h-6 w-6" />
         </button>
         <div className="flex-1 text-sm font-semibold leading-6 text-gray-900">Dashboard</div>
       </div>
     </>
-  )
+  );
 }
 
 interface SidebarContentProps {
-  pathname: string
+  pathname: string;
   session: {
     user?: {
-      name?: string | null
-      email?: string | null
-      image?: string | null
-    }
-  } | null
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    };
+  } | null;
 }
 
 function SidebarContent({ pathname, session }: SidebarContentProps) {
@@ -179,7 +183,9 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900">{session?.user?.name || "Administrador"}</p>
+              <p className="truncate text-sm font-semibold text-gray-900">
+                {session?.user?.name || 'Administrador'}
+              </p>
               <p className="text-xs text-gray-600">Administrador</p>
             </div>
           </div>
@@ -193,15 +199,17 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
               href={item.href}
               className={cn(
                 pathname === item.href
-                  ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium"
-                  : "text-gray-700 hover:bg-blue-50 hover:text-blue-700",
-                "group flex items-center px-4 py-2.5 text-sm rounded-r-md transition-colors duration-200"
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium'
+                  : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700',
+                'group flex items-center px-4 py-2.5 text-sm rounded-r-md transition-colors duration-200'
               )}
             >
               <item.icon
                 className={cn(
-                  pathname === item.href ? "text-blue-600" : "text-gray-500 group-hover:text-blue-600",
-                  "mr-3 h-5 w-5 flex-shrink-0"
+                  pathname === item.href
+                    ? 'text-blue-600'
+                    : 'text-gray-500 group-hover:text-blue-600',
+                  'mr-3 h-5 w-5 flex-shrink-0'
                 )}
                 aria-hidden="true"
               />
@@ -221,15 +229,17 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
                 href={item.href}
                 className={cn(
                   pathname === item.href
-                    ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium"
-                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-700",
-                  "group flex items-center px-4 py-2.5 text-sm rounded-r-md transition-colors duration-200"
+                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600 font-medium'
+                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700',
+                  'group flex items-center px-4 py-2.5 text-sm rounded-r-md transition-colors duration-200'
                 )}
               >
                 <item.icon
                   className={cn(
-                    pathname === item.href ? "text-blue-600" : "text-gray-500 group-hover:text-blue-600",
-                    "mr-3 h-5 w-5 flex-shrink-0"
+                    pathname === item.href
+                      ? 'text-blue-600'
+                      : 'text-gray-500 group-hover:text-blue-600',
+                    'mr-3 h-5 w-5 flex-shrink-0'
                   )}
                   aria-hidden="true"
                 />
@@ -244,12 +254,12 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
         <Button
           variant="ghost"
           className="w-full justify-start text-gray-700 hover:bg-red-50 hover:text-red-600"
-          onClick={() => signOut({ callbackUrl: "/" })}
+          onClick={() => signOut({ callbackUrl: '/' })}
         >
           <LogOut className="mr-3 h-5 w-5 text-gray-500 group-hover:text-red-600" />
           Cerrar Sesión
         </Button>
       </div>
     </div>
-  )
+  );
 }

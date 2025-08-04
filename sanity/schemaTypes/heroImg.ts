@@ -1,5 +1,5 @@
-import {UserIcon} from '@sanity/icons'
-import { defineField, defineType} from 'sanity'
+import { UserIcon } from '@sanity/icons';
+import { defineField, defineType } from 'sanity';
 
 export const heroImg = defineType({
   name: 'heroImg',
@@ -21,7 +21,7 @@ export const heroImg = defineType({
     defineField({
       name: 'imgURL',
       title: 'Image URL',
-      type: 'image'
+      type: 'image',
     }),
-  ]
-})
+  ],
+});

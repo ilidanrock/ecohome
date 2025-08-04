@@ -1,3 +1,4 @@
+
 import { VerifyToken } from "./VerifyToken";
 
 export interface VerifyTokenRepository {

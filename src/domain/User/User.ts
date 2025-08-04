@@ -1,6 +1,7 @@
 import { role } from "@/types/user";
 
 export class User {
+  id?: string;
   name: string;
   surname: string;
   password: string;
@@ -12,15 +13,17 @@ export class User {
   updatedAt: Date;
   constructor(
     name: string,
-    surname: string,
+    surname:string,
     password: string,
     email: string,
     emailVerified: Date | null,
     image: string | null,
     role: role,
     createdAt: Date,
-    updatedAt: Date
+    updatedAt: Date,
+    id?: string,
   ) {
+    this.id = id;
     this.name = name;
     this.surname = surname;
     this.password = password;

@@ -12,6 +12,19 @@ export class UserCreate {
     private verifyTokenCreate: VerifyTokenCreate
   ) {}
 
+  /**
+   * Creates a new user and sends a verification token to their email address.
+   * Returns the created user object if successful, or throws an error if the user already exists.
+   *
+   * Args:
+   *   user (User): The user object to create.
+   *
+   * Returns:
+   *   The created user object.
+   *
+   * Raises:
+   *   CustomError: If the user already exists or if there is an error creating the user.
+   */
   async execute(user: User) {
     const findUser = await this.userRepository.findUserByEmail(user.email);
     if (findUser) {

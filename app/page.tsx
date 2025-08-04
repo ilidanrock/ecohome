@@ -39,7 +39,7 @@ export default async function LandingPage( ) {
   
   
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen w-full flex-col">
       {/* Header */}
       <header className="border-b border-lightgray bg-white">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">

@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { HasherRepository } from "../domain/User/HasherRepository";
+import { HasherRepository } from "@/src/domain/User/HasherRepository";
 
 export class BcryptHasherRepository implements HasherRepository {
     

@@ -1,11 +1,23 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState, useEffect } from "react"
-import { Bell, Search, User, ChevronDown, Zap, Droplets, X, Settings, FileText, HelpCircle, LogOut } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect } from 'react';
+import {
+  Bell,
+  Search,
+  User,
+  ChevronDown,
+  Zap,
+  Droplets,
+  X,
+  Settings,
+  FileText,
+  HelpCircle,
+  LogOut,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,92 +25,92 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { signOut, useSession } from "next-auth/react"
-import { useSidebar } from "@/components/ui/sidebar"
-import Image from "next/image"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
+} from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { signOut, useSession } from 'next-auth/react';
+import { useSidebar } from '@/components/ui/sidebar';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 // Types
 interface QuickStat {
-  type: "energy" | "water"
-  value: string
-  unit: string
-  trend: "up" | "down" | "stable"
-  loading?: boolean
+  type: 'energy' | 'water';
+  value: string;
+  unit: string;
+  trend: 'up' | 'down' | 'stable';
+  loading?: boolean;
 }
 
 interface Notification {
-  id: string
-  title: string
-  message: string
-  type: "info" | "warning" | "success" | "error"
-  timestamp: Date
-  read: boolean
+  id: string;
+  title: string;
+  message: string;
+  type: 'info' | 'warning' | 'success' | 'error';
+  timestamp: Date;
+  read: boolean;
 }
 
 // Mock data - replace with real API calls
 const mockQuickStats: QuickStat[] = [
-  { type: "energy", value: "245", unit: "kWh", trend: "down" },
-  { type: "water", value: "1.2k", unit: "L", trend: "up" },
-]
+  { type: 'energy', value: '245', unit: 'kWh', trend: 'down' },
+  { type: 'water', value: '1.2k', unit: 'L', trend: 'up' },
+];
 
 const mockNotifications: Notification[] = [
   {
-    id: "1",
-    title: "Factura disponible",
-    message: "Tu factura de energía de diciembre ya está disponible",
-    type: "info",
+    id: '1',
+    title: 'Factura disponible',
+    message: 'Tu factura de energía de diciembre ya está disponible',
+    type: 'info',
     timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     read: false,
   },
   {
-    id: "2",
-    title: "Consumo elevado",
-    message: "Tu consumo de agua ha aumentado un 15% esta semana",
-    type: "warning",
+    id: '2',
+    title: 'Consumo elevado',
+    message: 'Tu consumo de agua ha aumentado un 15% esta semana',
+    type: 'warning',
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
     read: false,
   },
   {
-    id: "3",
-    title: "Meta alcanzada",
-    message: "¡Felicidades! Has reducido tu consumo energético un 10%",
-    type: "success",
+    id: '3',
+    title: 'Meta alcanzada',
+    message: '¡Felicidades! Has reducido tu consumo energético un 10%',
+    type: 'success',
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
     read: true,
   },
-]
+];
 
 export function TenantHeader() {
-  const { data: session } = useSession()
-  const { isMobile } = useSidebar()
-  const router = useRouter()
+  const { data: session } = useSession();
+  const { isMobile } = useSidebar();
+  const router = useRouter();
 
   // State
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchFocused, setSearchFocused] = useState(false)
-  const [quickStats, setQuickStats] = useState<QuickStat[]>([])
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
-  const [statsLoading, setStatsLoading] = useState(true)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [quickStats, setQuickStats] = useState<QuickStat[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   // Load quick stats
   useEffect(() => {
     const loadStats = async () => {
-      setStatsLoading(true)
+      setStatsLoading(true);
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setQuickStats(mockQuickStats)
-      setStatsLoading(false)
-    }
-    loadStats()
-  }, [])
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setQuickStats(mockQuickStats);
+      setStatsLoading(false);
+    };
+    loadStats();
+  }, []);
 
   // Debounced search
   // const debouncedSearch = useCallback(
@@ -116,37 +128,39 @@ export function TenantHeader() {
 
   // Handle search
   const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/dashboard/search?q=${encodeURIComponent(searchQuery)}`)
+      router.push(`/dashboard/search?q=${encodeURIComponent(searchQuery)}`);
     }
-  }
+  };
 
   // Mark notification as read
   const markAsRead = (notificationId: string) => {
-    setNotifications((prev) => prev.map((notif) => (notif.id === notificationId ? { ...notif, read: true } : notif)))
-  }
+    setNotifications((prev) =>
+      prev.map((notif) => (notif.id === notificationId ? { ...notif, read: true } : notif))
+    );
+  };
 
   // Clear all notifications
   const clearAllNotifications = () => {
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })))
-  }
+    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
+  };
 
   // Get unread count
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Format timestamp
   const formatTimestamp = (date: Date) => {
-    const now = new Date()
-    const diff = now.getTime() - date.getTime()
-    const minutes = Math.floor(diff / (1000 * 60))
-    const hours = Math.floor(diff / (1000 * 60 * 60))
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (minutes < 60) return `hace ${minutes}m`
-    if (hours < 24) return `hace ${hours}h`
-    return `hace ${days}d`
-  }
+    if (minutes < 60) return `hace ${minutes}m`;
+    if (hours < 24) return `hace ${hours}h`;
+    return `hace ${days}d`;
+  };
 
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
@@ -161,8 +175,8 @@ export function TenantHeader() {
             <Input
               id="search-field"
               className={cn(
-                "h-full w-full border-gray-200 pl-10 pr-10 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all duration-200",
-                searchFocused && "ring-2 ring-blue-500 border-blue-500",
+                'h-full w-full border-gray-200 pl-10 pr-10 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all duration-200',
+                searchFocused && 'ring-2 ring-blue-500 border-blue-500'
               )}
               placeholder="Buscar facturas, reportes..."
               type="search"
@@ -177,7 +191,7 @@ export function TenantHeader() {
                 variant="ghost"
                 size="sm"
                 className="absolute inset-y-0 right-0 h-full px-3 hover:bg-transparent"
-                onClick={() => setSearchQuery("")}
+                onClick={() => setSearchQuery('')}
               >
                 <X className="h-4 w-4 text-gray-400" />
                 <span className="sr-only">Limpiar búsqueda</span>
@@ -201,18 +215,23 @@ export function TenantHeader() {
                 <div
                   key={stat.type}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-105 cursor-pointer",
-                    stat.type === "energy" ? "bg-blue-50 hover:bg-blue-100" : "bg-green-50 hover:bg-green-100",
+                    'flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 hover:scale-105 cursor-pointer',
+                    stat.type === 'energy'
+                      ? 'bg-blue-50 hover:bg-blue-100'
+                      : 'bg-green-50 hover:bg-green-100'
                   )}
-                  title={`Consumo de ${stat.type === "energy" ? "energía" : "agua"} actual`}
+                  title={`Consumo de ${stat.type === 'energy' ? 'energía' : 'agua'} actual`}
                 >
-                  {stat.type === "energy" ? (
+                  {stat.type === 'energy' ? (
                     <Zap className="h-4 w-4 text-blue-600" />
                   ) : (
                     <Droplets className="h-4 w-4 text-green-600" />
                   )}
                   <span
-                    className={cn("text-sm font-medium", stat.type === "energy" ? "text-blue-700" : "text-green-700")}
+                    className={cn(
+                      'text-sm font-medium',
+                      stat.type === 'energy' ? 'text-blue-700' : 'text-green-700'
+                    )}
                   >
                     {stat.value} {stat.unit}
                   </span>
@@ -229,12 +248,12 @@ export function TenantHeader() {
               variant="ghost"
               size="sm"
               className="relative hover:bg-gray-100 transition-colors duration-200"
-              aria-label={`Notificaciones${unreadCount > 0 ? ` (${unreadCount} sin leer)` : ""}`}
+              aria-label={`Notificaciones${unreadCount > 0 ? ` (${unreadCount} sin leer)` : ''}`}
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-red-500 text-white text-xs animate-pulse">
-                  {unreadCount > 9 ? "9+" : unreadCount}
+                  {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
             </Button>
@@ -261,26 +280,30 @@ export function TenantHeader() {
                   <div
                     key={notification.id}
                     className={cn(
-                      "p-4 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors duration-200",
-                      !notification.read && "bg-blue-50/50",
+                      'p-4 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors duration-200',
+                      !notification.read && 'bg-blue-50/50'
                     )}
                     onClick={() => markAsRead(notification.id)}
                   >
                     <div className="flex items-start gap-3">
                       <div
                         className={cn(
-                          "w-2 h-2 rounded-full mt-2 flex-shrink-0",
-                          notification.type === "info" && "bg-blue-500",
-                          notification.type === "warning" && "bg-yellow-500",
-                          notification.type === "success" && "bg-green-500",
-                          notification.type === "error" && "bg-red-500",
-                          notification.read && "bg-gray-300",
+                          'w-2 h-2 rounded-full mt-2 flex-shrink-0',
+                          notification.type === 'info' && 'bg-blue-500',
+                          notification.type === 'warning' && 'bg-yellow-500',
+                          notification.type === 'success' && 'bg-green-500',
+                          notification.type === 'error' && 'bg-red-500',
+                          notification.read && 'bg-gray-300'
                         )}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{notification.title}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {notification.title}
+                        </p>
                         <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                        <p className="text-xs text-gray-400 mt-2">{formatTimestamp(notification.timestamp)}</p>
+                        <p className="text-xs text-gray-400 mt-2">
+                          {formatTimestamp(notification.timestamp)}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -303,7 +326,7 @@ export function TenantHeader() {
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
                 {session?.user?.image ? (
                   <Image
-                    src={session.user.image || "/placeholder.svg"}
+                    src={session.user.image || '/placeholder.svg'}
                     alt={`Foto de perfil de ${session.user.name}`}
                     width={32}
                     height={32}
@@ -315,7 +338,7 @@ export function TenantHeader() {
               </div>
               <span className="hidden lg:flex lg:items-center">
                 <span className="ml-2 text-sm font-medium text-gray-700 max-w-32 truncate">
-                  {session?.user?.name || "Usuario"}
+                  {session?.user?.name || 'Usuario'}
                 </span>
                 <ChevronDown className="ml-2 h-4 w-4 text-gray-400" />
               </span>
@@ -324,7 +347,9 @@ export function TenantHeader() {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{session?.user?.name || "Usuario"}</p>
+                <p className="text-sm font-medium leading-none">
+                  {session?.user?.name || 'Usuario'}
+                </p>
                 <p className="text-xs leading-none text-muted-foreground">{session?.user?.email}</p>
                 <p className="text-xs leading-none text-muted-foreground">Apartamento 3B</p>
               </div>
@@ -356,7 +381,7 @@ export function TenantHeader() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: '/' })}
               className="text-red-600 focus:text-red-600 focus:bg-red-50"
             >
               <LogOut className="mr-2 h-4 w-4" />
@@ -366,6 +391,5 @@ export function TenantHeader() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }
-

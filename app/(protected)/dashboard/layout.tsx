@@ -1,14 +1,9 @@
-import { TenantBreadcrumb } from "@/components/user/tenant-breadcrumb"
-import { TenantHeader } from "@/components/user/tenant-header"
-import { TenantSidebar } from "@/components/user/tenant-sidebar"
-import type React from "react"
+import { TenantBreadcrumb } from '@/components/user/tenant-breadcrumb';
+import { TenantHeader } from '@/components/user/tenant-header';
+import { TenantSidebar } from '@/components/user/tenant-sidebar';
+import type React from 'react';
 
-
-export default function TenantLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function TenantLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-[#F8F9FA]">
       <TenantSidebar />
@@ -22,5 +17,5 @@ export default function TenantLayout({
         </main>
       </div>
     </div>
-  )
+  );
 }

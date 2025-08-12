@@ -1,12 +1,8 @@
-"use client"
-import React from 'react'
+'use client';
+import React from 'react';
 
 function SidebarProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SidebarProvider>
-      {children}
-    </SidebarProvider>
-  )
+  return <SidebarProvider>{children}</SidebarProvider>;
 }
 
-export default SidebarProvider
+export default SidebarProvider;

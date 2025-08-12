@@ -1,20 +1,20 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Eye, EyeOff } from "lucide-react"
+import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
-type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement>
+type PasswordInputProps = React.InputHTMLAttributes<HTMLInputElement>;
 
 export function PasswordInput({ ...props }: PasswordInputProps) {
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="relative">
       <Input
-        type={showPassword ? "text" : "password"}
+        type={showPassword ? 'text' : 'password'}
         className="rounded-lg border-lightgray bg-white focus:border-ecoblue focus:ring-ecoblue pr-10"
         required
         {...props}
@@ -31,8 +31,10 @@ export function PasswordInput({ ...props }: PasswordInputProps) {
         ) : (
           <Eye className="h-4 w-4 text-gray-500" />
         )}
-        <span className="sr-only">{showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}</span>
+        <span className="sr-only">
+          {showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+        </span>
       </Button>
     </div>
-  )
+  );
 }

@@ -1,21 +1,21 @@
-"use client"
+'use client';
 
-import { useEffect } from "react"
-import Link from "next/link"
-import { Leaf, RefreshCw, Home } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { Leaf, RefreshCw, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string }
-  reset: () => void
+  error: Error & { digest?: string };
+  reset: () => void;
 }) {
   useEffect(() => {
     // Log del error para debugging
-    console.error(error)
-  }, [error])
+    console.error(error);
+  }, [error]);
 
   return (
     <div className="w-full min-h-screen bg-[#F8F9FA] flex items-center justify-center p-4">
@@ -32,7 +32,9 @@ export default function Error({
         <div className="space-y-4">
           <h1 className="text-6xl font-bold text-red-500">¡Oops!</h1>
           <h2 className="text-2xl font-bold text-[#343A40]">Algo salió mal</h2>
-          <p className="text-[#343A40]/70 text-lg">Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.</p>
+          <p className="text-[#343A40]/70 text-lg">
+            Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo.
+          </p>
         </div>
 
         {/* Ilustración de error */}
@@ -47,7 +49,11 @@ export default function Error({
 
         {/* Botones de acción */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button onClick={reset} variant="outline" className="border-[#007BFF] text-[#007BFF] hover:bg-[#007BFF]/10">
+          <Button
+            onClick={reset}
+            variant="outline"
+            className="border-[#007BFF] text-[#007BFF] hover:bg-[#007BFF]/10"
+          >
             <RefreshCw className="h-4 w-4 mr-2" />
             Intentar de nuevo
           </Button>
@@ -60,14 +66,16 @@ export default function Error({
         </div>
 
         {/* Información adicional para desarrollo */}
-        {process.env.NODE_ENV === "development" && (
+        {process.env.NODE_ENV === 'development' && (
           <div className="mt-8 p-4 bg-gray-100 rounded-lg text-left">
-            <h3 className="font-semibold text-gray-800 mb-2">Información del error (solo en desarrollo):</h3>
+            <h3 className="font-semibold text-gray-800 mb-2">
+              Información del error (solo en desarrollo):
+            </h3>
             <p className="text-sm text-gray-600 font-mono">{error.message}</p>
             {error.digest && <p className="text-xs text-gray-500 mt-1">Digest: {error.digest}</p>}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -1,54 +1,54 @@
-"use client"
+'use client';
 
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import { Leaf, Mail, CheckCircle, Clock, ArrowRight, Shield, Zap, Users } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { Leaf, Mail, CheckCircle, Clock, ArrowRight, Shield, Zap, Users } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 export default function RegisterSuccess() {
-  const router = useRouter()
-  const [countdown, setCountdown] = useState(10)
-  const [progress, setProgress] = useState(0)
-  const [viewHeight, setViewHeight] = useState("100vh")
+  const router = useRouter();
+  const [countdown, setCountdown] = useState(10);
+  const [progress, setProgress] = useState(0);
+  const [viewHeight, setViewHeight] = useState('100vh');
 
   // Handle countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
-      setCountdown((prev) => (prev > 0 ? prev - 1 : 0))
-    }, 1000)
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
 
-    return () => clearInterval(timer)
-  }, [])
+    return () => clearInterval(timer);
+  }, []);
 
   // Handle navigation when countdown reaches 0
   useEffect(() => {
     if (countdown === 0) {
-      router.push("/login")
+      router.push('/login');
     }
-  }, [countdown, router])
+  }, [countdown, router]);
 
   // Update progress bar
   useEffect(() => {
     const progressTimer = setInterval(() => {
-      setProgress(() => ((10 - countdown) / 10) * 100)
-    }, 100)
+      setProgress(() => ((10 - countdown) / 10) * 100);
+    }, 100);
 
-    return () => clearInterval(progressTimer)
-  }, [countdown])
+    return () => clearInterval(progressTimer);
+  }, [countdown]);
 
   // Set view height to ensure no scrolling is needed
   useEffect(() => {
     const updateHeight = () => {
-      setViewHeight(`${window.innerHeight}px`)
-    }
+      setViewHeight(`${window.innerHeight}px`);
+    };
 
-    updateHeight()
-    window.addEventListener("resize", updateHeight)
-    return () => window.removeEventListener("resize", updateHeight)
-  }, [])
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+    return () => window.removeEventListener('resize', updateHeight);
+  }, []);
 
   return (
     <div
@@ -61,7 +61,7 @@ export default function RegisterSuccess() {
         <div className="absolute bottom-1/4 right-1/6 w-96 h-96 bg-green-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
         <div
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-blue-100/10 to-green-100/10 rounded-full blur-3xl animate-spin"
-          style={{ animationDuration: "20s" }}
+          style={{ animationDuration: '20s' }}
         ></div>
       </div>
 
@@ -94,12 +94,11 @@ export default function RegisterSuccess() {
               </div>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-gray-800 via-blue-600 to-green-600 bg-clip-text text-transparent">
-                Verifica tu correo para comenzar.
-              </h1>
+              Verifica tu correo para comenzar.
+            </h1>
 
             <h2 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-gray-800 via-blue-600 to-green-600 bg-clip-text text-transparent">
               ¡Registro exitoso! 🎉
-
             </h2>
             <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto">
               Tu cuenta ha sido creada. Verifica tu correo para comenzar.
@@ -118,7 +117,9 @@ export default function RegisterSuccess() {
                       <Mail className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg font-bold text-gray-800">Verifica tu email</CardTitle>
+                      <CardTitle className="text-lg font-bold text-gray-800">
+                        Verifica tu email
+                      </CardTitle>
                       <CardDescription className="text-xs text-gray-600">
                         Te hemos enviado un enlace de verificación
                       </CardDescription>
@@ -146,9 +147,9 @@ export default function RegisterSuccess() {
                     </h4>
                     <div className="space-y-2">
                       {[
-                        { icon: "📧", text: "Revisa tu bandeja de entrada" },
-                        { icon: "🔗", text: "Haz clic en el enlace de verificación" },
-                        { icon: "🚀", text: "¡Inicia sesión y comienza!" },
+                        { icon: '📧', text: 'Revisa tu bandeja de entrada' },
+                        { icon: '🔗', text: 'Haz clic en el enlace de verificación' },
+                        { icon: '🚀', text: '¡Inicia sesión y comienza!' },
                       ].map((step, index) => (
                         <div
                           key={index}
@@ -158,7 +159,9 @@ export default function RegisterSuccess() {
                             {index + 1}
                           </div>
                           <span className="text-base">{step.icon}</span>
-                          <span className="text-sm text-gray-700 font-medium flex-1">{step.text}</span>
+                          <span className="text-sm text-gray-700 font-medium flex-1">
+                            {step.text}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -198,14 +201,16 @@ export default function RegisterSuccess() {
               {/* Features preview - more compact */}
               <Card className="bg-white/80 backdrop-blur-sm shadow-xl border-0 flex-grow">
                 <CardHeader className="py-2">
-                  <CardTitle className="text-sm text-gray-800">¿Qué puedes hacer con EcoHome?</CardTitle>
+                  <CardTitle className="text-sm text-gray-800">
+                    ¿Qué puedes hacer con EcoHome?
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="py-2">
                   <div className="grid gap-2">
                     {[
-                      { icon: Shield, title: "Seguridad", desc: "Protección para tu hogar" },
-                      { icon: Zap, title: "Eficiencia", desc: "Optimiza el consumo energético" },
-                      { icon: Users, title: "Comunidad", desc: "Conecta con otros usuarios" },
+                      { icon: Shield, title: 'Seguridad', desc: 'Protección para tu hogar' },
+                      { icon: Zap, title: 'Eficiencia', desc: 'Optimiza el consumo energético' },
+                      { icon: Users, title: 'Comunidad', desc: 'Conecta con otros usuarios' },
                     ].map((feature, index) => (
                       <div
                         key={index}
@@ -226,7 +231,7 @@ export default function RegisterSuccess() {
 
               {/* Action button - more compact */}
               <Button
-                onClick={() => router.push("/login")}
+                onClick={() => router.push('/login')}
                 className="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 group"
               >
                 <span>¿Ya verificaste tu email? Iniciar sesión</span>
@@ -242,5 +247,5 @@ export default function RegisterSuccess() {
         <p className="text-xs">© 2024 EcoHome. Construyendo un futuro más sostenible.</p>
       </footer>
     </div>
-  )
+  );
 }

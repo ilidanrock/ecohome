@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+dist
+*.md
+*.json
+*.lock
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+

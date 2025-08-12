@@ -9,4 +9,4 @@ export interface User {
   updatedAt?: Date;
 }
 
-export type role = "USER" | "ADMIN" | "NULL"
+export type role = 'USER' | 'ADMIN' | 'NULL';

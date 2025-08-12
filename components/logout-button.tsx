@@ -1,15 +1,14 @@
-"use client"
-import React from 'react'
-import { Button } from './ui/button'
-import { signOut } from "next-auth/react"
+'use client';
+import React from 'react';
+import { Button } from './ui/button';
+import { signOut } from 'next-auth/react';
 
 function logoutButton() {
-
   return (
     <Button onClick={() => signOut()} className="w-full">
-        Logout
+      Logout
     </Button>
-  )
+  );
 }
 
-export default logoutButton
+export default logoutButton;

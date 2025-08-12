@@ -1,14 +1,10 @@
-import type React from "react"
+import type React from 'react';
 
-import { AdminHeader } from "@/components/admin/admin-header"
-import { AdminBreadcrumb } from "@/components/admin/admin-breadcrumb"
-import { AdminSidebar } from "@/components/admin/admin-siderbar"
+import { AdminHeader } from '@/components/admin/admin-header';
+import { AdminBreadcrumb } from '@/components/admin/admin-breadcrumb';
+import { AdminSidebar } from '@/components/admin/admin-siderbar';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen w-full bg-[#F8F9FA]">
       <AdminSidebar />
@@ -22,5 +18,5 @@ export default function AdminLayout({
         </main>
       </div>
     </div>
-  )
+  );
 }

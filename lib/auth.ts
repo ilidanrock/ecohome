@@ -1,5 +1,5 @@
-import { AuthError } from "next-auth";
-import { ErrorAuthTypes } from "../types/https";
+import { AuthError } from 'next-auth';
+import { ErrorAuthTypes } from '../types/https';
 
 export class CustomError extends AuthError {
   code: string;
@@ -7,8 +7,8 @@ export class CustomError extends AuthError {
   message: ErrorAuthTypes | string;
 
   constructor(
-    message: ErrorAuthTypes = "Contraseña invalida",
-    code = "InvalidCredentials",
+    message: ErrorAuthTypes = 'Contraseña invalida',
+    code = 'InvalidCredentials',
     status = 401
   ) {
     super();

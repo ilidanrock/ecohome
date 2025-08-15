@@ -28,7 +28,7 @@ const config = {
         foreground: 'hsl(var(--foreground))',
         ecoblue: '#007BFF',
         ecogreen: '#28A745',
-        lightgray: '#F8F9FA',
+        'light-gray': '#F8F9FA',
         darkgray: '#343A40',
         primary: {
           DEFAULT: 'hsl(var(--primary))',

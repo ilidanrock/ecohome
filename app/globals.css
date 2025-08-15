@@ -3,6 +3,64 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 16px; /* Tamaño base para pantallas estándar */
+  }
+
+  @media (min-width: 1920px) {
+    html {
+      font-size: 18px; /* Aumentar ligeramente el tamaño de fuente para pantallas grandes */
+    }
+  }
+
+  @media (min-width: 3840px) {
+    html {
+      font-size: 20px; /* Tamaño de fuente para 4K */
+    }
+  }
+
+  body {
+    @apply text-base leading-relaxed;
+  }
+
+  /* Asegurar que las imágenes y videos escalen correctamente */
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Contenedores responsivos */
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1536px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  @media (min-width: 3840px) {
+    .container {
+      padding-left: 4rem;
+      padding-right: 4rem;
+    }
+  }
+}
+
+@layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -74,7 +132,9 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', sans-serif;
   }
-  h1,
+  h1 {
+    @apply text-4xl;
+  }
   h2,
   h3,
   h4,

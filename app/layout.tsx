@@ -26,11 +26,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SidebarProvider>
-          <SessionProvider>{children}</SessionProvider>
-        </SidebarProvider>
+    <html lang="en" className="h-full">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full`}
+      >
+        <div className="w-full min-h-screen flex flex-col">
+          <SidebarProvider>
+            <SessionProvider>{children}</SessionProvider>
+          </SidebarProvider>
+        </div>
       </body>
     </html>
   );

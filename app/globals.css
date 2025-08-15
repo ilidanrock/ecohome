@@ -142,4 +142,38 @@
   h6 {
     font-family: 'Geist Sans', sans-serif;
   }
+
+  /* Dark mode overrides for custom colors */
+  .dark {
+    --light-gray: #1f2937; /* Darker shade for dark mode */
+    --darkgray: #e5e7eb; /* Lighter text for dark mode */
+  }
+
+  /* Ensure text colors adapt to dark mode */
+  .text-darkgray {
+    @apply text-[#343A40] dark:text-[#e5e7eb];
+  }
+
+  .text-darkgray\/70 {
+    @apply text-[#343A40]/70 dark:text-[#e5e7eb]/70;
+  }
+
+  .bg-light-gray {
+    @apply bg-[#F8F9FA] dark:bg-[#1f2937];
+  }
+
+  .border-light-gray {
+    @apply border-[#F8F9FA] dark:border-[#374151];
+  }
+
+  /* Update header and footer for dark mode */
+  .dark header,
+  .dark footer {
+    @apply bg-gray-900 border-gray-800;
+  }
+
+  /* Update card styles for dark mode */
+  .dark .bg-white {
+    @apply bg-gray-800;
+  }
 }

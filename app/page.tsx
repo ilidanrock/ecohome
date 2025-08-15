@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { BarChart3, Droplets, Leaf, LightbulbIcon, Mountain, Shield, Zap } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { client } from '@/sanity/lib/client';
 import { urlFor } from '@/sanity/lib/image';
 
@@ -31,7 +32,7 @@ export default async function LandingPage() {
   return (
     <div className="flex min-h-screen w-full flex-col">
       {/* Header */}
-      <header className="border-b border-lightgray bg-white sticky top-0 z-50">
+      <header className="border-b border-lightgray bg-white dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-50">
         <div className="w-full flex h-16 items-center justify-between px-4 md:px-6 2xl:px-12 4xl:px-24">
           <Link href="/" className="flex items-center gap-2">
             <Leaf className="h-8 w-8 text-ecogreen" />
@@ -55,6 +56,7 @@ export default async function LandingPage() {
             </Link>
           </nav>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link
               href="/login"
               className="hidden text-darkgray hover:text-ecoblue transition-colors md:inline-block"
@@ -70,7 +72,7 @@ export default async function LandingPage() {
 
       <main className="w-full">
         {/* Hero Section */}
-        <section className="bg-gradient-to-b from-light-gray to-white py-16 md:py-24 2xl:py-32">
+        <section className="bg-gradient-to-b from-light-gray dark:from-gray-800 to-white dark:to-gray-900 py-16 md:py-24 2xl:py-32">
           <div className="w-full px-4 md:px-6 2xl:px-12 4xl:px-24">
             <div className="mx-auto grid gap-6 lg:grid-cols-2 lg:gap-12  items-center">
               <div className="flex flex-col justify-center space-y-6">
@@ -95,7 +97,7 @@ export default async function LandingPage() {
                     Ver demostración
                   </Button>
                 </div>
-                <p className="text-sm text-darkgray/60">
+                <p className="text-sm dark:text-gray-400 text-darkgray/60">
                   Más de 10,000 hogares ya confían en EcoHome para su gestión energética
                 </p>
               </div>
@@ -123,19 +125,12 @@ export default async function LandingPage() {
             <div className=" grid grid-cols-2 gap-8 md:place-content-evenly md:grid-cols-4  ">
               {companiesData.map((company, i) => (
                 <div key={i} className="flex items-center justify-center">
-                  {/* <Image
-                    src={urlFor(company.imgURL).width(120).height(40).auto('format').url()}
-                    alt={`Logo de ${company.name}`}
-                    width={120}
-                    height={40}
-                    className="opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0"
-                  /> */}
                   <Image
                     src={urlFor(company.imgURL).width(120).height(40).auto('format').url()}
                     alt={`Logo de ${company.name}`}
                     width={120}
                     height={40}
-                    className="h-auto w-[120px] opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                    className="h-auto w-[120px] opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0 dark:opacity-50 dark:grayscale-0"
                   />
                 </div>
               ))}
@@ -155,7 +150,7 @@ export default async function LandingPage() {
               </p>
             </div>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white dark:bg-gray-800 p-6 shadow-sm transition-all hover:shadow-md">
                 <div className="rounded-full bg-ecoblue/10 p-3">
                   <BarChart3 className="h-6 w-6 text-ecoblue" />
                 </div>
@@ -165,7 +160,7 @@ export default async function LandingPage() {
                   fáciles de entender.
                 </p>
               </div>
-              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white dark:bg-gray-800 p-6 shadow-sm transition-all hover:shadow-md">
                 <div className="rounded-full bg-ecogreen/10 p-3">
                   <LightbulbIcon className="h-6 w-6 text-ecogreen" />
                 </div>
@@ -175,7 +170,7 @@ export default async function LandingPage() {
                   uso.
                 </p>
               </div>
-              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white dark:bg-gray-800 p-6 shadow-sm transition-all hover:shadow-md">
                 <div className="rounded-full bg-ecoblue/10 p-3">
                   <Zap className="h-6 w-6 text-ecoblue" />
                 </div>
@@ -184,7 +179,7 @@ export default async function LandingPage() {
                   Configura alertas personalizadas para detectar picos de consumo o posibles fugas.
                 </p>
               </div>
-              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white dark:bg-gray-800 p-6 shadow-sm transition-all hover:shadow-md">
                 <div className="rounded-full bg-ecogreen/10 p-3">
                   <Droplets className="h-6 w-6 text-ecogreen" />
                 </div>
@@ -194,7 +189,7 @@ export default async function LandingPage() {
                   un problema.
                 </p>
               </div>
-              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white dark:bg-gray-800 p-6 shadow-sm transition-all hover:shadow-md">
                 <div className="rounded-full bg-ecoblue/10 p-3">
                   <Shield className="h-6 w-6 text-ecoblue" />
                 </div>
@@ -204,7 +199,7 @@ export default async function LandingPage() {
                   encriptación.
                 </p>
               </div>
-              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white p-6 shadow-sm transition-all hover:shadow-md">
+              <div className="flex flex-col items-start space-y-3 rounded-lg border border-light-gray bg-white dark:bg-gray-800 p-6 shadow-sm transition-all hover:shadow-md">
                 <div className="rounded-full bg-ecogreen/10 p-3">
                   <Mountain className="h-6 w-6 text-ecogreen" />
                 </div>
@@ -319,10 +314,14 @@ export default async function LandingPage() {
                   key={i}
                   className="flex flex-col justify-between space-y-4 rounded-lg border border-light-gray bg-white p-6 shadow-sm"
                 >
-                  <p className="text-darkgray/80 italic">{testimonial.quote}</p>
+                  <p className="text-darkgray/80 dark:text-gray-300 italic">{testimonial.quote}</p>
                   <div>
-                    <p className="font-semibold text-darkgray">{testimonial.name}</p>
-                    <p className="text-sm text-darkgray/70">{testimonial.role}</p>
+                    <p className="font-semibold text-darkgray dark:text-white">
+                      {testimonial.name}
+                    </p>
+                    <p className="text-sm text-darkgray/70 dark:text-gray-400">
+                      {testimonial.role}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -355,7 +354,7 @@ export default async function LandingPage() {
                   Contactar con ventas
                 </Button>
               </div>
-              <p className="text-sm text-darkgray/60">
+              <p className="text-sm dark:text-gray-400 text-darkgray/60">
                 No se requiere tarjeta de crédito para comenzar
               </p>
             </div>
@@ -364,7 +363,7 @@ export default async function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-light-gray bg-white py-12">
+      <footer className="border-t border-light-gray bg-white dark:bg-gray-900 dark:border-gray-800 py-12">
         <div className="container mx-auto px-4 md:px-6">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -372,7 +371,7 @@ export default async function LandingPage() {
                 <Leaf className="h-6 w-6 text-ecogreen" />
                 <span className="text-xl font-bold text-ecoblue">EcoHome</span>
               </div>
-              <p className="mt-4 text-sm text-darkgray/70">
+              <p className="mt-4 text-sm dark:text-gray-400 text-darkgray/70">
                 Empoderando la gestión sostenible de energía en hogares y propiedades.
               </p>
             </div>

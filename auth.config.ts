@@ -4,6 +4,7 @@ import Google from 'next-auth/providers/google';
 import { loginSchema } from './zod/login-schema';
 import { serviceContainer } from './src/Shared/infrastructure/ServiceContainer';
 import { VerifyToken } from './src/domain/VerifyToken/VerifyToken';
+import {} from 'next/font/google';
 
 // Extender tipos de NextAuth
 declare module 'next-auth' {

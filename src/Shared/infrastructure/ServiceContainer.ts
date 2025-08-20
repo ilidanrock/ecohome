@@ -29,12 +29,7 @@ const verifyTokenCreate = new VerifyTokenCreate(
 export const serviceContainer = {
   user: {
     createUser: new UserCreate(userRepository, hasherRepository, verifyTokenCreate),
-    userLogin: new UserLogin(
-      userRepository,
-      hasherRepository,
-      verifyTokenRepository,
-      emailRepository
-    ),
+    userLogin: new UserLogin(userRepository, hasherRepository, emailRepository),
     userFind: new UserFind(userRepository),
   },
   verifyToken: {

@@ -1,15 +1,12 @@
 import { IUserRepository } from '@/src/domain/User/UserRepository';
 import { HasherRepository } from '@/src/domain/User/HasherRepository';
 import { CustomError } from '@/lib/auth';
-import { VerifyTokenRepository } from '@/src/domain/VerifyToken/VerifyTokenRepository';
-import { VerifyToken } from '@/src/domain/VerifyToken/VerifyToken';
 import { EmailRepository } from '@/src/domain/VerifyToken/EmailRepository';
 
 export class UserLogin {
   constructor(
     private userRepository: IUserRepository,
     private hasherRepository: HasherRepository,
-    private verifyTokenRepository: VerifyTokenRepository,
     private emailRepository: EmailRepository
   ) {}
   /**
@@ -27,7 +24,7 @@ export class UserLogin {
    * Raises:
    *   CustomError: If the user is not found, registered with Google, or the password is invalid.
    */
-  async execute(email: string, password: string, verifyToken: VerifyToken) {
+  async execute(email: string, password: string) {
     const findUser = await this.userRepository.findUserByEmail(email);
     if (!findUser) {
       throw new CustomError('Email no encontrado', 'InvalidCredentials', 401);
@@ -40,12 +37,7 @@ export class UserLogin {
       throw new CustomError('Contraseña invalida', 'InvalidCredentials', 401);
     }
     if (!findUser.emailVerified) {
-      const verifyTokenExist = await this.verifyTokenRepository.findVerifyTokenByIdentifier(email);
-      if (verifyTokenExist?.identifier) {
-        await this.verifyTokenRepository.deleteVerifyToken(email);
-      }
-      await this.verifyTokenRepository.createVerifyToken(verifyToken);
-      await this.emailRepository.sendEmail(email, verifyToken.tokenUser);
+      throw new CustomError('Email no verificado', 'InvalidCredentials', 401);
     }
     return findUser;
   }

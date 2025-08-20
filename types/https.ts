@@ -16,4 +16,5 @@ export type ErrorAuthTypes =
   | 'Token inválido o expirado'
   | 'Correo ya registrado'
   | 'Error al crear el usuario'
-  | 'Error al actualizar el rol del usuario';
+  | 'Error al actualizar el rol del usuario'
+  | 'Email no verificado';

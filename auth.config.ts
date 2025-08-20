@@ -3,7 +3,6 @@ import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { loginSchema } from './zod/login-schema';
 import { serviceContainer } from './src/Shared/infrastructure/ServiceContainer';
-import { VerifyToken } from './src/domain/VerifyToken/VerifyToken';
 import {} from 'next/font/google';
 
 // Extender tipos de NextAuth
@@ -47,11 +46,7 @@ const authConfig: NextAuthConfig = {
       authorize: async (credentials) => {
         const { email, password } = await loginSchema.parseAsync(credentials);
 
-        const user = await serviceContainer.user.userLogin.execute(
-          email,
-          password,
-          new VerifyToken(email, new Date(Date.now() + 60 * 60 * 1000))
-        );
+        const user = await serviceContainer.user.userLogin.execute(email, password);
 
         return {
           name: user.name,

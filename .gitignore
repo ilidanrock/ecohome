@@ -45,3 +45,7 @@ test-results
 playwright-report
 playwright-report.json
 playwright-report.html
+
+# Next.js
+.next
+

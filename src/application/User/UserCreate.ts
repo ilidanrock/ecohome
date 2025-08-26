@@ -30,6 +30,9 @@ export class UserCreate {
     if (findUser) {
       throw new CustomError('Correo ya registrado', 'USER_ALREADY_EXISTS', 401);
     }
+    if (!user.password) {
+      throw new CustomError('Password no proporcionado', 'InvalidCredentials', 401);
+    }
     const hashedPassword = await this.hasherRepository.hash(user.password);
     user.password = hashedPassword;
 

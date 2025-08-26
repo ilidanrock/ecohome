@@ -4,7 +4,7 @@ export class User {
   id?: string;
   name: string;
   surname: string;
-  password: string;
+  password: string | null;
   email: string;
   emailVerified: Date | null;
   image: string | null;
@@ -14,7 +14,7 @@ export class User {
   constructor(
     name: string,
     surname: string,
-    password: string,
+    password: string | null,
     email: string,
     emailVerified: Date | null,
     image: string | null,

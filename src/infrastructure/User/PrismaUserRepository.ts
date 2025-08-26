@@ -22,8 +22,6 @@ export class PrismaUserRepository implements IUserRepository {
         },
       });
 
-      console.log(createdUser);
-
       // 2. Create the credentials account
       await tx.account.create({
         data: {
@@ -67,7 +65,7 @@ export class PrismaUserRepository implements IUserRepository {
     return new User(
       prismaUser.name ?? '',
       prismaUser.surname ?? '',
-      prismaUser.password ?? '',
+      prismaUser.password ?? null,
       prismaUser.email,
       prismaUser.emailVerified,
       prismaUser.image ?? '',

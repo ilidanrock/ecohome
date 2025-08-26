@@ -26,6 +26,7 @@ export class UserLogin {
    */
   async execute(email: string, password: string) {
     const findUser = await this.userRepository.findUserByEmail(email);
+
     if (!findUser) {
       throw new CustomError('Email no encontrado', 'InvalidCredentials', 401);
     }

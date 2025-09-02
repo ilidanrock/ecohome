@@ -112,20 +112,6 @@ export function TenantHeader() {
     loadStats();
   }, []);
 
-  // Debounced search
-  // const debouncedSearch = useCallback(
-  //   debounce((query: string) => {
-  //     if (query.trim()) {
-  //       router.push(`/dashboard/search?q=${encodeURIComponent(query)}`)
-  //     }
-  //   }, 300),
-  //   [router],
-  // )
-
-  // useEffect(() => {
-  //   debouncedSearch(searchQuery)
-  // }, [searchQuery, debouncedSearch])
-
   // Handle search
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

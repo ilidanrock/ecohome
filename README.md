@@ -44,23 +44,164 @@ Tenants can check their personal consumption history and view detailed cost calc
 ![UML Diagram](./public//ecohome_full_er.svg)
 
 
-## **🛠️ Technologies Used**  
-To ensure optimal performance and a smooth user experience, EcoHome utilizes the following technologies:  
+## **🛠️ Tecnologías en uso (actuales)**  
+Estas son las herramientas y librerías que realmente se usan actualmente en el proyecto (según `package.json`):  
 
-### **📌 Frameworks and Libraries**  
-✅ **Next.js** → Core framework for the web app.  
-✅ **ShadCN** → For optimized and stylized UI components.  
-✅ **Zustand** → For **state management** across the application.  
-✅ **TanStack Query** → For **efficient asynchronous data handling**.  
-✅ **TypeScript** → Ensures **strong typing** and better code maintainability.  
+### **📌 Frameworks y core**  
+- **Next.js 15** (`next@15.1.8`)  
+- **React 19** (`react@~19`, `react-dom@~19`)  
+- **TypeScript 5** (`typescript@~5`)  
 
-### **📌 Integrations**  
-✅ **Amazon S3** → Secure cloud storage for **images and PDF files**.  
-✅ **NextAuth.js** → Secure authentication and session management.  
-✅ **jsPDF** → To generate **monthly reports in PDF format**.  
+### **📌 UI y estilos**  
+- **Radix UI** (`@radix-ui/react-*`)  
+- **Tailwind CSS 3** (`tailwindcss@~3.4.1`, `tailwind-merge@~3.3.0`, `tailwindcss-animate@~1.0.7`)  
+- **Lucide React** (`lucide-react@~0.511.0`)  
+- **next-themes** (`~0.4.6`)  
+- **styled-components 6** (`~6`)  
 
-### **📌 Database**  
-✅ **PostgreSQL ** → For storing **user, consumption, and invoice data**.  
+### **📌 Forms y validación**  
+- **React Hook Form** (`react-hook-form@~7.56.4`)  
+- **Zod** (`zod@~3.25.23`) + **@hookform/resolvers** (`~5.0.1`)  
+
+### **📌 Auth y base de datos**  
+- **NextAuth.js 5 (beta)** (`next-auth@~5.0.0-beta.28`)  
+- **Prisma 6** (`prisma@~6.10.1`, `@prisma/client@~6.10.1`) + **@auth/prisma-adapter** (`~2.9.1`)  
+- **Base de datos:** PostgreSQL (mediante Prisma)  
+
+### **📌 CMS / Contenido**  
+- **Sanity** (`sanity@~3`, `next-sanity@~9`, `@sanity/image-url@~1`, `@sanity/icons@~3.7.0`, `@sanity/vision@3`)  
+
+### **📌 Email y notificaciones**  
+- **Nodemailer** (`~6.9.1`) y **Resend** (`~4.5.1`)  
+- **Sonner** (`~2.0.5`)  
+
+### **📌 Utilidades**  
+- `class-variance-authority`, `clsx`, `nanoid`, `reflect-metadata`  
+
+---
+## **📦 Dependencias actuales (desde `package.json`)**  
+
+### Runtime  
+- `@auth/prisma-adapter@~2.9.1`  
+- `@hookform/resolvers@~5.0.1`  
+- `@prisma/client@~6.10.1`  
+- `@radix-ui/react-dialog@~1.1.14`  
+- `@radix-ui/react-dropdown-menu@~2.1.15`  
+- `@radix-ui/react-label@~2.1.7`  
+- `@radix-ui/react-popover@~1.1.14`  
+- `@radix-ui/react-progress@~1.1.7`  
+- `@radix-ui/react-select@~2.2.5`  
+- `@radix-ui/react-separator@~1.1.7`  
+- `@radix-ui/react-slot@~1.2.3`  
+- `@radix-ui/react-tooltip@~1.2.7`  
+- `@sanity/icons@~3.7.0`  
+- `@sanity/image-url@~1`  
+- `@sanity/vision@3`  
+- `bcryptjs@~3.0.2`  
+- `class-variance-authority@~0.7.1`  
+- `clsx@~2.1.1`  
+- `lucide-react@~0.511.0`  
+- `nanoid@~5.1.5`  
+- `next@15.1.8`  
+- `next-auth@~5.0.0-beta.28`  
+- `next-sanity@~9`  
+- `next-themes@~0.4.6`  
+- `nodemailer@~6.9.1`  
+- `react@~19.0.0`  
+- `react-dom@~19.0.0`  
+- `react-hook-form@~7.56.4`  
+- `reflect-metadata@~0.2.2`  
+- `resend@~4.5.1`  
+- `sanity@~3`  
+- `sonner@~2.0.5`  
+- `styled-components@~6`  
+- `tailwind-merge@~3.3.0`  
+- `tailwindcss-animate@~1.0.7`  
+- `zod@~3.25.23`  
+
+### Dev  
+- `@eslint/eslintrc@~3`  
+- `@playwright/test@^1.55.0`  
+- `@types/bcryptjs@^3.0.0`  
+- `@types/node@~20`  
+- `@types/nodemailer@~6.4.17`  
+- `@types/prettier@^3.0.0`  
+- `@types/react@~19`  
+- `@types/react-dom@~19`  
+- `eslint@~9`  
+- `eslint-config-next@~15.1.8`  
+- `eslint-config-prettier@^10.1.8`  
+- `eslint-plugin-prettier@^5.5.3`  
+- `husky@^9.1.7`  
+- `lint-staged@^16.1.4`  
+- `postcss@~8`  
+- `prettier@^3.6.2`  
+- `prisma@~6.10.1`  
+- `tailwindcss@~3.4.1`  
+- `typescript@~5`  
+
+---
+
+## 🚀 Instalación y ejecución rápida
+- **Requisitos previos**: Node.js 18+ y PNPM
+- **Instalación**:  
+  ```bash
+  pnpm install
+  ```
+- **Desarrollo**:  
+  ```bash
+  pnpm dev
+  ```
+- **Build producción**:  
+  ```bash
+  pnpm build && pnpm start
+  ```
+- **Post-instalación** (automático): genera Prisma Client.  
+- **Linter y formato**: `pnpm lint`, `pnpm format`, `pnpm format:check`
+- **Tests E2E**: `pnpm test`
+> Nota: configura tus variables de entorno en `.env.local` (por ejemplo: `DATABASE_URL`, credenciales de NextAuth, claves de Sanity, email/resend, etc.).
+
+## 📜 Scripts disponibles
+- **dev**: `next dev --turbopack`  
+- **build**: `next build`  
+- **start**: `next start`  
+- **postinstall**: `prisma generate`  
+- **format**: `prettier --write .`  
+- **format:check**: `prettier --check .`  
+- **lint**: `next lint --fix && pnpm format`  
+- **prepare**: `husky`  
+- **test**: `npx playwright test`
+
+---
+
+## 🔧 Variables de entorno
+Crea un archivo `.env.local` en la raíz del proyecto. Ejemplos típicos (ajusta según tu configuración):
+
+### Base de datos (Prisma / PostgreSQL)
+- `DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DBNAME?schema=public"`
+
+### Autenticación (NextAuth / Auth.js v5)
+- `AUTH_SECRET=...`  
+- `NEXTAUTH_URL="http://localhost:3000"` (o la URL de producción)
+
+### Sanity (CMS)
+- `SANITY_PROJECT_ID=...`  
+- `SANITY_DATASET=production`  
+- `SANITY_API_VERSION=2024-01-01`  
+- `SANITY_READ_TOKEN=...` (si se requiere acceso a contenido protegido)
+
+### Email / Notificaciones
+- `RESEND_API_KEY=...` (si se usa Resend)  
+- `EMAIL_FROM="EcoHome <no-reply@tudominio.com>"`  
+- `SMTP_HOST=...`  
+- `SMTP_PORT=587`  
+- `SMTP_USER=...`  
+- `SMTP_PASS=...`
+
+### App (opcional)
+- `NEXT_PUBLIC_APP_URL="http://localhost:3000"`
+
+> Tras configurar `DATABASE_URL`, ejecuta la app con `pnpm dev`. `prisma generate` se ejecuta automáticamente en `postinstall`.
 
 ---
 

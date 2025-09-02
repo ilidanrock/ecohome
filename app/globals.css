@@ -262,7 +262,10 @@
     font-family: 'Inter', sans-serif;
   }
   h1 {
-    @apply text-4xl;
+    @apply text-4xl md:text-5xl font-bold leading-tight;
+  }
+  :where(article, aside, nav, section) h1 {
+    @apply text-4xl md:text-5xl;
   }
   h2,
   h3,

@@ -4,30 +4,29 @@ import { BarChart3, Droplets, Leaf, LightbulbIcon, Mountain, Shield, Zap } from 
 
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
-import { client } from '@/sanity/lib/client';
-import { urlFor } from '@/sanity/lib/image';
+import ImageCloudynary from '@/components/landing/ImageCloudynary';
 
 export const dynamic = 'force-static';
 
 export default async function LandingPage() {
-  const heroData: Array<{
-    name: string;
-    description: string;
-    imgURL: string;
-  }> = await client.fetch(`
-    *[_type == "heroImg"]
-  `);
-
-  // 2) Genera la URL optimizada
-  const heroUrl = urlFor(heroData[0].imgURL).width(600).height(600).auto('format').url();
-
-  const companiesData: Array<{
-    name: string;
-    description: string;
-    imgURL: string;
-  }> = await client.fetch(`
-    *[_type == "companiesImg"]
-  `);
+  const companiesData: Array<{ name: string; imgURL: string }> = [
+    {
+      name: 'Airbnb',
+      imgURL: '/companies/airbnb.svg',
+    },
+    {
+      name: 'Rdio',
+      imgURL: '/companies/rdio.svg',
+    },
+    {
+      name: 'Samsung',
+      imgURL: '/companies/samsung.svg',
+    },
+    {
+      name: 'Shopify',
+      imgURL: '/companies/shopify.svg',
+    },
+  ];
 
   return (
     <div className="flex min-h-screen w-full flex-col">
@@ -77,9 +76,9 @@ export default async function LandingPage() {
             <div className="mx-auto grid gap-6 lg:grid-cols-2 lg:gap-12  items-center">
               <div className="flex flex-col justify-center space-y-6">
                 <div className="space-y-4">
-                  <h1 className="font-bold tracking-tighter text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl text-darkgray">
+                  <span className="font-bold tracking-tighter text-4xl sm:text-5xl md:text-6xl lg:text-7xl 2xl:text-8xl text-darkgray">
                     Gestiona tu consumo energético de forma inteligente
-                  </h1>
+                  </span>
                   <p className="text-lg md:text-xl 2xl:text-2xl text-darkgray/70 max-w-[800px] 2xl:max-w-[1000px]">
                     EcoHome te ayuda a monitorizar y optimizar el consumo de energía y agua en tus
                     propiedades, ahorrando dinero y cuidando el planeta.
@@ -102,7 +101,7 @@ export default async function LandingPage() {
                 </p>
               </div>
               <div className="relative mx-auto w-full max-w-[600px] overflow-hidden rounded-xl lg:aspect-square">
-                <Image
+                {/* <Image
                   src={heroUrl}
                   alt="EcoHome Dashboard"
                   width={600}
@@ -110,6 +109,14 @@ export default async function LandingPage() {
                   className="object-cover"
                   blurDataURL="/globe.svg"
                   priority={true}
+                /> */}
+                <ImageCloudynary
+                  src="https://res.cloudinary.com/logiexpressfleet/image/upload/v1756822357/ecohome/landingPageImage.webp"
+                  alt="EcoHome Dashboard"
+                  width={600}
+                  height={600}
+                  className="object-cover"
+                  blurDataURL="/globe.svg"
                 />
               </div>
             </div>
@@ -126,7 +133,7 @@ export default async function LandingPage() {
               {companiesData.map((company, i) => (
                 <div key={i} className="flex items-center justify-center">
                   <Image
-                    src={urlFor(company.imgURL).width(120).height(40).auto('format').url()}
+                    src={company.imgURL}
                     alt={`Logo de ${company.name}`}
                     width={120}
                     height={40}

@@ -1,5 +1,7 @@
 'use client';
 
+import type React from 'react';
+
 import {
   Bell,
   Search,
@@ -18,13 +20,12 @@ import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -109,8 +110,11 @@ export function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center border-b border-gray-200 bg-white/95 px-4 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/60 sm:px-6 lg:px-8">
-      {/* Search */}
+    <header
+      className="sticky top-0 z-50 flex h-16 shrink-0 items-center border-b border-slate-200/60 bg-white/80 px-4 shadow-sm backdrop-blur-xl supports-[backdrop-filter]:bg-white/80 dark:border-slate-800/60 dark:bg-slate-900/80 sm:px-6 lg:px-8 transition-all duration-200"
+      role="banner"
+      aria-label="Navegación principal"
+    >
       <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
         <form
           className={cn('flex w-full', isAdmin ? 'max-w-xl' : 'max-w-md')}
@@ -119,15 +123,22 @@ export function Header({
           <label htmlFor="search-field" className="sr-only">
             {searchPlaceholder}
           </label>
-          <div className="relative w-full">
-            <Search className="pointer-events-none absolute inset-y-0 left-3 h-full w-4 text-gray-400" />
+          <div className="relative w-full group">
+            <Search
+              className={cn(
+                'pointer-events-none absolute inset-y-0 left-3 h-full w-4 transition-colors duration-200',
+                searchFocused
+                  ? 'text-blue-500 dark:text-blue-400'
+                  : 'text-slate-400 dark:text-slate-500'
+              )}
+            />
             <Input
               id="search-field"
               className={cn(
-                'h-full w-full border-gray-200 pl-10 pr-10 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500 sm:text-sm transition-all duration-200',
-                searchFocused && 'ring-2 ring-blue-500 border-blue-500',
+                'h-full w-full border-slate-200/60 bg-slate-50/50 pl-10 pr-10 text-slate-900 placeholder:text-slate-500 dark:text-slate-100 dark:border-slate-700/60 dark:bg-slate-800/50 dark:placeholder:text-slate-400 sm:text-sm transition-all duration-200 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:focus:border-blue-400 dark:focus:ring-blue-400/20',
+                searchFocused && 'shadow-lg shadow-blue-500/10 dark:shadow-blue-400/10',
                 isAdmin &&
-                  'rounded-md border-0 bg-white py-1.5 pl-10 pr-3 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-500'
+                  'rounded-lg border-0 ring-1 ring-inset ring-slate-300/60 focus:ring-2 focus:ring-inset focus:ring-blue-500 dark:ring-slate-700/60 dark:focus:ring-blue-400'
               )}
               placeholder={searchPlaceholder}
               type="search"
@@ -141,10 +152,11 @@ export function Header({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="absolute inset-y-0 right-0 h-full px-3 hover:bg-transparent"
+                className="absolute inset-y-0 right-0 h-full px-3 hover:bg-slate-100/80 dark:hover:bg-slate-700/80 focus:ring-2 focus:ring-blue-500/20 focus:ring-offset-2 dark:text-slate-300 dark:focus:ring-blue-400/20 dark:focus:ring-offset-slate-900 transition-all duration-200"
                 onClick={() => setSearchQuery('')}
+                aria-label="Limpiar búsqueda"
               >
-                <X className="h-4 w-4 text-gray-400" />
+                <X className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                 <span className="sr-only">Limpiar búsqueda</span>
               </Button>
             )}
@@ -152,58 +164,85 @@ export function Header({
         </form>
       </div>
 
-      <div className="flex items-center gap-x-4 lg:gap-x-6">
+      <div className="flex items-center gap-x-3 lg:gap-x-4">
         {!isAdmin && quickStats.length > 0 && (
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
             {quickStats.map((stat) => (
               <div
                 key={stat.type}
-                className="flex items-center gap-1.5 rounded-full bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/80 dark:from-slate-800/80 dark:to-slate-700/60 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 border border-slate-200/40 dark:border-slate-700/40 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+                aria-label={`${stat.type === 'energy' ? 'Energía' : 'Agua'}: ${stat.value} ${stat.unit}, tendencia ${stat.trend === 'up' ? 'en aumento' : 'a la baja'}`}
               >
-                {stat.type === 'energy' ? (
-                  <Zap className="h-4 w-4 text-yellow-500" />
-                ) : (
-                  <Droplets className="h-4 w-4 text-blue-500" />
-                )}
-                <span>
+                <div
+                  className={cn(
+                    'p-1 rounded-lg',
+                    stat.type === 'energy'
+                      ? 'bg-amber-100 dark:bg-amber-900/30'
+                      : 'bg-blue-100 dark:bg-blue-900/30'
+                  )}
+                >
+                  {stat.type === 'energy' ? (
+                    <Zap className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+                  ) : (
+                    <Droplets className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                  )}
+                </div>
+                <span className="font-semibold">
                   {stat.value} {stat.unit}
                 </span>
                 <span
                   className={cn(
-                    'inline-flex items-center rounded-full px-1.5 text-xs font-medium',
-                    stat.trend === 'up' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset',
+                    stat.trend === 'up'
+                      ? 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-900/20 dark:text-red-300 dark:ring-red-400/30'
+                      : 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-900/20 dark:text-emerald-300 dark:ring-emerald-400/30'
                   )}
+                  aria-hidden="true"
                 >
-                  {stat.trend === 'up' ? '↑' : '↓'}
+                  {stat.trend === 'up' ? '↗' : '↘'}
                 </span>
               </div>
             ))}
           </div>
         )}
 
-        {/* Notifications */}
         <DropdownMenu open={notificationsOpen} onOpenChange={setNotificationsOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative rounded-full">
-              <Bell className="h-5 w-5 text-gray-600" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative rounded-xl text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-100 transition-all duration-200 hover:scale-105 active:scale-95"
+              aria-label={
+                unreadCount > 0 ? `Tienes ${unreadCount} notificaciones sin leer` : 'Notificaciones'
+              }
+              aria-haspopup="true"
+              aria-expanded={notificationsOpen}
+            >
+              <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+                <Badge
+                  className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold shadow-lg shadow-red-500/25 animate-pulse border-2 border-white dark:border-slate-900"
+                  aria-hidden="true"
+                >
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </Badge>
               )}
+              <span className="sr-only">Ver notificaciones</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-80 max-h-[calc(100vh-8rem)] overflow-y-auto"
+            className="w-80 max-h-[calc(100vh-8rem)] overflow-y-auto border-slate-200/60 dark:border-slate-700/60 shadow-xl backdrop-blur-xl bg-white/95 dark:bg-slate-900/95"
           >
-            <div className="flex items-center justify-between px-2 py-1.5">
-              <h3 className="text-sm font-medium">Notificaciones</h3>
+            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Notificaciones
+              </h3>
               {notifications.length > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-xs text-blue-600 hover:text-blue-700 hover:bg-transparent"
+                  className="h-7 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
                   onClick={(e) => {
                     e.stopPropagation();
                     onClearAllNotifications?.();
@@ -213,36 +252,45 @@ export function Header({
                 </Button>
               )}
             </div>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-slate-100 dark:bg-slate-800" />
             {notifications.length > 0 ? (
-              <div className="space-y-1 p-1">
+              <div className="space-y-1 p-2">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
                     className={cn(
-                      'flex cursor-pointer items-start gap-3 rounded-md p-2 text-sm transition-colors hover:bg-gray-50',
-                      !notification.read && 'bg-blue-50'
+                      'flex cursor-pointer items-start gap-3 rounded-lg p-3 text-sm transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:shadow-sm',
+                      !notification.read &&
+                        'bg-blue-50/80 dark:bg-blue-900/20 border border-blue-200/40 dark:border-blue-800/40'
                     )}
                     onClick={() => handleNotificationClick(notification)}
                   >
                     <div
                       className={cn(
-                        'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full',
-                        notification.type === 'info' && 'bg-blue-100 text-blue-600',
-                        notification.type === 'warning' && 'bg-yellow-100 text-yellow-600',
-                        notification.type === 'success' && 'bg-green-100 text-green-600',
-                        notification.type === 'error' && 'bg-red-100 text-red-600'
+                        'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg shadow-sm',
+                        notification.type === 'info' &&
+                          'bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400',
+                        notification.type === 'warning' &&
+                          'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
+                        notification.type === 'success' &&
+                          'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400',
+                        notification.type === 'error' &&
+                          'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400'
                       )}
                     >
-                      {notification.type === 'info' && <Info className="h-3.5 w-3.5" />}
-                      {notification.type === 'warning' && <AlertTriangle className="h-3.5 w-3.5" />}
-                      {notification.type === 'success' && <Check className="h-3.5 w-3.5" />}
-                      {notification.type === 'error' && <XCircle className="h-3.5 w-3.5" />}
+                      {notification.type === 'info' && <Info className="h-4 w-4" />}
+                      {notification.type === 'warning' && <AlertTriangle className="h-4 w-4" />}
+                      {notification.type === 'success' && <Check className="h-4 w-4" />}
+                      {notification.type === 'error' && <XCircle className="h-4 w-4" />}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium text-gray-900">{notification.title}</p>
-                      <p className="text-gray-500">{notification.message}</p>
-                      <p className="mt-0.5 text-xs text-gray-400">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                        {notification.title}
+                      </p>
+                      <p className="text-slate-600 dark:text-slate-400 mt-0.5 line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-500">
                         {formatTimestamp(notification.timestamp)}
                       </p>
                     </div>
@@ -250,10 +298,14 @@ export function Header({
                 ))}
               </div>
             ) : (
-              <div className="py-6 text-center">
-                <Bell className="mx-auto h-8 w-8 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">Sin notificaciones</h3>
-                <p className="mt-1 text-sm text-gray-500">
+              <div className="py-8 text-center">
+                <div className="mx-auto h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+                  <Bell className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Sin notificaciones
+                </h3>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   Te avisaremos cuando tengas algo nuevo.
                 </p>
               </div>
@@ -261,59 +313,55 @@ export function Header({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-x-2 p-0">
-              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-x-2 p-1 text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-slate-100 rounded-xl transition-all duration-200 hover:shadow-sm"
+              aria-label="Menú de usuario"
+              aria-haspopup="true"
+            >
+              <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/50 dark:to-blue-800/50 flex items-center justify-center ring-2 ring-blue-200/50 dark:ring-blue-800/50 shadow-sm">
                 {session?.user?.image ? (
                   <Image
-                    src={session.user.image}
-                    alt="User"
+                    src={session.user.image || '/placeholder.svg'}
+                    alt={session.user.name || 'Usuario'}
                     width={32}
                     height={32}
-                    className="rounded-full"
+                    className="rounded-xl"
                   />
                 ) : (
-                  <User className="h-4 w-4 text-blue-600" />
+                  <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 )}
               </div>
               <span className="hidden lg:flex lg:items-center">
-                <span className="ml-2 text-sm font-medium text-gray-700">
+                <span className="ml-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
                   {session?.user?.name || 'Usuario'}
                 </span>
-                <ChevronDown className="ml-1 h-4 w-4 text-gray-500" />
+                <ChevronDown
+                  className="ml-1 h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 group-data-[state=open]:rotate-180"
+                  aria-hidden="true"
+                />
               </span>
+              <span className="sr-only">Menú de usuario</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="font-normal">
+          <DropdownMenuContent
+            align="end"
+            className="w-56 bg-white/95 dark:bg-slate-900/95 border border-slate-200/60 dark:border-slate-700/60 rounded-xl shadow-xl backdrop-blur-xl"
+          >
+            <DropdownMenuLabel className="font-normal px-3 py-2" id="user-menu-label">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">
+                <p className="text-sm font-semibold leading-none text-slate-900 dark:text-white">
                   {session?.user?.name || 'Usuario'}
                 </p>
-                <p className="text-xs leading-none text-muted-foreground">
+                <p className="text-xs leading-none text-slate-500 dark:text-slate-400">
                   {session?.user?.email || ''}
                 </p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {userMenuItems ? (
-              userMenuItems
-            ) : (
-              <>
-                <DropdownMenuItem>Mi Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Configuración</DropdownMenuItem>
-                <DropdownMenuItem>Soporte</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="text-red-600"
-                >
-                  Cerrar Sesión
-                </DropdownMenuItem>
-              </>
-            )}
+            <DropdownMenuSeparator className="bg-slate-200/60 dark:bg-slate-700/60" />
+            {userMenuItems}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

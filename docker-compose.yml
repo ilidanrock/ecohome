@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n-tunnel
+    restart: unless-stopped
+    ports:
+      - '5678:5678'
+    environment:
+      - GENERIC_TIMEZONE=America/Lima
+      - TZ=America/Lima
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_TRUST_PROXY=true # Para evitar el error de X-Forwarded-For
+    volumes:
+      - n8n_data:/home/node/.n8n
+    command: start --tunnel
+
+volumes:
+  n8n_data:

@@ -14,6 +14,7 @@ The primary objective of EcoHome is to offer a **digital and automated platform*
 
 ## **👤 User Roles in the Application**  
 
+
 ### **1️⃣ Administrator**  
 The administrator is responsible for managing tenant consumption and overseeing the platform.  
 
@@ -40,6 +41,7 @@ Tenants can check their personal consumption history and view detailed cost calc
 ---
 
 ## UML web app
+
 
 ![UML Diagram](./public//ecohome_full_er.svg)
 

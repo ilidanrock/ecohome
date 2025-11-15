@@ -195,10 +195,12 @@ Crea un archivo `.env.local` en la raíz del proyecto. Ejemplos típicos (ajusta
 ### Email / Notificaciones
 - `RESEND_API_KEY=...` (si se usa Resend)  
 - `EMAIL_FROM="EcoHome <no-reply@tudominio.com>"`  
-- `SMTP_HOST=...`  
-- `SMTP_PORT=587`  
+- `SMTP_HOST=smtp.gmail.com` (o tu proveedor)  
+- `SMTP_PORT=465` (465 SSL, 587 STARTTLS, etc.)  
+- `SMTP_SECURE=true` (opcional, por defecto se infiere del puerto)  
 - `SMTP_USER=...`  
-- `SMTP_PASS=...`
+- `SMTP_PASS=...`  
+- `GOOGLE_APP_PASSWORD=...` (opcional como fallback solo para Gmail)
 
 ### App (opcional)
 - `NEXT_PUBLIC_APP_URL="http://localhost:3000"`

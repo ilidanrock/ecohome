@@ -1,4 +1,4 @@
-import { ErrorAuthTypes } from '@/types/https';
+import type { ErrorAuthTypes } from '@/types';
 import { CustomError } from './auth';
 
 export function errorHandle(errorType: ErrorAuthTypes, code: number) {

@@ -47,4 +47,3 @@ export function sortNotificationsByDate(notifications: Notification[]): Notifica
  * Storage key prefix for persisted stores
  */
 export const STORAGE_PREFIX = 'ecohome-';
-

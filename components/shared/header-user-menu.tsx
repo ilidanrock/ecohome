@@ -74,4 +74,3 @@ export function HeaderUserMenu({ userMenuItems }: HeaderUserMenuProps) {
     </DropdownMenu>
   );
 }
-

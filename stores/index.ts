@@ -1,9 +1,12 @@
 /**
  * Centralized exports for all Zustand stores
  * This provides a single import point for all store hooks and types
+ *
+ * @deprecated For types, import directly from '@/types' instead:
+ *   import type { Notification, QuickStat } from '@/types'
  */
 
-// Types
+// Types (re-exported for backward compatibility)
 export type {
   Notification,
   NotificationType,
@@ -11,7 +14,7 @@ export type {
   ConsumptionData,
   UserPreferences,
   UIState,
-} from './types';
+} from '@/types';
 
 // Utilities
 export {
@@ -26,5 +29,5 @@ export {
 export { useNotificationsStore } from './notifications/useNotificationsStore';
 export { useUIStore } from './ui/useUIStore';
 export { useUserPreferencesStore } from './user/useUserPreferencesStore';
+// @deprecated - Should be migrated to TanStack Query (see useConsumptionStore.ts for details)
 export { useConsumptionStore } from './consumption/useConsumptionStore';
-

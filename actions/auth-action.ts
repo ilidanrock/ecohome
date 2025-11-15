@@ -5,15 +5,14 @@ import { prisma } from '@/prisma';
 
 import { User } from '@/src/domain/User/User';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
-import { ResponseAPI } from '@/types/https';
-import { role } from '@/types/user';
+import type { ResponseAPI, Role } from '@/types';
 import { loginSchema } from '@/zod/login-schema';
 import { signUpSchema } from '@/zod/register-schema';
 import { AuthError } from 'next-auth';
 
 import { z } from 'zod';
 
-export async function updateUserRole(role: role, email: string): Promise<ResponseAPI> {
+export async function updateUserRole(role: Role, email: string): Promise<ResponseAPI> {
   try {
     if (!email) {
       return {

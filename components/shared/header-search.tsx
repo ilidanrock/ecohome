@@ -51,9 +51,7 @@ export function HeaderSearch({
         <Search
           className={cn(
             'pointer-events-none absolute inset-y-0 left-3 h-full w-4 transition-colors duration-200',
-            searchFocused
-              ? 'text-ecoblue dark:text-blue-400'
-              : 'text-slate-400 dark:text-slate-500'
+            searchFocused ? 'text-ecoblue dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
           )}
         />
         <Input
@@ -88,4 +86,3 @@ export function HeaderSearch({
     </form>
   );
 }
-

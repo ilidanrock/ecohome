@@ -1,10 +1,6 @@
 import { create } from 'zustand';
 import type { Notification, NotificationType } from '../types';
-import {
-  generateNotificationId,
-  sortNotificationsByDate,
-  isRecentNotification,
-} from '../utils';
+import { generateNotificationId, sortNotificationsByDate, isRecentNotification } from '../utils';
 
 interface NotificationsState {
   notifications: Notification[];
@@ -12,11 +8,7 @@ interface NotificationsState {
 }
 
 interface NotificationsActions {
-  addNotification: (
-    title: string,
-    message: string,
-    type?: NotificationType
-  ) => void;
+  addNotification: (title: string, message: string, type?: NotificationType) => void;
   removeNotification: (id: string) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -95,4 +87,3 @@ export const useNotificationsStore = create<NotificationsStore>((set, get) => ({
     return get().notifications.filter(isRecentNotification);
   },
 }));
-

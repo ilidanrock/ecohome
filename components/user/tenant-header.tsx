@@ -5,25 +5,22 @@ import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { Header } from '@/components/shared/header';
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import {
-  useNotificationsStore,
-  useConsumptionStore,
-  type Notification,
-} from '@/stores';
+import { useNotificationsStore, type Notification } from '@/stores';
+import { useQuickStatsQuery } from '@/lib/queries';
 
 export function TenantHeader() {
   const router = useRouter();
 
-  // Zustand stores
+  // Zustand store for client-side notifications
   const notifications = useNotificationsStore((state) => state.notifications);
   const markAsRead = useNotificationsStore((state) => state.markAsRead);
   const markAllAsRead = useNotificationsStore((state) => state.markAllAsRead);
-  const quickStats = useConsumptionStore((state) => state.quickStats);
-  const fetchConsumptionData = useConsumptionStore((state) => state.fetchConsumptionData);
 
-  // Initialize data on mount
+  // TanStack Query for server-side consumption data
+  const { data: quickStats = [] } = useQuickStatsQuery();
+
+  // Initialize mock notifications on mount
   useEffect(() => {
-    // Initialize mock notifications
     const mockNotifications: Notification[] = [
       {
         id: '1',
@@ -54,17 +51,10 @@ export function TenantHeader() {
     // Add mock notifications to store if empty
     if (notifications.length === 0) {
       mockNotifications.forEach((notif) => {
-        useNotificationsStore.getState().addNotification(
-          notif.title,
-          notif.message,
-          notif.type
-        );
+        useNotificationsStore.getState().addNotification(notif.title, notif.message, notif.type);
       });
     }
-
-    // Fetch consumption data
-    fetchConsumptionData();
-  }, [fetchConsumptionData, notifications.length]);
+  }, [notifications.length]);
 
   const handleSearch = (query: string) => {
     if (query.trim()) {

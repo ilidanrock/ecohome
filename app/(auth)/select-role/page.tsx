@@ -7,11 +7,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { updateUserRole } from '@/actions/auth-action';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSession } from 'next-auth/react';
-import { role } from '@/types/user';
+import type { Role } from '@/types';
 
 export default function SelectRole() {
   const { data: session, status, update: updateSession } = useSession();
-  const [selectedRole, setSelectedRole] = useState<role>();
+  const [selectedRole, setSelectedRole] = useState<Role>();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

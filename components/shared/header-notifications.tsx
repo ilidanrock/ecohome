@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Bell,
-  Info,
-  AlertTriangle,
-  Check,
-  XCircle,
-} from 'lucide-react';
+import { Bell, Info, AlertTriangle, Check, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -153,4 +147,3 @@ export function HeaderNotifications({
     </DropdownMenu>
   );
 }
-

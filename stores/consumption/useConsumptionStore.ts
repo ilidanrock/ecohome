@@ -1,3 +1,17 @@
+/**
+ * @deprecated This store should be migrated to TanStack Query.
+ *
+ * According to project rules, server data (like consumption data) should use TanStack Query
+ * instead of Zustand. Zustand should only be used for client-side UI state.
+ *
+ * Migration plan:
+ * 1. Create `lib/queries/consumption.ts` with `useConsumptionQuery` hook
+ * 2. Create API route `app/api/consumption/route.ts`
+ * 3. Replace `useConsumptionStore` usage with `useConsumptionQuery` in components
+ * 4. Remove this store after migration is complete
+ *
+ * See: `.cursor/state-management-guide.md` for migration examples
+ */
 import { create } from 'zustand';
 import type { QuickStat, ConsumptionData } from '../types';
 
@@ -35,9 +49,7 @@ export const useConsumptionStore = create<ConsumptionStore>((set, get) => ({
 
   updateQuickStat: (type, stat) => {
     set((state) => ({
-      quickStats: state.quickStats.map((s) =>
-        s.type === type ? { ...s, ...stat } : s
-      ),
+      quickStats: state.quickStats.map((s) => (s.type === type ? { ...s, ...stat } : s)),
     }));
   },
 
@@ -121,4 +133,3 @@ export const useConsumptionStore = create<ConsumptionStore>((set, get) => ({
     set(initialState);
   },
 }));
-

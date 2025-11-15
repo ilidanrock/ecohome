@@ -82,4 +82,3 @@ export const useUserPreferencesStore = create<UserPreferencesStore>()(
     }
   )
 );
-

@@ -61,7 +61,7 @@ function loadEnvFile() {
         }
         // If we found and loaded a file, break (don't override with other files)
         break;
-      } catch (error) {
+      } catch {
         // Silently continue to next file if there's an error reading this one
         continue;
       }
@@ -72,9 +72,9 @@ function loadEnvFile() {
 // Load environment variables from .env.local
 loadEnvFile();
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const { OPENAI_API_KEY, OPENAI_MODEL } = process.env;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
-const MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const MODEL = OPENAI_MODEL || 'gpt-4o-mini';
 
 if (!OPENAI_API_KEY) {
   console.error('❌ OPENAI_API_KEY environment variable is not set');
@@ -82,14 +82,25 @@ if (!OPENAI_API_KEY) {
   process.exit(1);
 }
 
+interface CodeSnippet {
+  before?: string; // Problematic code snippet
+  after?: string; // Suggested fix/correct code
+  language?: string; // Code language (typescript, javascript, etc.)
+}
+
+interface Suggestion {
+  text: string;
+  snippet?: CodeSnippet;
+}
+
 interface CodeReviewResult {
   file: string;
-  suggestions: string[];
+  suggestions: Suggestion[]; // Normalized to Suggestion[] format
   score: number;
   summary: string;
   strengths?: string[];
-  criticalIssues?: string[];
-  recommendations?: string[];
+  criticalIssues?: Suggestion[]; // Support snippets in critical issues
+  recommendations?: Suggestion[]; // Support snippets in recommendations
 }
 
 /**
@@ -147,18 +158,6 @@ function getUnpushedDiff(): string {
     return execSync(`git diff ${remoteBranch}...HEAD`, { encoding: 'utf-8' });
   } catch (error) {
     console.error('Error getting unpushed diff:', error);
-    return '';
-  }
-}
-
-/**
- * Get file content
- */
-function getFileContent(filePath: string): string {
-  try {
-    return readFileSync(filePath, 'utf-8');
-  } catch (error) {
-    console.error(`Error reading file ${filePath}:`, error);
     return '';
   }
 }
@@ -275,7 +274,14 @@ Provide a comprehensive review in JSON format with the following structure:
   "score": <number 0-100>,
   "summary": "<2-3 paragraph comprehensive summary analyzing the code changes from an architectural and engineering perspective>",
   "suggestions": [
-    "<Each suggestion should be specific, actionable, and include rationale. Format: '[Category] Description of issue. Why it matters. How to fix it.'>",
+    {
+      "text": "[Category] Description of issue. Why it matters. How to fix it.",
+      "snippet": {
+        "before": "<Problematic code snippet from the diff - show the actual code that needs fixing>",
+        "after": "<Suggested corrected code - show how it should be written>",
+        "language": "typescript"
+      }
+    },
     ...
   ],
   "strengths": [
@@ -283,14 +289,35 @@ Provide a comprehensive review in JSON format with the following structure:
     ...
   ],
   "criticalIssues": [
-    "<Only include issues that MUST be fixed before merging - security, architectural violations, breaking changes>",
+    {
+      "text": "<Issue description>",
+      "snippet": {
+        "before": "<Problematic code>",
+        "after": "<Corrected code>",
+        "language": "typescript"
+      }
+    },
     ...
   ],
   "recommendations": [
-    "<Optional improvements that would elevate code quality further>",
+    {
+      "text": "<Optional improvement description>",
+      "snippet": {
+        "before": "<Current code (optional)>",
+        "after": "<Improved code (optional)>",
+        "language": "typescript"
+      }
+    },
     ...
   ]
 }
+
+IMPORTANT: For each suggestion, critical issue, and recommendation:
+- Include code snippets showing the problematic code (before) and the suggested fix (after)
+- Extract actual code from the diff when possible - reference specific lines or patterns
+- Use proper code formatting with language tags
+- If a suggestion doesn't require code changes, you can omit the snippet
+- Always include snippets for critical issues and architectural problems
 
 REVIEW STYLE:
 - Be thorough and specific. Reference exact lines, patterns, or architectural concepts.
@@ -358,19 +385,83 @@ Begin your comprehensive review now.`;
 
     const review = JSON.parse(jsonContent);
 
+    // Normalize suggestions to support both string[] and Suggestion[] formats
+    const normalizeSuggestions = (suggestions: unknown): Suggestion[] => {
+      if (!Array.isArray(suggestions)) return [];
+      return suggestions.map((suggestion) => {
+        if (typeof suggestion === 'string') {
+          return { text: suggestion };
+        }
+        if (typeof suggestion === 'object' && suggestion !== null && 'text' in suggestion) {
+          return suggestion as Suggestion;
+        }
+        return { text: String(suggestion) };
+      });
+    };
+
+    // Normalize criticalIssues and recommendations similarly
+    const normalizeIssues = (issues: unknown): Suggestion[] => {
+      if (!Array.isArray(issues)) return [];
+      return issues.map((issue) => {
+        if (typeof issue === 'string') {
+          return { text: issue };
+        }
+        if (typeof issue === 'object' && issue !== null && 'text' in issue) {
+          return issue as Suggestion;
+        }
+        return { text: String(issue) };
+      });
+    };
+
     return {
       file: filePath === 'unpushed commits' ? 'unpushed commits' : filePath || 'staged changes',
-      suggestions: review.suggestions || [],
+      suggestions: normalizeSuggestions(review.suggestions),
       score: review.score || 0,
       summary: review.summary || '',
       strengths: review.strengths || [],
-      criticalIssues: review.criticalIssues || [],
-      recommendations: review.recommendations || [],
+      criticalIssues: normalizeIssues(review.criticalIssues),
+      recommendations: normalizeIssues(review.recommendations),
     };
   } catch (error) {
     console.error('❌ Error calling OpenAI API:', error);
     return null;
   }
+}
+
+/**
+ * Format code snippet for markdown display
+ */
+function formatCodeSnippet(snippet: CodeSnippet): string {
+  if (!snippet.before && !snippet.after) return '';
+
+  const language = snippet.language || 'typescript';
+  let formatted = '';
+
+  if (snippet.before) {
+    formatted += `**❌ Problematic Code:**\n\`\`\`${language}\n${snippet.before}\n\`\`\`\n\n`;
+  }
+
+  if (snippet.after) {
+    formatted += `**✅ Suggested Fix:**\n\`\`\`${language}\n${snippet.after}\n\`\`\`\n\n`;
+  }
+
+  return formatted;
+}
+
+/**
+ * Get text from suggestion (supports both string and Suggestion object)
+ */
+function getSuggestionText(suggestion: string | Suggestion): string {
+  if (typeof suggestion === 'string') return suggestion;
+  return suggestion.text;
+}
+
+/**
+ * Get snippet from suggestion (if available)
+ */
+function getSuggestionSnippet(suggestion: string | Suggestion): CodeSnippet | undefined {
+  if (typeof suggestion === 'string') return undefined;
+  return suggestion.snippet;
 }
 
 /**
@@ -403,7 +494,12 @@ function generateMarkdownReview(result: CodeReviewResult): string {
   if (result.criticalIssues && result.criticalIssues.length > 0) {
     markdown += `## 🚨 Critical Issues (Must Fix Before Merge)\n\n`;
     result.criticalIssues.forEach((issue, index) => {
-      markdown += `### ${index + 1}. ${issue}\n\n`;
+      const issueText = getSuggestionText(issue);
+      const issueSnippet = getSuggestionSnippet(issue);
+      markdown += `### ${index + 1}. ${issueText}\n\n`;
+      if (issueSnippet) {
+        markdown += formatCodeSnippet(issueSnippet);
+      }
     });
     markdown += `---\n\n`;
   }
@@ -421,7 +517,12 @@ function generateMarkdownReview(result: CodeReviewResult): string {
   if (result.suggestions.length > 0) {
     markdown += `## 💡 Improvement Suggestions (${result.suggestions.length})\n\n`;
     result.suggestions.forEach((suggestion, index) => {
-      markdown += `### ${index + 1}. ${suggestion}\n\n`;
+      const suggestionText = getSuggestionText(suggestion);
+      const suggestionSnippet = getSuggestionSnippet(suggestion);
+      markdown += `### ${index + 1}. ${suggestionText}\n\n`;
+      if (suggestionSnippet) {
+        markdown += formatCodeSnippet(suggestionSnippet);
+      }
     });
     markdown += `---\n\n`;
   } else if (!result.criticalIssues || result.criticalIssues.length === 0) {
@@ -435,7 +536,12 @@ function generateMarkdownReview(result: CodeReviewResult): string {
     markdown += `## 🎯 Optional Recommendations\n\n`;
     markdown += `*These are optional improvements that would further elevate code quality:*\n\n`;
     result.recommendations.forEach((rec, index) => {
-      markdown += `### ${index + 1}. ${rec}\n\n`;
+      const recText = getSuggestionText(rec);
+      const recSnippet = getSuggestionSnippet(rec);
+      markdown += `### ${index + 1}. ${recText}\n\n`;
+      if (recSnippet) {
+        markdown += formatCodeSnippet(recSnippet);
+      }
     });
     markdown += `---\n\n`;
   }
@@ -516,7 +622,17 @@ async function main() {
     if (result.criticalIssues && result.criticalIssues.length > 0) {
       output += '### 🚨 Critical Issues (Must Fix)\n';
       result.criticalIssues.forEach((issue, index) => {
-        output += `${index + 1}. ${issue}\n`;
+        const issueText = getSuggestionText(issue);
+        const issueSnippet = getSuggestionSnippet(issue);
+        output += `${index + 1}. ${issueText}\n`;
+        if (issueSnippet) {
+          if (issueSnippet.before) {
+            output += `\n❌ Problematic:\n\`\`\`${issueSnippet.language || 'typescript'}\n${issueSnippet.before}\n\`\`\`\n`;
+          }
+          if (issueSnippet.after) {
+            output += `✅ Fix:\n\`\`\`${issueSnippet.language || 'typescript'}\n${issueSnippet.after}\n\`\`\`\n`;
+          }
+        }
       });
       output += '\n';
     }
@@ -532,7 +648,17 @@ async function main() {
     if (result.suggestions.length > 0) {
       output += '### 💡 Improvement Suggestions\n';
       result.suggestions.forEach((suggestion, index) => {
-        output += `${index + 1}. ${suggestion}\n`;
+        const suggestionText = getSuggestionText(suggestion);
+        const suggestionSnippet = getSuggestionSnippet(suggestion);
+        output += `${index + 1}. ${suggestionText}\n`;
+        if (suggestionSnippet) {
+          if (suggestionSnippet.before) {
+            output += `\n❌ Problematic:\n\`\`\`${suggestionSnippet.language || 'typescript'}\n${suggestionSnippet.before}\n\`\`\`\n`;
+          }
+          if (suggestionSnippet.after) {
+            output += `✅ Fix:\n\`\`\`${suggestionSnippet.language || 'typescript'}\n${suggestionSnippet.after}\n\`\`\`\n`;
+          }
+        }
       });
       output += '\n';
     }
@@ -540,7 +666,17 @@ async function main() {
     if (result.recommendations && result.recommendations.length > 0) {
       output += '### 🎯 Optional Recommendations\n';
       result.recommendations.forEach((rec, index) => {
-        output += `${index + 1}. ${rec}\n`;
+        const recText = getSuggestionText(rec);
+        const recSnippet = getSuggestionSnippet(rec);
+        output += `${index + 1}. ${recText}\n`;
+        if (recSnippet) {
+          if (recSnippet.before) {
+            output += `\nCurrent:\n\`\`\`${recSnippet.language || 'typescript'}\n${recSnippet.before}\n\`\`\`\n`;
+          }
+          if (recSnippet.after) {
+            output += `Improved:\n\`\`\`${recSnippet.language || 'typescript'}\n${recSnippet.after}\n\`\`\`\n`;
+          }
+        }
       });
     }
 
@@ -556,7 +692,17 @@ async function main() {
     if (result.criticalIssues && result.criticalIssues.length > 0) {
       console.log('🚨 Critical Issues (Must Fix):');
       result.criticalIssues.forEach((issue, index) => {
-        console.log(`   ${index + 1}. ${issue}`);
+        const issueText = getSuggestionText(issue);
+        const issueSnippet = getSuggestionSnippet(issue);
+        console.log(`   ${index + 1}. ${issueText}`);
+        if (issueSnippet) {
+          if (issueSnippet.before) {
+            console.log(`\n   ❌ Problematic Code:\n${issueSnippet.before}\n`);
+          }
+          if (issueSnippet.after) {
+            console.log(`   ✅ Suggested Fix:\n${issueSnippet.after}\n`);
+          }
+        }
       });
       console.log('');
     }
@@ -572,7 +718,17 @@ async function main() {
     if (result.suggestions.length > 0) {
       console.log('💡 Improvement Suggestions:');
       result.suggestions.forEach((suggestion, index) => {
-        console.log(`   ${index + 1}. ${suggestion}`);
+        const suggestionText = getSuggestionText(suggestion);
+        const suggestionSnippet = getSuggestionSnippet(suggestion);
+        console.log(`   ${index + 1}. ${suggestionText}`);
+        if (suggestionSnippet) {
+          if (suggestionSnippet.before) {
+            console.log(`\n   ❌ Problematic Code:\n${suggestionSnippet.before}\n`);
+          }
+          if (suggestionSnippet.after) {
+            console.log(`   ✅ Suggested Fix:\n${suggestionSnippet.after}\n`);
+          }
+        }
       });
       console.log('');
     }
@@ -580,7 +736,17 @@ async function main() {
     if (result.recommendations && result.recommendations.length > 0) {
       console.log('🎯 Optional Recommendations:');
       result.recommendations.forEach((rec, index) => {
-        console.log(`   ${index + 1}. ${rec}`);
+        const recText = getSuggestionText(rec);
+        const recSnippet = getSuggestionSnippet(rec);
+        console.log(`   ${index + 1}. ${recText}`);
+        if (recSnippet) {
+          if (recSnippet.before) {
+            console.log(`\n   Current Code:\n${recSnippet.before}\n`);
+          }
+          if (recSnippet.after) {
+            console.log(`   Improved Code:\n${recSnippet.after}\n`);
+          }
+        }
       });
       console.log('');
     }

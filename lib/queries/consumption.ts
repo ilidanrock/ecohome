@@ -72,12 +72,23 @@ export class ConsumptionServerError extends ConsumptionApiError {
 /**
  * Fetch consumption data from the API
  *
- * @throws {ConsumptionNetworkError} When network request fails
- * @throws {ConsumptionClientError} When server returns 4xx status
- * @throws {ConsumptionServerError} When server returns 5xx status
+ * This function implements comprehensive error handling with proper categorization:
+ * - Network errors: Occur when the fetch request fails entirely (no response received)
+ * - Client errors (4xx): User/request issues (unauthorized, bad request, etc.)
+ * - Server errors (5xx): Server-side problems (internal errors, service unavailable)
+ *
+ * Error categorization rationale:
+ * - 4xx errors indicate client-side issues that the user can potentially fix
+ * - 5xx errors indicate server-side problems that require backend attention
+ * - Network errors occur before any HTTP response is received
+ *
+ * @throws {ConsumptionNetworkError} When network request fails (no response received)
+ * @throws {ConsumptionClientError} When server returns 4xx status (client-side issues)
+ * @throws {ConsumptionServerError} When server returns 5xx status (server-side issues)
  */
 async function fetchConsumptionData(): Promise<ConsumptionResponse> {
   try {
+    // Attempt to fetch consumption data from the API
     const response = await fetch('/api/consumption', {
       method: 'GET',
       headers: {
@@ -85,21 +96,27 @@ async function fetchConsumptionData(): Promise<ConsumptionResponse> {
       },
     });
 
+    // Check if the response indicates an error (status not in 200-299 range)
     if (!response.ok) {
       const statusCode = response.status;
       let errorMessage = `Failed to fetch consumption data (${statusCode})`;
       let errorDetails: unknown;
 
+      // Try to extract error details from the response body
+      // The API may return structured error information in JSON format
       try {
         const errorData = await response.json();
+        // Prefer specific error messages from the API response
         errorMessage = errorData.error || errorData.message || errorMessage;
         errorDetails = errorData;
       } catch {
-        // If response is not JSON, use status text
+        // If response is not JSON (e.g., plain text error), use status text
+        // This handles cases where the server returns non-JSON error responses
         errorMessage = response.statusText || errorMessage;
       }
 
-      // Log error for debugging (only in development)
+      // Log error for debugging (only in development mode)
+      // This helps developers identify issues during development
       if (process.env.NODE_ENV === 'development') {
         console.error('[Consumption API Error]', {
           statusCode,
@@ -108,30 +125,49 @@ async function fetchConsumptionData(): Promise<ConsumptionResponse> {
         });
       }
 
-      // Categorize error by status code
+      // Categorize error by HTTP status code range
+      // This categorization helps components handle errors appropriately:
+      // - 5xx errors: Server problems - show generic error, may retry
+      // - 4xx errors: Client problems - show specific message, user action may help
+      // - Other errors: Unexpected status codes - treat as generic API error
       if (statusCode >= 500) {
+        // Server-side errors (500-599): Database issues, server crashes, etc.
+        // These require backend attention and are typically not user-fixable
         throw new ConsumptionServerError(errorMessage, statusCode, errorDetails);
       } else if (statusCode >= 400) {
+        // Client-side errors (400-499): Bad requests, unauthorized, not found, etc.
+        // These may be user-fixable (e.g., authentication, invalid input)
         throw new ConsumptionClientError(errorMessage, statusCode, errorDetails);
       } else {
+        // Unexpected status codes (300-399, etc.): Redirects or other non-error codes
+        // Treat as generic API error since we expected a successful response
         throw new ConsumptionApiError(errorMessage, statusCode, errorDetails);
       }
     }
 
+    // Success: Parse and return the JSON response
     const data = await response.json();
     return data;
   } catch (error) {
-    // Handle network errors and other fetch failures
+    // Error handling flow:
+    // 1. If error is already a ConsumptionApiError (categorized above), re-throw it
+    // 2. If it's a network error (TypeError from fetch), wrap as ConsumptionNetworkError
+    // 3. Otherwise, wrap as generic ConsumptionApiError for unexpected errors
+
+    // Re-throw already categorized errors (from the if (!response.ok) block above)
     if (error instanceof ConsumptionApiError) {
       throw error;
     }
 
-    // Check if it's a network error (no response received)
+    // Detect network errors: These occur when fetch() fails before receiving a response
+    // Common causes: No internet connection, CORS issues, DNS failures, timeout
+    // TypeError with 'fetch' in message is the standard indicator of network failures
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new ConsumptionNetworkError(error);
     }
 
-    // Re-throw as generic API error if we can't categorize it
+    // Fallback: Wrap unexpected errors as generic API error
+    // This handles edge cases like JSON parsing errors or other unexpected exceptions
     throw new ConsumptionApiError(
       'An unexpected error occurred while fetching consumption data',
       undefined,

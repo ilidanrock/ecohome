@@ -5,6 +5,17 @@ import { Consumption } from '@/src/domain/Consumption/Consumption';
 export class PrismaConsumptionRepository implements IConsumptionRepository {
   constructor(private prisma: PrismaClient) {}
 
+  /**
+   * Find all consumptions for a specific user
+   *
+   * Performance optimization: Limited to 100 most recent records to prevent
+   * loading excessive data. This is sufficient for trend calculation which
+   * only requires the latest 2-3 records. If pagination is needed in the future,
+   * consider adding skip/take parameters.
+   *
+   * @param userId - The user ID
+   * @returns Array of Consumption entities (max 100, most recent first)
+   */
   async findByUserId(userId: string): Promise<Consumption[]> {
     const consumptions = await this.prisma.consumption.findMany({
       where: {
@@ -13,17 +24,28 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
         },
       },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
+      take: 100, // Limit to prevent loading excessive data
     });
 
     return consumptions.map((consumption) => this.mapToDomain(consumption));
   }
 
+  /**
+   * Find consumptions for a specific rental
+   *
+   * Performance optimization: Limited to 100 most recent records for consistency
+   * with findByUserId. Adjust limit based on business requirements if needed.
+   *
+   * @param rentalId - The rental ID
+   * @returns Array of Consumption entities (max 100, most recent first)
+   */
   async findByRentalId(rentalId: string): Promise<Consumption[]> {
     const consumptions = await this.prisma.consumption.findMany({
       where: {
         rentalId,
       },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
+      take: 100, // Limit to prevent loading excessive data
     });
 
     return consumptions.map((consumption) => this.mapToDomain(consumption));

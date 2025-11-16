@@ -29,5 +29,3 @@ export {
 export { useNotificationsStore } from './notifications/useNotificationsStore';
 export { useUIStore } from './ui/useUIStore';
 export { useUserPreferencesStore } from './user/useUserPreferencesStore';
-// @deprecated - Should be migrated to TanStack Query (see useConsumptionStore.ts for details)
-export { useConsumptionStore } from './consumption/useConsumptionStore';

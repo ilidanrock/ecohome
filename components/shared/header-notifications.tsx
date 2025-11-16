@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { Notification } from '@/stores';
-import { formatTimestamp } from '@/stores/utils';
+import { formatTimestamp } from '@/stores';
 
 type HeaderNotificationsProps = {
   notifications?: Notification[];

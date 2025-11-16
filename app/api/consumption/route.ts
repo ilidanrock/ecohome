@@ -1,20 +1,20 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { auth } from '@/auth';
-import type { ConsumptionData, QuickStat } from '@/types';
+import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 
 /**
  * GET /api/consumption
  *
  * Returns consumption data for the authenticated user.
- * Currently returns mock data - replace with actual database queries.
+ * Uses ServiceContainer to maintain DDD boundaries and ensure business logic
+ * stays in the application layer.
  *
  * @returns {Promise<NextResponse>} Consumption data response or error response
  */
 export async function GET() {
   try {
     // Get authenticated session
-    const session = await getServerSession(auth);
+    const session = await auth();
 
     if (!session?.user) {
       return NextResponse.json(
@@ -37,44 +37,13 @@ export async function GET() {
       );
     }
 
-    // TODO: Replace with actual database queries via serviceContainer
-    // Example:
-    // const consumptionData = await serviceContainer.consumption.getData.execute(session.user.id);
-    // This maintains DDD boundaries and ensures business logic stays in the application layer
-
-    // Mock data for now
-    const mockData: ConsumptionData = {
-      energy: {
-        value: 245,
-        unit: 'kWh',
-        trend: 'down',
-      },
-      water: {
-        value: 1200,
-        unit: 'L',
-        trend: 'up',
-      },
-      lastUpdated: new Date(),
-    };
-
-    const mockQuickStats: QuickStat[] = [
-      {
-        type: 'energy',
-        value: '245',
-        unit: 'kWh',
-        trend: 'down',
-      },
-      {
-        type: 'water',
-        value: '1.2k',
-        unit: 'L',
-        trend: 'up',
-      },
-    ];
+    // Use ServiceContainer to fetch consumption data via DDD architecture
+    // This maintains proper boundaries: API Route → ServiceContainer → Application → Domain → Infrastructure
+    const result = await serviceContainer.consumption.getData.execute(session.user.id);
 
     return NextResponse.json({
-      consumptionData: mockData,
-      quickStats: mockQuickStats,
+      consumptionData: result.consumptionData,
+      quickStats: result.quickStats,
     });
   } catch (error) {
     // Log error with context for debugging

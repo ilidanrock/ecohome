@@ -13,7 +13,11 @@
     "prepare": "husky",
     "test": "npx playwright test",
     "code-review": "tsx scripts/code-review.ts",
-    "code-review:file": "tsx scripts/code-review.ts --file"
+    "code-review:file": "tsx scripts/code-review.ts --file",
+    "code-review:md": "tsx scripts/code-review.ts --markdown",
+    "code-review:md:save": "tsx scripts/code-review.ts --markdown --output code-review.md",
+    "code-review:unpushed": "tsx scripts/code-review.ts --unpushed",
+    "code-review:unpushed:md": "tsx scripts/code-review.ts --unpushed --markdown"
   },
   "dependencies": {
     "@auth/prisma-adapter": "~2.9.1",

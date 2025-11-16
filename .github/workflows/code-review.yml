@@ -44,20 +44,20 @@ jobs:
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
         run: |
           CHANGED_FILES="${{ steps.changed-files.outputs.files }}"
-          
+
           if [ -z "$CHANGED_FILES" ]; then
             echo "No TypeScript/JavaScript files changed"
             exit 0
           fi
-          
+
           if [ -z "$OPENAI_API_KEY" ]; then
             echo "⚠️ OPENAI_API_KEY not set. Skipping code review."
             exit 0
           fi
-          
+
           REVIEW_COMMENT="## 🤖 OpenAI Code Review\n\n"
           REVIEW_COMMENT="${REVIEW_COMMENT}This review was generated automatically using OpenAI.\n\n"
-          
+
           for file in $CHANGED_FILES; do
             if [ -f "$file" ]; then
               echo "Reviewing $file..."
@@ -72,7 +72,7 @@ jobs:
               fi
             fi
           done
-          
+
           echo "review_comment<<EOF" >> $GITHUB_OUTPUT
           echo "$REVIEW_COMMENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -84,21 +84,21 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const reviewComment = `${{ steps.review.outputs.review_comment }}`;
-            
+
             // Find existing review comment
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
             });
-            
+
             const existingComment = comments.find(comment => 
               comment.user.type === 'Bot' && 
               comment.body.includes('🤖 OpenAI Code Review')
             );
-            
+
             const commentBody = reviewComment;
-            
+
             if (existingComment) {
               // Update existing comment
               await github.rest.issues.updateComment({
@@ -116,4 +116,3 @@ jobs:
                 body: commentBody,
               });
             }
-

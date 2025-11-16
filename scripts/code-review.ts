@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 /**
  * OpenAI Code Review Script
- * 
+ *
  * Reviews code changes using OpenAI API and provides feedback.
  * Can be used locally or in CI/CD pipelines.
- * 
+ *
  * Usage:
  *   pnpm code-review                    # Review staged changes
  *   pnpm code-review --file path/to/file.ts
@@ -26,32 +26,34 @@ import { join } from 'path';
 function loadEnvFile() {
   const envFiles = ['.env.local', '.env', '.env.development'];
   const cwd = process.cwd();
-  
+
   for (const envFile of envFiles) {
     const envPath = join(cwd, envFile);
     if (existsSync(envPath)) {
       try {
         const envContent = readFileSync(envPath, 'utf-8');
         const lines = envContent.split('\n');
-        
+
         for (const line of lines) {
           const trimmedLine = line.trim();
           // Skip comments and empty lines
           if (!trimmedLine || trimmedLine.startsWith('#')) continue;
-          
+
           // Parse KEY=VALUE format
           const equalIndex = trimmedLine.indexOf('=');
           if (equalIndex === -1) continue;
-          
+
           const key = trimmedLine.substring(0, equalIndex).trim();
           let value = trimmedLine.substring(equalIndex + 1).trim();
-          
+
           // Remove quotes if present
-          if ((value.startsWith('"') && value.endsWith('"')) || 
-              (value.startsWith("'") && value.endsWith("'"))) {
+          if (
+            (value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))
+          ) {
             value = value.slice(1, -1);
           }
-          
+
           // Only set if not already in process.env (env vars take precedence)
           if (!process.env[key]) {
             process.env[key] = value;
@@ -85,6 +87,9 @@ interface CodeReviewResult {
   suggestions: string[];
   score: number;
   summary: string;
+  strengths?: string[];
+  criticalIssues?: string[];
+  recommendations?: string[];
 }
 
 /**
@@ -110,14 +115,17 @@ function getUnpushedDiff(): string {
   try {
     // Try to get remote tracking branch
     let remoteBranch: string | null = null;
-    
+
     try {
       const currentBranch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
-      remoteBranch = execSync(`git rev-parse --abbrev-ref ${currentBranch}@{upstream} 2>/dev/null`, { encoding: 'utf-8' }).trim();
+      remoteBranch = execSync(
+        `git rev-parse --abbrev-ref ${currentBranch}@{upstream} 2>/dev/null`,
+        { encoding: 'utf-8' }
+      ).trim();
     } catch {
       // Upstream not set, try fallback
     }
-    
+
     if (!remoteBranch) {
       // Fallback: try common remote branch names
       const remotes = ['origin/HEAD', 'origin/main', 'origin/master'];
@@ -131,11 +139,11 @@ function getUnpushedDiff(): string {
         }
       }
     }
-    
+
     if (!remoteBranch) {
       throw new Error('No remote branch found. Make sure you have a remote configured.');
     }
-    
+
     return execSync(`git diff ${remoteBranch}...HEAD`, { encoding: 'utf-8' });
   } catch (error) {
     console.error('Error getting unpushed diff:', error);
@@ -166,38 +174,133 @@ async function reviewCode(diff: string, filePath?: string): Promise<CodeReviewRe
 
   const projectRules = readFileSync(join(process.cwd(), '.cursor/project-rules.md'), 'utf-8').slice(
     0,
-    2000
+    3000
   );
 
-  const prompt = `You are an expert code reviewer for a Next.js 15 + TypeScript + DDD architecture project.
+  const prompt = `You are a distinguished Senior Software Architect and Code Review Expert with a PhD-level understanding of software engineering principles, design patterns, and enterprise architecture. You have 20+ years of experience reviewing production codebases at scale.
 
-Project Rules Summary:
+Your expertise includes:
+- Domain-Driven Design (DDD) and Clean Architecture
+- SOLID principles and design patterns
+- TypeScript/JavaScript best practices and type safety
+- Next.js, React, and modern web architecture
+- Performance optimization and scalability
+- Security best practices and vulnerability assessment
+- Code maintainability, readability, and technical debt
+- Testing strategies and quality assurance
+
+PROJECT CONTEXT:
+This is a Next.js 15 application using TypeScript 5, implementing Domain-Driven Design architecture with:
+- React 19, Prisma 6, NextAuth v5
+- TanStack Query for server state management
+- Zustand for client UI state
+- Tailwind CSS + Shadcn UI
+
+PROJECT RULES AND STANDARDS:
 ${projectRules}
 
-Review the following code changes and provide:
-1. A score from 0-100 (where 100 is perfect)
-2. Specific suggestions for improvement
-3. A brief summary
-
-Focus on:
-- TypeScript best practices
-- DDD architecture compliance
-- Code quality and maintainability
-- Performance considerations
-- Security issues
-- Following project conventions
-
-Code changes:
+CODE CHANGES TO REVIEW:
 \`\`\`diff
 ${diff}
 \`\`\`
 
-Provide your review in JSON format:
+${filePath ? `FILE BEING REVIEWED: ${filePath}` : ''}
+
+REVIEW REQUIREMENTS:
+
+Conduct a comprehensive, rigorous code review as if this code will be deployed to a production system serving millions of users. Your review must be thorough, actionable, and based on industry best practices and academic research.
+
+EVALUATION CRITERIA (Weighted):
+
+1. **Architectural Compliance (25%)**
+   - Adherence to DDD principles and layer boundaries
+   - Proper separation of concerns (Domain/Application/Infrastructure)
+   - Correct use of ServiceContainer and dependency injection
+   - Respect for Clean Architecture boundaries
+   - Appropriate use of TanStack Query vs Zustand
+
+2. **Type Safety & TypeScript Excellence (20%)**
+   - Proper type definitions and inference
+   - No use of 'any' or unsafe type assertions
+   - Generic types used appropriately
+   - Type narrowing and guards
+   - Interface vs type alias decisions
+
+3. **Code Quality & Maintainability (20%)**
+   - SOLID principles adherence (especially Single Responsibility, Dependency Inversion)
+   - Code readability and self-documentation
+   - Appropriate abstraction levels
+   - DRY (Don't Repeat Yourself) compliance
+   - Cyclomatic complexity assessment
+   - Function/method length and cohesion
+
+4. **Security & Best Practices (15%)**
+   - Input validation and sanitization
+   - Authentication/authorization checks
+   - Sensitive data handling
+   - SQL injection / XSS / CSRF considerations
+   - Environment variable usage
+   - Error handling and information disclosure
+
+5. **Performance & Scalability (10%)**
+   - Efficient algorithms and data structures
+   - Unnecessary re-renders or computations
+   - Database query optimization
+   - Memory leaks or resource management
+   - Caching strategies
+   - Bundle size considerations
+
+6. **Testing & Reliability (5%)**
+   - Testability of the code
+   - Error handling completeness
+   - Edge cases consideration
+   - Defensive programming
+
+7. **Project Conventions (5%)**
+   - Naming conventions
+   - File organization
+   - Import/export patterns
+   - Component structure
+
+SCORING GUIDELINES:
+- 90-100: Production-ready, exemplary code following all best practices
+- 80-89: Good code with minor improvements needed
+- 70-79: Acceptable but requires refactoring
+- 60-69: Significant issues that should be addressed
+- Below 60: Critical problems requiring immediate attention
+
+OUTPUT FORMAT:
+Provide a comprehensive review in JSON format with the following structure:
 {
-  "score": number,
-  "summary": "brief summary",
-  "suggestions": ["suggestion1", "suggestion2", ...]
-}`;
+  "score": <number 0-100>,
+  "summary": "<2-3 paragraph comprehensive summary analyzing the code changes from an architectural and engineering perspective>",
+  "suggestions": [
+    "<Each suggestion should be specific, actionable, and include rationale. Format: '[Category] Description of issue. Why it matters. How to fix it.'>",
+    ...
+  ],
+  "strengths": [
+    "<What the code does well - be specific>",
+    ...
+  ],
+  "criticalIssues": [
+    "<Only include issues that MUST be fixed before merging - security, architectural violations, breaking changes>",
+    ...
+  ],
+  "recommendations": [
+    "<Optional improvements that would elevate code quality further>",
+    ...
+  ]
+}
+
+REVIEW STYLE:
+- Be thorough and specific. Reference exact lines, patterns, or architectural concepts.
+- Explain the "why" behind each suggestion, not just the "what"
+- Prioritize suggestions by severity and impact
+- Consider long-term maintainability and scalability
+- Apply academic rigor while remaining practical
+- If code is excellent, acknowledge it, but still look for opportunities to improve
+
+Begin your comprehensive review now.`;
 
   try {
     const response = await fetch(OPENAI_API_URL, {
@@ -212,15 +315,15 @@ Provide your review in JSON format:
           {
             role: 'system',
             content:
-              'You are an expert code reviewer for Next.js + TypeScript projects. Always respond with valid JSON in the exact format requested.',
+              'You are a distinguished Senior Software Architect and Code Review Expert with PhD-level expertise in software engineering. You conduct rigorous, comprehensive code reviews following industry best practices and academic standards. Always respond with valid JSON in the exact format requested, providing detailed, actionable feedback.',
           },
           {
             role: 'user',
             content: prompt,
           },
         ],
-        temperature: 0.3,
-        max_tokens: 2000,
+        temperature: 0.2,
+        max_tokens: 4000,
         response_format: { type: 'json_object' },
       }),
     });
@@ -256,10 +359,13 @@ Provide your review in JSON format:
     const review = JSON.parse(jsonContent);
 
     return {
-      file: filePath === 'unpushed commits' ? 'unpushed commits' : (filePath || 'staged changes'),
+      file: filePath === 'unpushed commits' ? 'unpushed commits' : filePath || 'staged changes',
       suggestions: review.suggestions || [],
       score: review.score || 0,
       summary: review.summary || '',
+      strengths: review.strengths || [],
+      criticalIssues: review.criticalIssues || [],
+      recommendations: review.recommendations || [],
     };
   } catch (error) {
     console.error('❌ Error calling OpenAI API:', error);
@@ -271,31 +377,73 @@ Provide your review in JSON format:
  * Generate markdown formatted review for AI pane
  */
 function generateMarkdownReview(result: CodeReviewResult): string {
-  const scoreColor = result.score >= 80 ? '🟢' : result.score >= 70 ? '🟡' : '🔴';
-  const scoreEmoji = result.score >= 80 ? '✅' : result.score >= 70 ? '⚠️' : '❌';
+  const scoreColor =
+    result.score >= 90 ? '🟢' : result.score >= 80 ? '🟡' : result.score >= 70 ? '🟠' : '🔴';
+  const scoreEmoji =
+    result.score >= 90 ? '✅' : result.score >= 80 ? '⚠️' : result.score >= 70 ? '⚠️' : '❌';
+  const scoreLabel =
+    result.score >= 90
+      ? 'Excellent'
+      : result.score >= 80
+        ? 'Good'
+        : result.score >= 70
+          ? 'Acceptable'
+          : 'Needs Improvement';
 
-  let markdown = `# 🤖 Code Review - ${result.file}\n\n`;
+  let markdown = `# 🔍 Expert Code Review - ${result.file}\n\n`;
   markdown += `---\n\n`;
-  markdown += `## ${scoreEmoji} Score: ${scoreColor} **${result.score}/100**\n\n`;
+  markdown += `## ${scoreEmoji} Overall Score: ${scoreColor} **${result.score}/100** (${scoreLabel})\n\n`;
   markdown += `---\n\n`;
 
-  markdown += `## 📝 Summary\n\n`;
+  markdown += `## 📋 Executive Summary\n\n`;
   markdown += `${result.summary}\n\n`;
   markdown += `---\n\n`;
 
+  // Critical Issues (if any)
+  if (result.criticalIssues && result.criticalIssues.length > 0) {
+    markdown += `## 🚨 Critical Issues (Must Fix Before Merge)\n\n`;
+    result.criticalIssues.forEach((issue, index) => {
+      markdown += `### ${index + 1}. ${issue}\n\n`;
+    });
+    markdown += `---\n\n`;
+  }
+
+  // Strengths
+  if (result.strengths && result.strengths.length > 0) {
+    markdown += `## ✨ Code Strengths\n\n`;
+    result.strengths.forEach((strength, index) => {
+      markdown += `### ${index + 1}. ${strength}\n\n`;
+    });
+    markdown += `---\n\n`;
+  }
+
+  // Suggestions
   if (result.suggestions.length > 0) {
-    markdown += `## 💡 Suggestions (${result.suggestions.length})\n\n`;
+    markdown += `## 💡 Improvement Suggestions (${result.suggestions.length})\n\n`;
     result.suggestions.forEach((suggestion, index) => {
       markdown += `### ${index + 1}. ${suggestion}\n\n`;
     });
-  } else {
-    markdown += `## ✅ No Suggestions\n\n`;
-    markdown += `The code review found no issues. Great work! 🎉\n\n`;
+    markdown += `---\n\n`;
+  } else if (!result.criticalIssues || result.criticalIssues.length === 0) {
+    markdown += `## ✅ No Issues Found\n\n`;
+    markdown += `The code review found no issues. Excellent work! 🎉\n\n`;
+    markdown += `---\n\n`;
+  }
+
+  // Recommendations (optional improvements)
+  if (result.recommendations && result.recommendations.length > 0) {
+    markdown += `## 🎯 Optional Recommendations\n\n`;
+    markdown += `*These are optional improvements that would further elevate code quality:*\n\n`;
+    result.recommendations.forEach((rec, index) => {
+      markdown += `### ${index + 1}. ${rec}\n\n`;
+    });
+    markdown += `---\n\n`;
   }
 
   markdown += `---\n\n`;
-  markdown += `*Generated by OpenAI Code Review*\n`;
-  markdown += `*Review Date: ${new Date().toLocaleString()}*\n`;
+  markdown += `*🔬 Review conducted by Senior Software Architect & Code Review Expert*\n`;
+  markdown += `*📅 Review Date: ${new Date().toLocaleString()}*\n`;
+  markdown += `*🤖 Powered by OpenAI Code Review System*\n`;
 
   return markdown;
 }
@@ -352,7 +500,7 @@ async function main() {
   if (markdownMode) {
     // Format as markdown for AI pane
     const markdown = generateMarkdownReview(result);
-    
+
     if (outputFile) {
       writeFileSync(outputFile, markdown, 'utf-8');
       console.log(`\n✅ Code review saved to ${outputFile}`);
@@ -361,32 +509,87 @@ async function main() {
     }
   } else if (isCI) {
     // Format for GitHub Actions / PR comments
-    let output = `**Score:** ${result.score}/100\n\n`;
-    output += `**Summary:** ${result.summary}\n\n`;
+    let output = `## 🔍 Expert Code Review\n\n`;
+    output += `**Score:** ${result.score}/100 ${result.score >= 90 ? '🟢' : result.score >= 80 ? '🟡' : result.score >= 70 ? '🟠' : '🔴'}\n\n`;
+    output += `**Summary:**\n${result.summary}\n\n`;
+
+    if (result.criticalIssues && result.criticalIssues.length > 0) {
+      output += '### 🚨 Critical Issues (Must Fix)\n';
+      result.criticalIssues.forEach((issue, index) => {
+        output += `${index + 1}. ${issue}\n`;
+      });
+      output += '\n';
+    }
+
+    if (result.strengths && result.strengths.length > 0) {
+      output += '### ✨ Code Strengths\n';
+      result.strengths.forEach((strength, index) => {
+        output += `${index + 1}. ${strength}\n`;
+      });
+      output += '\n';
+    }
 
     if (result.suggestions.length > 0) {
-      output += '**Suggestions:**\n';
+      output += '### 💡 Improvement Suggestions\n';
       result.suggestions.forEach((suggestion, index) => {
         output += `${index + 1}. ${suggestion}\n`;
       });
-    } else {
-      output += '✅ No suggestions - code looks good!\n';
+      output += '\n';
+    }
+
+    if (result.recommendations && result.recommendations.length > 0) {
+      output += '### 🎯 Optional Recommendations\n';
+      result.recommendations.forEach((rec, index) => {
+        output += `${index + 1}. ${rec}\n`;
+      });
     }
 
     console.log(output);
   } else {
     // Format for local terminal
-    console.log(`\n📊 Code Review Results for: ${result.file}`);
-    console.log(`\n⭐ Score: ${result.score}/100`);
-    console.log(`\n📝 Summary:\n${result.summary}\n`);
+    console.log(`\n🔍 Expert Code Review Results for: ${result.file}`);
+    console.log(
+      `\n⭐ Score: ${result.score}/100 ${result.score >= 90 ? '🟢 Excellent' : result.score >= 80 ? '🟡 Good' : result.score >= 70 ? '🟠 Acceptable' : '🔴 Needs Improvement'}`
+    );
+    console.log(`\n📋 Executive Summary:\n${result.summary}\n`);
+
+    if (result.criticalIssues && result.criticalIssues.length > 0) {
+      console.log('🚨 Critical Issues (Must Fix):');
+      result.criticalIssues.forEach((issue, index) => {
+        console.log(`   ${index + 1}. ${issue}`);
+      });
+      console.log('');
+    }
+
+    if (result.strengths && result.strengths.length > 0) {
+      console.log('✨ Code Strengths:');
+      result.strengths.forEach((strength, index) => {
+        console.log(`   ${index + 1}. ${strength}`);
+      });
+      console.log('');
+    }
 
     if (result.suggestions.length > 0) {
-      console.log('💡 Suggestions:');
+      console.log('💡 Improvement Suggestions:');
       result.suggestions.forEach((suggestion, index) => {
         console.log(`   ${index + 1}. ${suggestion}`);
       });
-    } else {
-      console.log('✅ No suggestions - code looks good!');
+      console.log('');
+    }
+
+    if (result.recommendations && result.recommendations.length > 0) {
+      console.log('🎯 Optional Recommendations:');
+      result.recommendations.forEach((rec, index) => {
+        console.log(`   ${index + 1}. ${rec}`);
+      });
+      console.log('');
+    }
+
+    if (
+      !result.suggestions.length &&
+      (!result.criticalIssues || result.criticalIssues.length === 0)
+    ) {
+      console.log('✅ No issues found - Excellent work!');
     }
 
     // Exit with error if score is too low (only in local, not in CI)

@@ -254,6 +254,24 @@ pnpm code-review:file src/components/MyComponent.tsx
 tsx scripts/code-review.ts --diff "$(git diff)"
 ```
 
+**Output en Markdown (para AI Pane de Cursor):**
+```bash
+# Mostrar en consola (puedes copiar y pegar en AI Pane)
+pnpm code-review:md
+
+# Guardar en archivo markdown
+pnpm code-review:md:save
+
+# O con opciones personalizadas
+tsx scripts/code-review.ts --markdown --output mi-review.md
+```
+
+El formato markdown está optimizado para mostrarse en el panel AI de Cursor, con:
+- Score visual con colores (🟢🟡🔴)
+- Resumen estructurado
+- Sugerencias numeradas y formateadas
+- Fecha y metadata del review
+
 ### Code Review Automático en PRs
 
 El workflow `.github/workflows/code-review.yml` se ejecuta automáticamente en cada Pull Request y:

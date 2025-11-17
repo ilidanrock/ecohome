@@ -219,6 +219,9 @@ Before reporting ANY issue, you MUST:
    - If you see a function call, check if error handling exists elsewhere in the diff
    - If you see an API route, verify if try-catch blocks are present before reporting missing error handling
    - If you see a component, check if types are defined before reporting missing types
+   - If you see a database query, check if take/limit parameters are already present before suggesting pagination
+   - If you see serviceContainer usage, verify it's being used correctly before suggesting to use it
+   - If you're suggesting a code change, verify the change would actually improve the code (not just add comments)
    - Only report issues that are OBVIOUSLY and CLEARLY missing from the code shown
 
 3. **Distinguish Between Missing Code vs Already Implemented**:
@@ -247,6 +250,10 @@ COMMON FALSE POSITIVES TO AVOID:
 - "Security issue" when authentication/authorization checks are present but implemented differently
 - "Performance issue" when the code follows established project patterns
 - "Architectural violation" when the code correctly uses ServiceContainer or follows DDD patterns
+- "Missing pagination/limits" when take or limit parameters are already present in queries
+- "Not using ServiceContainer" when the code already uses serviceContainer correctly
+- "Code improvements" that only add comments or don't actually change functionality
+- Suggesting to use a method/function that already exists but the current usage is also valid
 
 ✅ DO report these as issues:
 - Actual security vulnerabilities (SQL injection, XSS, exposed secrets)
@@ -275,6 +282,8 @@ Examples of FALSE critical issues (report as suggestions instead):
 - Type annotations that are optional but would improve clarity
 - Code that follows project patterns but could be optimized
 - Missing comments or documentation
+- Performance optimizations that are already implemented (e.g., take: 100 already present)
+- Architectural patterns already correctly implemented (e.g., ServiceContainer already used)
 
 REVIEW REQUIREMENTS:
 
@@ -406,6 +415,9 @@ REVIEW STYLE:
 - For error handling: Check if try-catch exists before reporting missing error handling
 - For types: Check if types are used correctly (even if inferred) before reporting missing types
 - For security: Verify authentication/authorization actually missing before reporting security issues
+- For performance: Verify if optimizations (like take, limit, pagination) are already implemented before suggesting them
+- For architecture: Verify if ServiceContainer or DDD patterns are already correctly used before suggesting to use them
+- For suggestions: Only suggest changes that would actually improve the code, not just add comments or cosmetic changes
 
 Begin your comprehensive review now.`;
 

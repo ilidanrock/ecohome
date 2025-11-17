@@ -40,7 +40,9 @@ export async function GET() {
 
     // Use ServiceContainer to fetch consumption data via DDD architecture
     // This maintains proper boundaries: API Route → ServiceContainer → Application → Domain → Infrastructure
-    const result = await serviceContainer.consumption.getData.execute(session.user.id);
+    const result: ConsumptionResponse = await serviceContainer.consumption.getData.execute(
+      session.user.id
+    );
 
     return NextResponse.json<ConsumptionResponse>({
       consumptionData: result.consumptionData,

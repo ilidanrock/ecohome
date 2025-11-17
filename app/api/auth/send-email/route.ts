@@ -68,7 +68,33 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({ message: 'Correo enviado', id: info.messageId });
     return withCORS(request, response);
   } catch (error) {
-    const errorResponse = NextResponse.json({ error }, { status: 500 });
+    // Log error with context for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error('[Send Email API] Error sending email:', {
+      message: errorMessage,
+      stack: errorStack,
+      timestamp: new Date().toISOString(),
+      email,
+    });
+
+    // Return appropriate error response
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
+    const errorResponse = NextResponse.json(
+      {
+        error: 'Internal server error',
+        message: 'Failed to send verification email. Please try again later.',
+        ...(isDevelopment && {
+          details: {
+            message: errorMessage,
+            ...(errorStack && { stack: errorStack }),
+          },
+        }),
+      },
+      { status: 500 }
+    );
     return withCORS(request, errorResponse);
   }
 }

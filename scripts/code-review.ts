@@ -205,9 +205,82 @@ ${diff}
 
 ${filePath ? `FILE BEING REVIEWED: ${filePath}` : ''}
 
+VERIFICATION REQUIREMENTS (CRITICAL - READ FIRST):
+
+Before reporting ANY issue, you MUST:
+
+1. **Read and Analyze the ENTIRE Diff**: 
+   - Read every line of the diff completely before making any assessments
+   - Understand the full context of what was changed, not just individual lines
+   - Verify that the problem you're about to report ACTUALLY EXISTS in the code shown
+   - Do NOT assume something is missing without first verifying it's not already implemented
+
+2. **Verify Problems Actually Exist**:
+   - If you see a function call, check if error handling exists elsewhere in the diff
+   - If you see an API route, verify if try-catch blocks are present before reporting missing error handling
+   - If you see a component, check if types are defined before reporting missing types
+   - Only report issues that are OBVIOUSLY and CLEARLY missing from the code shown
+
+3. **Distinguish Between Missing Code vs Already Implemented**:
+   - Code that is NOT in the diff but exists in the file is NOT a problem to report
+   - Only report issues visible in the actual diff provided
+   - If error handling exists in the diff (even if not perfect), do NOT report it as "missing error handling"
+   - If types are used correctly, do NOT report them as "missing types"
+
+4. **Context Analysis**:
+   - Consider the full context of the file being reviewed
+   - Look for patterns that show the code follows project conventions
+   - Verify if the code aligns with the PROJECT RULES AND STANDARDS provided above
+   - Do NOT report issues that are actually following the project's established patterns
+
+5. **Conservative Reporting**:
+   - When in doubt, do NOT report as a critical issue
+   - If you're not 100% certain a problem exists, mark it as a suggestion or recommendation instead
+   - Better to miss a minor issue than to report a false positive that wastes developer time
+
+COMMON FALSE POSITIVES TO AVOID:
+
+❌ DO NOT report these as issues:
+- "Missing error handling" when try-catch blocks are already present in the diff
+- "Missing type annotations" when TypeScript can infer types correctly
+- "Missing validation" when validation exists but uses a different pattern than expected
+- "Security issue" when authentication/authorization checks are present but implemented differently
+- "Performance issue" when the code follows established project patterns
+- "Architectural violation" when the code correctly uses ServiceContainer or follows DDD patterns
+
+✅ DO report these as issues:
+- Actual security vulnerabilities (SQL injection, XSS, exposed secrets)
+- Code that violates DDD boundaries (direct Prisma calls in domain layer)
+- Missing authentication/authorization where user data is accessed
+- Type safety issues (use of 'any', unsafe assertions)
+- Actual bugs that would cause runtime errors
+
+CRITICAL ISSUES CRITERIA (STRICT):
+
+Only report as "criticalIssues" if ALL of these are true:
+1. The problem is OBVIOUSLY present in the diff (not assumed)
+2. The problem would cause a PRODUCTION FAILURE (crash, security breach, data loss)
+3. The problem is NOT already handled in the code shown
+4. The problem cannot be safely ignored or deferred
+
+Examples of TRUE critical issues:
+- SQL injection vulnerability in user input
+- Missing authentication check before accessing user data
+- Direct database access in domain layer (violates DDD)
+- Exposed API keys or secrets in code
+- Unhandled promise rejection that would crash the app
+
+Examples of FALSE critical issues (report as suggestions instead):
+- Error handling that exists but could be improved
+- Type annotations that are optional but would improve clarity
+- Code that follows project patterns but could be optimized
+- Missing comments or documentation
+
 REVIEW REQUIREMENTS:
 
 Conduct a comprehensive, rigorous code review as if this code will be deployed to a production system serving millions of users. Your review must be thorough, actionable, and based on industry best practices and academic research.
+
+IMPORTANT: Before reporting any issue, verify it actually exists in the diff. Do not assume problems without evidence.
 
 EVALUATION CRITERIA (Weighted):
 
@@ -235,11 +308,11 @@ EVALUATION CRITERIA (Weighted):
 
 4. **Security & Best Practices (15%)**
    - Input validation and sanitization
-   - Authentication/authorization checks
+   - Authentication/authorization checks (VERIFY these exist before reporting)
    - Sensitive data handling
    - SQL injection / XSS / CSRF considerations
    - Environment variable usage
-   - Error handling and information disclosure
+   - Error handling and information disclosure (VERIFY error handling exists in diff before reporting as missing)
 
 5. **Performance & Scalability (10%)**
    - Efficient algorithms and data structures
@@ -320,12 +393,19 @@ IMPORTANT: For each suggestion, critical issue, and recommendation:
 - Always include snippets for critical issues and architectural problems
 
 REVIEW STYLE:
-- Be thorough and specific. Reference exact lines, patterns, or architectural concepts.
+- **VERIFY FIRST**: Always verify that a problem actually exists in the diff before reporting it
+- Be thorough and specific. Reference exact lines, patterns, or architectural concepts from the diff
 - Explain the "why" behind each suggestion, not just the "what"
 - Prioritize suggestions by severity and impact
 - Consider long-term maintainability and scalability
 - Apply academic rigor while remaining practical
-- If code is excellent, acknowledge it, but still look for opportunities to improve
+- **Conservative Approach**: When uncertain, prefer suggestions over critical issues
+- **Context Awareness**: Consider the full context of the diff and project patterns
+- If code is excellent, acknowledge it prominently in strengths
+- Only report issues you can clearly see in the provided diff
+- For error handling: Check if try-catch exists before reporting missing error handling
+- For types: Check if types are used correctly (even if inferred) before reporting missing types
+- For security: Verify authentication/authorization actually missing before reporting security issues
 
 Begin your comprehensive review now.`;
 

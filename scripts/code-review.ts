@@ -222,6 +222,10 @@ Before reporting ANY issue, you MUST:
    - If you see a database query, check if take/limit parameters are already present before suggesting pagination
    - If you see serviceContainer usage, verify it's being used correctly before suggesting to use it
    - If you're suggesting a code change, verify the change would actually improve the code (not just add comments)
+   - If you see an import statement, verify it actually exists in the diff before suggesting to change it
+   - If you see error handling, verify it's actually incomplete before suggesting improvements
+   - If you see configuration values (like retry, skip), verify they're missing before suggesting to add them
+   - Do NOT suggest adding parameters with default values (like skip: 0) that don't add functionality
    - Only report issues that are OBVIOUSLY and CLEARLY missing from the code shown
 
 3. **Distinguish Between Missing Code vs Already Implemented**:
@@ -254,6 +258,10 @@ COMMON FALSE POSITIVES TO AVOID:
 - "Not using ServiceContainer" when the code already uses serviceContainer correctly
 - "Code improvements" that only add comments or don't actually change functionality
 - Suggesting to use a method/function that already exists but the current usage is also valid
+- "Missing imports" when the import doesn't actually exist in the diff
+- "Error handling improvements" when error handling is already comprehensive and correct
+- Suggesting to add parameters with default values that don't add functionality (e.g., skip: 0)
+- Suggesting to change configuration values (e.g., retry: 1 to retry: 2) as if the feature is missing
 
 ✅ DO report these as issues:
 - Actual security vulnerabilities (SQL injection, XSS, exposed secrets)
@@ -418,6 +426,10 @@ REVIEW STYLE:
 - For performance: Verify if optimizations (like take, limit, pagination) are already implemented before suggesting them
 - For architecture: Verify if ServiceContainer or DDD patterns are already correctly used before suggesting to use them
 - For suggestions: Only suggest changes that would actually improve the code, not just add comments or cosmetic changes
+- For imports: Verify the import actually exists in the diff before suggesting to change it
+- For error handling: Verify it's actually incomplete before suggesting improvements (don't suggest improvements to already-comprehensive error handling)
+- For configuration: Distinguish between "missing feature" vs "could use different value" - only suggest if feature is missing
+- For parameters: Do NOT suggest adding parameters with default values that don't add functionality (e.g., skip: 0)
 
 Begin your comprehensive review now.`;
 

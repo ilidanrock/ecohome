@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { HeaderSearch } from './header-search';
 import { HeaderNotifications } from './header-notifications';
 import { HeaderUserMenu } from './header-user-menu';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import type { Notification, QuickStat } from '@/stores';
 
 type HeaderProps = {
@@ -111,6 +112,9 @@ export function Header({
           onClearAllNotifications={onClearAllNotifications}
           onMarkAsRead={onMarkAsRead}
         />
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* User Menu */}
         <HeaderUserMenu userMenuItems={userMenuItems} />

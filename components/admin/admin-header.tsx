@@ -5,7 +5,11 @@ import { signOut } from 'next-auth/react';
 import { Header } from '@/components/shared/header';
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
-export function AdminHeader() {
+type AdminHeaderProps = {
+  onOpenSidebar?: () => void;
+};
+
+export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
   const userMenuItems = (
     <>
       <DropdownMenuItem>Mi Perfil</DropdownMenuItem>
@@ -33,6 +37,7 @@ export function AdminHeader() {
       variant="admin"
       userMenuItems={userMenuItems}
       searchPlaceholder="Buscar propiedades, usuarios..."
+      onOpenSidebar={onOpenSidebar}
     />
   );
 }

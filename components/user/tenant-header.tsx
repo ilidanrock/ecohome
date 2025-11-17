@@ -7,8 +7,14 @@ import { Header } from '@/components/shared/header';
 import { DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { useNotificationsStore, type Notification } from '@/stores';
 import { useQuickStatsQuery } from '@/lib/queries';
+import { useSidebar } from '@/components/ui/sidebar';
 
-export function TenantHeader() {
+type TenantHeaderProps = {
+  onOpenSidebar?: () => void;
+};
+
+export function TenantHeader({ onOpenSidebar }: TenantHeaderProps) {
+  const { setOpenMobile } = useSidebar();
   const router = useRouter();
 
   // Zustand store for client-side notifications
@@ -83,6 +89,11 @@ export function TenantHeader() {
     </>
   );
 
+  const handleOpenSidebar = () => {
+    setOpenMobile(true);
+    onOpenSidebar?.();
+  };
+
   return (
     <Header
       quickStats={quickStats}
@@ -93,6 +104,7 @@ export function TenantHeader() {
       onMarkAsRead={markAsRead}
       userMenuItems={userMenuItems}
       searchPlaceholder="Buscar facturas, reportes..."
+      onOpenSidebar={handleOpenSidebar}
     />
   );
 }

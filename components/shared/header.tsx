@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { Zap, Droplets } from 'lucide-react';
+import { Zap, Droplets, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HeaderSearch } from './header-search';
 import { HeaderNotifications } from './header-notifications';
@@ -19,6 +19,7 @@ type HeaderProps = {
   onMarkAsRead?: (notificationId: string) => void;
   userMenuItems?: React.ReactNode;
   searchPlaceholder?: string;
+  onOpenSidebar?: () => void;
 };
 
 export function Header({
@@ -31,13 +32,14 @@ export function Header({
   onMarkAsRead,
   userMenuItems,
   searchPlaceholder = 'Buscar...',
+  onOpenSidebar,
 }: HeaderProps) {
   const isAdmin = variant === 'admin';
 
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 flex h-16 shrink-0 items-center border-b shadow-sm backdrop-blur-xl transition-all duration-200',
+        'sticky top-0 z-40 flex h-16 shrink-0 items-center border-b shadow-sm backdrop-blur-xl transition-all duration-200',
         // Light mode colors - más distinguibles
         'bg-white/95 border-ecoblue/20',
         // Dark mode colors - mejor contraste
@@ -49,6 +51,27 @@ export function Header({
       aria-label="Navegación principal"
     >
       <div className="flex flex-1 gap-x-3 sm:gap-x-4 lg:gap-x-6 self-stretch items-center">
+        {/* Mobile menu button - Solo visible en mobile y si hay callback */}
+        {onOpenSidebar && (
+          <button
+            type="button"
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 lg:hidden',
+              'bg-slate-100/80 dark:bg-slate-800/80',
+              'text-slate-700 dark:text-slate-300',
+              'border border-slate-200/60 dark:border-slate-700/60',
+              'hover:bg-slate-200/80 dark:hover:bg-slate-700/80',
+              'hover:text-slate-900 dark:hover:text-slate-200',
+              'active:scale-95',
+              'focus:outline-none focus:ring-2 focus:ring-ecoblue/50 focus:ring-offset-2',
+              'shadow-sm'
+            )}
+            onClick={onOpenSidebar}
+            aria-label="Abrir menú"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
         <HeaderSearch
           placeholder={searchPlaceholder}
           onSearch={onSearch}

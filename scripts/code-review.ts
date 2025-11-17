@@ -228,6 +228,8 @@ Before reporting ANY issue, you MUST:
    - Do NOT suggest adding parameters with default values (like skip: 0) that don't add functionality
    - Do NOT suggest cosmetic improvements (like adding prefixes to error messages) when the code is already clear
    - Do NOT suggest adding take/limit when it's already present in the query
+   - Do NOT suggest minor text changes to error messages that don't improve functionality
+   - Do NOT suggest refactoring when current code is valid and follows best practices (e.g., Zustand selectors are the recommended pattern)
    - Only report issues that are OBVIOUSLY and CLEARLY missing from the code shown
 
 3. **Distinguish Between Missing Code vs Already Implemented**:
@@ -266,6 +268,8 @@ COMMON FALSE POSITIVES TO AVOID:
 - Suggesting to change configuration values (e.g., retry: 1 to retry: 2) as if the feature is missing
 - Suggesting cosmetic improvements to error messages when the message is already descriptive
 - Suggesting to add take/limit when it's already present in the code
+- Suggesting minor text changes to error messages that don't improve functionality or clarity
+- Suggesting refactoring when the current code is valid and follows best practices (e.g., using Zustand selectors directly)
 
 ✅ DO report these as issues:
 - Actual security vulnerabilities (SQL injection, XSS, exposed secrets)
@@ -436,6 +440,8 @@ REVIEW STYLE:
 - For parameters: Do NOT suggest adding parameters with default values that don't add functionality (e.g., skip: 0)
 - For error messages: Do NOT suggest cosmetic improvements when messages are already descriptive and clear
 - For queries: Verify take/limit are actually missing before suggesting to add them
+- For refactoring: Do NOT suggest refactoring when current code is valid and follows best practices (e.g., Zustand selectors are the recommended pattern)
+- For text changes: Do NOT suggest minor text changes to error messages that don't improve functionality or clarity
 
 Begin your comprehensive review now.`;
 

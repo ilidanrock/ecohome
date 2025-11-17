@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
+import type { ConsumptionResponse } from '@/types';
 
 /**
  * GET /api/consumption
@@ -41,7 +42,7 @@ export async function GET() {
     // This maintains proper boundaries: API Route → ServiceContainer → Application → Domain → Infrastructure
     const result = await serviceContainer.consumption.getData.execute(session.user.id);
 
-    return NextResponse.json({
+    return NextResponse.json<ConsumptionResponse>({
       consumptionData: result.consumptionData,
       quickStats: result.quickStats,
     });

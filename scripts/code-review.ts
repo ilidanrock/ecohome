@@ -230,6 +230,9 @@ Before reporting ANY issue, you MUST:
    - Do NOT suggest adding take/limit when it's already present in the query
    - Do NOT suggest minor text changes to error messages that don't improve functionality
    - Do NOT suggest refactoring when current code is valid and follows best practices (e.g., Zustand selectors are the recommended pattern)
+   - Do NOT suggest removing mock data when the code already correctly uses the store/state management
+   - Do NOT suggest cosmetic improvements to error messages that are already clear and appropriate
+   - Do NOT suggest changes to documentation that is not in the diff being reviewed
    - Only report issues that are OBVIOUSLY and CLEARLY missing from the code shown
 
 3. **Distinguish Between Missing Code vs Already Implemented**:
@@ -270,6 +273,9 @@ COMMON FALSE POSITIVES TO AVOID:
 - Suggesting to add take/limit when it's already present in the code
 - Suggesting minor text changes to error messages that don't improve functionality or clarity
 - Suggesting refactoring when the current code is valid and follows best practices (e.g., using Zustand selectors directly)
+- Suggesting to remove mock data when the code already correctly uses the store/state management
+- Suggesting cosmetic improvements to error messages that are already clear and appropriate
+- Suggesting changes to documentation that is not in the diff being reviewed
 
 ✅ DO report these as issues:
 - Actual security vulnerabilities (SQL injection, XSS, exposed secrets)
@@ -442,6 +448,9 @@ REVIEW STYLE:
 - For queries: Verify take/limit are actually missing before suggesting to add them
 - For refactoring: Do NOT suggest refactoring when current code is valid and follows best practices (e.g., Zustand selectors are the recommended pattern)
 - For text changes: Do NOT suggest minor text changes to error messages that don't improve functionality or clarity
+- For mock data: Do NOT suggest removing mock data when the code already correctly uses the store/state management
+- For error messages: Do NOT suggest cosmetic improvements when messages are already clear and appropriate
+- For documentation: Do NOT suggest changes to documentation that is not in the diff being reviewed
 
 Begin your comprehensive review now.`;
 

@@ -226,6 +226,8 @@ Before reporting ANY issue, you MUST:
    - If you see error handling, verify it's actually incomplete before suggesting improvements
    - If you see configuration values (like retry, skip), verify they're missing before suggesting to add them
    - Do NOT suggest adding parameters with default values (like skip: 0) that don't add functionality
+   - Do NOT suggest cosmetic improvements (like adding prefixes to error messages) when the code is already clear
+   - Do NOT suggest adding take/limit when it's already present in the query
    - Only report issues that are OBVIOUSLY and CLEARLY missing from the code shown
 
 3. **Distinguish Between Missing Code vs Already Implemented**:
@@ -262,6 +264,8 @@ COMMON FALSE POSITIVES TO AVOID:
 - "Error handling improvements" when error handling is already comprehensive and correct
 - Suggesting to add parameters with default values that don't add functionality (e.g., skip: 0)
 - Suggesting to change configuration values (e.g., retry: 1 to retry: 2) as if the feature is missing
+- Suggesting cosmetic improvements to error messages when the message is already descriptive
+- Suggesting to add take/limit when it's already present in the code
 
 ✅ DO report these as issues:
 - Actual security vulnerabilities (SQL injection, XSS, exposed secrets)
@@ -430,6 +434,8 @@ REVIEW STYLE:
 - For error handling: Verify it's actually incomplete before suggesting improvements (don't suggest improvements to already-comprehensive error handling)
 - For configuration: Distinguish between "missing feature" vs "could use different value" - only suggest if feature is missing
 - For parameters: Do NOT suggest adding parameters with default values that don't add functionality (e.g., skip: 0)
+- For error messages: Do NOT suggest cosmetic improvements when messages are already descriptive and clear
+- For queries: Verify take/limit are actually missing before suggesting to add them
 
 Begin your comprehensive review now.`;
 

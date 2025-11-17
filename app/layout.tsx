@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { QueryProvider } from '@/providers/query-provider';
 import { SessionProvider } from '@/providers/session-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import './globals.css';
@@ -31,13 +32,15 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen w-full`}
       >
-        <ThemeProvider defaultTheme="light" storageKey="ecohome-theme">
-          <div className="w-full min-h-screen flex flex-col bg-background text-foreground">
-            <SidebarProvider>
-              <SessionProvider>{children}</SessionProvider>
-            </SidebarProvider>
-          </div>
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider defaultTheme="light" storageKey="ecohome-theme">
+            <div className="w-full min-h-screen flex flex-col bg-background text-foreground">
+              <SidebarProvider>
+                <SessionProvider>{children}</SessionProvider>
+              </SidebarProvider>
+            </div>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );

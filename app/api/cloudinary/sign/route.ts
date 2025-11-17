@@ -19,8 +19,32 @@ export async function POST(request: Request) {
       apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
     });
   } catch (error) {
-    console.error('Error signing Cloudinary URL:', error);
-    return NextResponse.json({ error: 'Error generating signed URL' }, { status: 500 });
+    // Log error with context for debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error('[Cloudinary Sign API] Error signing URL:', {
+      message: errorMessage,
+      stack: errorStack,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Return appropriate error response
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        message: 'Failed to generate signed URL. Please try again later.',
+        ...(isDevelopment && {
+          details: {
+            message: errorMessage,
+            ...(errorStack && { stack: errorStack }),
+          },
+        }),
+      },
+      { status: 500 }
+    );
   }
 }
 

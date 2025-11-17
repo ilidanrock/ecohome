@@ -33,7 +33,7 @@ import { useRouter } from 'next/navigation';
 import { PasswordInput } from './forms/PasswordInput';
 import { signIn } from 'next-auth/react';
 import { GoogleIcon } from './icons/google';
-import { ErrorAuthTypes } from '@/types/https';
+import type { ErrorAuthTypes } from '@/types';
 
 export default function RegisterForm() {
   const router = useRouter();

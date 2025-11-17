@@ -1,6 +1,6 @@
 import { CustomError } from '@/lib/auth';
 import { EmailRepository } from '@/src/domain/VerifyToken/EmailRepository';
-import { ResponseAPI } from '@/types/https';
+import type { ResponseAPI } from '@/types';
 
 export class GmailRepository implements EmailRepository {
   async sendEmail(email: string, token: string): Promise<ResponseAPI> {

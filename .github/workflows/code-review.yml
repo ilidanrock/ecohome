@@ -1,0 +1,118 @@
+name: OpenAI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '**.ts'
+      - '**.tsx'
+      - '**.js'
+      - '**.jsx'
+
+jobs:
+  code-review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install tsx
+        run: npm install -g tsx
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          echo "files=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep -E '\.(ts|tsx|js|jsx)$' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Review code with OpenAI
+        id: review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
+        run: |
+          CHANGED_FILES="${{ steps.changed-files.outputs.files }}"
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No TypeScript/JavaScript files changed"
+            exit 0
+          fi
+
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "⚠️ OPENAI_API_KEY not set. Skipping code review."
+            exit 0
+          fi
+
+          REVIEW_COMMENT="## 🤖 OpenAI Code Review\n\n"
+          REVIEW_COMMENT="${REVIEW_COMMENT}This review was generated automatically using OpenAI.\n\n"
+
+          for file in $CHANGED_FILES; do
+            if [ -f "$file" ]; then
+              echo "Reviewing $file..."
+              DIFF=$(git diff ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- "$file" | head -c 8000)
+              
+              if [ -n "$DIFF" ]; then
+                REVIEW=$(tsx scripts/code-review.ts --diff "$DIFF" 2>&1 || echo "Error reviewing file")
+                
+                if [ -n "$REVIEW" ] && [ "$REVIEW" != "Error reviewing file" ]; then
+                  REVIEW_COMMENT="${REVIEW_COMMENT}### 📄 $file\n\n\`\`\`\n${REVIEW}\n\`\`\`\n\n---\n\n"
+                fi
+              fi
+            fi
+          done
+
+          echo "review_comment<<EOF" >> $GITHUB_OUTPUT
+          echo "$REVIEW_COMMENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Review Comment
+        if: steps.review.outputs.review_comment != ''
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const reviewComment = `${{ steps.review.outputs.review_comment }}`;
+
+            // Find existing review comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🤖 OpenAI Code Review')
+            );
+
+            const commentBody = reviewComment;
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody,
+              });
+            }

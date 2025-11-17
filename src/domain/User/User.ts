@@ -1,4 +1,4 @@
-import { role } from '@/types/user';
+import type { Role } from '@/types';
 
 export class User {
   id?: string;
@@ -8,7 +8,7 @@ export class User {
   email: string;
   emailVerified: Date | null;
   image: string | null;
-  role: role;
+  role: Role;
   createdAt: Date;
   updatedAt: Date;
   constructor(
@@ -18,7 +18,7 @@ export class User {
     email: string,
     emailVerified: Date | null,
     image: string | null,
-    role: role,
+    role: Role,
     createdAt: Date,
     updatedAt: Date,
     id?: string

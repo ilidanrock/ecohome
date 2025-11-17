@@ -173,6 +173,8 @@ Estas son las herramientas y librerías que realmente se usan actualmente en el 
 - **lint**: `next lint --fix && pnpm format`  
 - **prepare**: `husky`  
 - **test**: `npx playwright test`
+- **code-review**: Revisa cambios staged con OpenAI
+- **code-review:file**: Revisa un archivo específico con OpenAI
 
 ---
 
@@ -205,7 +207,88 @@ Crea un archivo `.env.local` en la raíz del proyecto. Ejemplos típicos (ajusta
 ### App (opcional)
 - `NEXT_PUBLIC_APP_URL="http://localhost:3000"`
 
+### Code Review con OpenAI (opcional)
+- `OPENAI_API_KEY=sk-...` - API key de OpenAI para code review automático
+- `OPENAI_MODEL=gpt-4o-mini` - Modelo a usar (por defecto: gpt-4o-mini)
+
 > Tras configurar `DATABASE_URL`, ejecuta la app con `pnpm dev`. `prisma generate` se ejecuta automáticamente en `postinstall`.
+
+---
+
+## 🤖 Code Review con OpenAI
+
+EcoHome incluye integración con OpenAI para code review automático. Esto ayuda a mantener la calidad del código y seguir las mejores prácticas.
+
+### Configuración
+
+1. **Obtén tu API Key de OpenAI:**
+   - Ve a https://platform.openai.com/api-keys
+   - Crea una nueva API key
+
+2. **Configura la variable de entorno:**
+   ```bash
+   # En .env.local
+   OPENAI_API_KEY=sk-...
+   OPENAI_MODEL=gpt-4o-mini  # Opcional, por defecto usa gpt-4o-mini
+   ```
+
+3. **Para GitHub Actions:**
+   - Ve a Settings → Secrets and variables → Actions
+   - Agrega `OPENAI_API_KEY` como secret
+   - Opcional: Agrega `OPENAI_MODEL` como variable de repositorio
+
+### Uso Local
+
+**Revisar cambios staged:**
+```bash
+pnpm code-review
+```
+
+**Revisar un archivo específico:**
+```bash
+pnpm code-review:file src/components/MyComponent.tsx
+```
+
+**Revisar un diff específico:**
+```bash
+tsx scripts/code-review.ts --diff "$(git diff)"
+```
+
+**Output en Markdown (para AI Pane de Cursor):**
+```bash
+# Mostrar en consola (puedes copiar y pegar en AI Pane)
+pnpm code-review:md
+
+# Guardar en archivo markdown
+pnpm code-review:md:save
+
+# O con opciones personalizadas
+tsx scripts/code-review.ts --markdown --output mi-review.md
+```
+
+El formato markdown está optimizado para mostrarse en el panel AI de Cursor, con:
+- Score visual con colores (🟢🟡🔴)
+- Resumen estructurado
+- Sugerencias numeradas y formateadas
+- Fecha y metadata del review
+
+### Code Review Automático en PRs
+
+El workflow `.github/workflows/code-review.yml` se ejecuta automáticamente en cada Pull Request y:
+- ✅ Revisa todos los archivos TypeScript/JavaScript modificados
+- ✅ Publica comentarios en el PR con sugerencias
+- ✅ Proporciona un score de calidad (0-100)
+- ✅ Sugiere mejoras basadas en las reglas del proyecto
+
+### Qué Revisa
+
+El code review con OpenAI analiza:
+- ✅ Mejores prácticas de TypeScript
+- ✅ Cumplimiento de arquitectura DDD
+- ✅ Calidad y mantenibilidad del código
+- ✅ Consideraciones de rendimiento
+- ✅ Problemas de seguridad
+- ✅ Seguimiento de convenciones del proyecto
 
 ---
 

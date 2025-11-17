@@ -18,12 +18,21 @@ export function AdminHeader() {
         Soporte
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/' })} className="text-red-600">
+      <DropdownMenuItem
+        onClick={() => signOut({ callbackUrl: '/' })}
+        className="text-red-600 dark:text-red-400"
+      >
         <LogOut className="mr-2 h-4 w-4" />
         Cerrar Sesión
       </DropdownMenuItem>
     </>
   );
 
-  return <Header variant="admin" userMenuItems={userMenuItems} searchPlaceholder="Buscar..." />;
+  return (
+    <Header
+      variant="admin"
+      userMenuItems={userMenuItems}
+      searchPlaceholder="Buscar propiedades, usuarios..."
+    />
+  );
 }

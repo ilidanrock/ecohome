@@ -13,10 +13,16 @@
 
 // Domain Types
 export type { User, Role } from './domain';
-export type { PaymentStatus } from './domain';
+export type { PaymentStatus, PaymentMethod } from './domain';
 
 // API Types
-export type { ResponseAPI, ErrorAuthTypes } from './api';
+export type {
+  ResponseAPI,
+  ErrorAuthTypes,
+  CreatePaymentRequest,
+  PaymentResponse,
+  PaymentsResponse,
+} from './api';
 
 // UI Types
 export type {

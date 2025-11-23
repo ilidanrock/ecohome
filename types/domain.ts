@@ -16,6 +16,11 @@ export type Role = 'USER' | 'ADMIN' | 'NULL';
 export type PaymentStatus = 'PAID' | 'UNPAID';
 
 /**
+ * Payment method enum - matches Prisma schema
+ */
+export type PaymentMethod = 'YAPE' | 'CASH' | 'BANK_TRANSFER';
+
+/**
  * User interface for application use
  * This is the public-facing user type used in components and API responses
  */

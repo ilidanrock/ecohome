@@ -20,6 +20,12 @@ enum PaymentStatus {
   UNPAID
 }
 
+enum PaymentMethod {
+  YAPE
+  CASH
+  BANK_TRANSFER
+}
+
 // ---------- Modelos NextAuth ----------
 model User {
   id            String   @id @default(cuid())
@@ -98,6 +104,7 @@ model Rental {
 
   consumptions Consumption[]
   invoices     Invoice[]
+  payments      Payment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -155,10 +162,36 @@ model Invoice {
   paidAt       DateTime?
   receiptUrl   String?
   invoiceUrl   String?
+  payments     Payment[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@unique([rentalId, month, year])
   @@index([status])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  
+  // Relación opcional con Rental (para pagos de alquiler)
+  rental        Rental?       @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  rentalId      String?
+  
+  // Relación opcional con Invoice (para pagos de servicios)
+  invoice       Invoice?       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId     String?
+
+  amount        Decimal        @db.Decimal(12,2)
+  paidAt        DateTime
+  paymentMethod PaymentMethod
+  reference     String?        // Número de referencia/comprobante
+  receiptUrl    String?        // URL del comprobante
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([rentalId])
+  @@index([invoiceId])
+  @@index([paidAt])
 }

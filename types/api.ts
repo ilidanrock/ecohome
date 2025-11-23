@@ -33,3 +33,32 @@ export type ErrorAuthTypes =
   | 'Error al actualizar el rol del usuario'
   | 'Email no verificado'
   | 'Password no proporcionado';
+
+/**
+ * Payment API request/response types
+ */
+export interface CreatePaymentRequest {
+  type: 'rental' | 'invoice';
+  rentalId?: string;
+  invoiceId?: string;
+  amount: number;
+  paidAt: string; // ISO date string
+  paymentMethod: 'YAPE' | 'CASH' | 'BANK_TRANSFER';
+  reference?: string | null;
+  receiptUrl?: string | null;
+}
+
+export interface PaymentResponse {
+  id: string;
+  rentalId: string | null;
+  invoiceId: string | null;
+  amount: number;
+  paidAt: string; // ISO date string
+  paymentMethod: 'YAPE' | 'CASH' | 'BANK_TRANSFER';
+  reference: string | null;
+  receiptUrl: string | null;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+}
+
+export type PaymentsResponse = PaymentResponse[];

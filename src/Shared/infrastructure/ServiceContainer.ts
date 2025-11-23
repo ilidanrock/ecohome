@@ -13,6 +13,11 @@ import { AccountOAuthSignIn } from '@/src/application/Account/AccountOAuthSignIn
 import { PrismaAccountsRepository } from '@/src/infrastructure/Accounts/PrismaAccountsRepository';
 import { GetConsumptionData } from '@/src/application/Consumption/GetConsumptionData';
 import { PrismaConsumptionRepository } from '@/src/infrastructure/Consumption/PrismaConsumptionRepository';
+import { CreateRentalPayment } from '@/src/application/Payment/CreateRentalPayment';
+import { CreateServicePayment } from '@/src/application/Payment/CreateServicePayment';
+import { GetPaymentsByRental } from '@/src/application/Payment/GetPaymentsByRental';
+import { GetPaymentsByInvoice } from '@/src/application/Payment/GetPaymentsByInvoice';
+import { PrismaPaymentRepository } from '@/src/infrastructure/Payment/PrismaPaymentRepository';
 import { prisma } from '@/prisma';
 
 const userRepository = new PrismaUserRepository(prisma);
@@ -22,6 +27,7 @@ const emailRepository = new GmailRepository();
 const verifyTokenRepository = new PrismaVerifyTokenRepository(prisma);
 const accountRepository = new PrismaAccountsRepository(prisma);
 const consumptionRepository = new PrismaConsumptionRepository(prisma);
+const paymentRepository = new PrismaPaymentRepository(prisma);
 
 const verifyTokenCreate = new VerifyTokenCreate(
   verifyTokenRepository,
@@ -44,5 +50,11 @@ export const serviceContainer = {
   },
   consumption: {
     getData: new GetConsumptionData(consumptionRepository),
+  },
+  payment: {
+    createRentalPayment: new CreateRentalPayment(paymentRepository),
+    createServicePayment: new CreateServicePayment(paymentRepository),
+    getPaymentsByRental: new GetPaymentsByRental(paymentRepository),
+    getPaymentsByInvoice: new GetPaymentsByInvoice(paymentRepository),
   },
 };

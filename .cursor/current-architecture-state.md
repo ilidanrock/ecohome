@@ -9,6 +9,12 @@
 - ✅ **Migración**: `useConsumptionStore` migrado a TanStack Query
 - ✅ **Arquitectura**: Separación correcta entre Zustand (UI) y TanStack Query (servidor)
 - ✅ **Integración DDD**: TanStack Query se integra con la arquitectura DDD a través de API routes y ServiceContainer
+- ✅ **Payment System**: Sistema completo de pagos implementado con DDD, validación Zod, y manejo de errores de dominio
+- ✅ **Domain Expansion**: Repositorios de Rental e Invoice implementados siguiendo patrones DDD
+- ✅ **Error Handling**: Sistema de errores de dominio (`DomainError`) implementado
+- ✅ **Validation**: Validación con Zod integrada en API routes
+- ✅ **Authentication**: Mejoras en autenticación (session.user.id correctamente poblado)
+- ✅ **CI/CD**: Migrado a pnpm en workflows de GitHub Actions
 
 ## 🔍 Análisis Detallado
 
@@ -224,9 +230,20 @@ app/layout.tsx
 
 **DDD Architecture (Servidor - Lógica de Negocio):**
 - `src/domain/` - Modelos de dominio y reglas de negocio
+  - `Payment/` - Entidad Payment con validaciones de negocio
+  - `Rental/` - Entidad Rental y repositorio
+  - `Invoice/` - Entidad Invoice y repositorio
+  - `errors/` - Clase base DomainError para errores de dominio
 - `src/application/` - Casos de uso y orquestación
+  - `Payment/` - CreateRentalPayment, CreateServicePayment
+  - `Rental/` - GetRentalById con validación de permisos
+  - `Invoice/` - GetInvoiceById con validación de permisos
 - `src/infrastructure/` - Implementaciones concretas (Prisma)
+  - `Payment/` - PrismaPaymentRepository
+  - `Rental/` - PrismaRentalRepository
+  - `Invoice/` - PrismaInvoiceRepository
 - `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias
+- `zod/` - Schemas de validación para API routes
 
 ## 📊 Comparación: Antes vs Ahora
 
@@ -298,4 +315,38 @@ Component
 - Ver `.cursor/project-rules.md` para reglas completas y arquitectura DDD
 - Ver `.cursor/state-management-guide.md` para guía de uso de Zustand vs TanStack Query
 - Ver `stores/consumption/useConsumptionStore.ts` para plan de migración
+
+## 💳 Sistema de Pagos Implementado
+
+### Arquitectura del Sistema de Pagos
+
+**Domain Layer:**
+- `src/domain/Payment/Payment.ts` - Entidad de dominio con validaciones de negocio
+- `src/domain/Payment/IPaymentRepository.ts` - Interfaz del repositorio
+- `src/domain/Payment/PaymentConstants.ts` - Constantes de validación
+- `src/domain/Payment/errors/PaymentErrors.ts` - Errores específicos de dominio
+
+**Application Layer:**
+- `src/application/Payment/CreateRentalPayment.ts` - Caso de uso para pagos de alquiler
+- `src/application/Payment/CreateServicePayment.ts` - Caso de uso para pagos de servicios (con transacciones)
+
+**Infrastructure Layer:**
+- `src/infrastructure/Payment/PrismaPaymentRepository.ts` - Implementación con Prisma
+
+**API Routes:**
+- `app/api/payments/route.ts` - POST para crear pagos (rental o invoice)
+- `app/api/payments/rental/[rentalId]/route.ts` - GET pagos por rental
+- `app/api/payments/invoice/[invoiceId]/route.ts` - GET pagos por invoice
+
+**Validation:**
+- `zod/payment-schemas.ts` - Schemas Zod para validación de entrada
+
+### Características Clave
+
+1. **Validación Robusta**: Validación en múltiples capas (Zod en API, validaciones de dominio en entidades)
+2. **Manejo de Errores**: Errores específicos de dominio que se mapean a códigos HTTP apropiados
+3. **Transacciones**: Uso de transacciones Prisma para operaciones atómicas (pagos de servicios con actualización de estado de invoice)
+4. **Control de Acceso**: Validación de permisos usando casos de uso (GetRentalById, GetInvoiceById)
+5. **Métodos de Pago**: Soporte para YAPE, CASH, y BANK_TRANSFER
+6. **Actualización Automática**: El estado de Invoice se actualiza automáticamente a PAID cuando los pagos cubren el total
 

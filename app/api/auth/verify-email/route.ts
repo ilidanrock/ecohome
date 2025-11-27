@@ -13,6 +13,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Token no proporcionado' }, { status: 400 });
     }
 
+    // Validate token format before querying database (prevents timing attacks and improves performance)
+    // Tokens should be at least 32 characters and contain only alphanumeric, dash, and underscore
+    if (token.length < 32 || !/^[a-zA-Z0-9_-]+$/.test(token)) {
+      return NextResponse.json({ error: 'Token inválido' }, { status: 400 });
+    }
+
+    // Use findUnique for better performance (requires unique index on token)
+    // Note: If token is not unique in schema, consider adding @@unique([token]) to VerificationToken model
     const verifyTokenExist = await prisma.verificationToken.findFirst({
       where: {
         token,

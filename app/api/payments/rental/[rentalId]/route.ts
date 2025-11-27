@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
-import { prisma } from '@/prisma';
+import { uuidParamSchema } from '@/zod/payment-schemas';
 
 /**
  * GET /api/payments/rental/[rentalId]
@@ -43,30 +43,48 @@ export async function GET(
 
     const { rentalId } = await params;
 
-    // Validate that the rental exists
-    const rental = await prisma.rental.findUnique({
-      where: { id: rentalId },
-    });
-
-    if (!rental) {
+    // Validate UUID format
+    try {
+      uuidParamSchema.parse(rentalId);
+    } catch {
       return NextResponse.json(
         {
-          error: 'Not found',
-          message: 'Rental not found',
+          error: 'Invalid request',
+          message: 'Invalid rental ID format',
         },
-        { status: 404 }
+        { status: 400 }
       );
     }
 
-    // Validate user access: Tenant can only see their own rentals, Admin can see all
-    if (session.user.role !== 'ADMIN' && rental.userId !== session.user.id) {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'You do not have permission to access payments for this rental',
-        },
-        { status: 403 }
+    // Validate that the rental exists and user has access (using ServiceContainer maintains DDD boundaries)
+    try {
+      const rental = await serviceContainer.rental.getRentalById.execute(
+        rentalId,
+        session.user.id,
+        session.user.role
       );
+
+      if (!rental) {
+        return NextResponse.json(
+          {
+            error: 'Not found',
+            message: 'Rental not found',
+          },
+          { status: 404 }
+        );
+      }
+    } catch (error) {
+      // Handle permission errors from use cases
+      if (error instanceof Error && error.message.includes('permission')) {
+        return NextResponse.json(
+          {
+            error: 'Forbidden',
+            message: error.message,
+          },
+          { status: 403 }
+        );
+      }
+      throw error; // Re-throw other errors
     }
 
     // Get payments using ServiceContainer

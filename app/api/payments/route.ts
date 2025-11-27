@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
-import { prisma } from '@/prisma';
 import type { PaymentMethod } from '@/src/domain/Payment/Payment';
+import { createPaymentSchema } from '@/zod/payment-schemas';
+import { ZodError } from 'zod';
 
 /**
  * POST /api/payments
@@ -47,126 +48,82 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse request body
-    const body = await request.json();
+    // Parse and validate request body using Zod schema
+    let validatedData;
+    try {
+      const body = await request.json();
+      validatedData = createPaymentSchema.parse(body);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        // Zod validation error
+        return NextResponse.json(
+          {
+            error: 'Validation error',
+            message: 'Invalid request data',
+            details: error.errors,
+          },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json(
+        {
+          error: 'Invalid request',
+          message: 'Failed to parse request body',
+        },
+        { status: 400 }
+      );
+    }
+
     const { type, rentalId, invoiceId, amount, paidAt, paymentMethod, reference, receiptUrl } =
-      body;
+      validatedData;
 
-    // Validate required fields
-    if (!type || (type !== 'rental' && type !== 'invoice')) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          message: "Type must be either 'rental' or 'invoice'",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (type === 'rental' && !rentalId) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          message: 'rentalId is required for rental payments',
-        },
-        { status: 400 }
-      );
-    }
-
-    if (type === 'invoice' && !invoiceId) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          message: 'invoiceId is required for invoice payments',
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!amount || typeof amount !== 'number' || amount <= 0) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          message: 'Amount must be a positive number',
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!paidAt) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          message: 'paidAt is required',
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!paymentMethod || !['YAPE', 'CASH', 'BANK_TRANSFER'].includes(paymentMethod)) {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          message: 'paymentMethod must be YAPE, CASH, or BANK_TRANSFER',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate user access
-    if (type === 'rental') {
-      const rental = await prisma.rental.findUnique({
-        where: { id: rentalId },
-      });
-
-      if (!rental) {
-        return NextResponse.json(
-          {
-            error: 'Not found',
-            message: 'Rental not found',
-          },
-          { status: 404 }
+    // Validate user access using ServiceContainer (maintains DDD boundaries)
+    try {
+      if (type === 'rental') {
+        const rental = await serviceContainer.rental.getRentalById.execute(
+          rentalId,
+          session.user.id,
+          session.user.role
         );
-      }
 
-      // Tenant can only create payments for their own rentals
-      // Admin can create payments for any rental
-      if (session.user.role !== 'ADMIN' && rental.userId !== session.user.id) {
+        if (!rental) {
+          return NextResponse.json(
+            {
+              error: 'Not found',
+              message: 'Rental not found',
+            },
+            { status: 404 }
+          );
+        }
+      } else if (type === 'invoice') {
+        const invoice = await serviceContainer.invoice.getInvoiceById.execute(
+          invoiceId,
+          session.user.id,
+          session.user.role
+        );
+
+        if (!invoice) {
+          return NextResponse.json(
+            {
+              error: 'Not found',
+              message: 'Invoice not found',
+            },
+            { status: 404 }
+          );
+        }
+      }
+    } catch (error) {
+      // Handle permission errors from use cases
+      if (error instanceof Error && error.message.includes('permission')) {
         return NextResponse.json(
           {
             error: 'Forbidden',
-            message: 'You do not have permission to create payments for this rental',
+            message: error.message,
           },
           { status: 403 }
         );
       }
-    } else if (type === 'invoice') {
-      const invoice = await prisma.invoice.findUnique({
-        where: { id: invoiceId },
-        include: { rental: true },
-      });
-
-      if (!invoice) {
-        return NextResponse.json(
-          {
-            error: 'Not found',
-            message: 'Invoice not found',
-          },
-          { status: 404 }
-        );
-      }
-
-      // Tenant can only create payments for their own invoices
-      // Admin can create payments for any invoice
-      if (session.user.role !== 'ADMIN' && invoice.rental.userId !== session.user.id) {
-        return NextResponse.json(
-          {
-            error: 'Forbidden',
-            message: 'You do not have permission to create payments for this invoice',
-          },
-          { status: 403 }
-        );
-      }
+      throw error; // Re-throw other errors
     }
 
     // Parse paidAt date

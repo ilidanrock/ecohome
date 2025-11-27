@@ -18,6 +18,10 @@ import { CreateServicePayment } from '@/src/application/Payment/CreateServicePay
 import { GetPaymentsByRental } from '@/src/application/Payment/GetPaymentsByRental';
 import { GetPaymentsByInvoice } from '@/src/application/Payment/GetPaymentsByInvoice';
 import { PrismaPaymentRepository } from '@/src/infrastructure/Payment/PrismaPaymentRepository';
+import { PrismaRentalRepository } from '@/src/infrastructure/Rental/PrismaRentalRepository';
+import { PrismaInvoiceRepository } from '@/src/infrastructure/Invoice/PrismaInvoiceRepository';
+import { GetRentalById } from '@/src/application/Rental/GetRentalById';
+import { GetInvoiceById } from '@/src/application/Invoice/GetInvoiceById';
 import { prisma } from '@/prisma';
 
 const userRepository = new PrismaUserRepository(prisma);
@@ -28,6 +32,8 @@ const verifyTokenRepository = new PrismaVerifyTokenRepository(prisma);
 const accountRepository = new PrismaAccountsRepository(prisma);
 const consumptionRepository = new PrismaConsumptionRepository(prisma);
 const paymentRepository = new PrismaPaymentRepository(prisma);
+const rentalRepository = new PrismaRentalRepository(prisma);
+const invoiceRepository = new PrismaInvoiceRepository(prisma);
 
 const verifyTokenCreate = new VerifyTokenCreate(
   verifyTokenRepository,
@@ -51,9 +57,15 @@ export const serviceContainer = {
   consumption: {
     getData: new GetConsumptionData(consumptionRepository),
   },
+  rental: {
+    getRentalById: new GetRentalById(rentalRepository),
+  },
+  invoice: {
+    getInvoiceById: new GetInvoiceById(invoiceRepository),
+  },
   payment: {
-    createRentalPayment: new CreateRentalPayment(paymentRepository),
-    createServicePayment: new CreateServicePayment(paymentRepository),
+    createRentalPayment: new CreateRentalPayment(paymentRepository, rentalRepository),
+    createServicePayment: new CreateServicePayment(paymentRepository, invoiceRepository),
     getPaymentsByRental: new GetPaymentsByRental(paymentRepository),
     getPaymentsByInvoice: new GetPaymentsByInvoice(paymentRepository),
   },

@@ -137,40 +137,53 @@ src/
 
 ### Example: Adding a New Feature
 
-When adding a new feature (e.g., Consumption):
+When adding a new feature (e.g., Payment):
 
-1. **Domain Layer** (`src/domain/Consumption/`):
-   - Create `Consumption.ts` domain model
-   - Create `IConsumptionRepository.ts` interface
+1. **Domain Layer** (`src/domain/Payment/`):
+   - Create `Payment.ts` domain model with business validations
+   - Create `IPaymentRepository.ts` interface
+   - Create domain error classes (`PaymentErrors.ts`) extending `DomainError`
+   - Create constants file (`PaymentConstants.ts`) for validation rules
 
-2. **Infrastructure Layer** (`src/infrastructure/Consumption/`):
-   - Create `PrismaConsumptionRepository.ts` implementing `IConsumptionRepository`
+2. **Infrastructure Layer** (`src/infrastructure/Payment/`):
+   - Create `PrismaPaymentRepository.ts` implementing `IPaymentRepository`
    - Map Prisma models to domain models
 
-3. **Application Layer** (`src/application/Consumption/`):
-   - Create `GetConsumptionData.ts` use case
-   - Inject `IConsumptionRepository` (not concrete implementation)
+3. **Application Layer** (`src/application/Payment/`):
+   - Create use cases (e.g., `CreateRentalPayment.ts`, `CreateServicePayment.ts`)
+   - Inject repository interfaces (not concrete implementations)
+   - Handle business logic and transactions
 
-4. **ServiceContainer** (`src/Shared/infrastructure/ServiceContainer.ts`):
-   - Add consumption repository and use case to container
+4. **Validation Layer** (`zod/`):
+   - Create Zod schemas for API input validation (e.g., `payment-schemas.ts`)
+   - Use schemas in API routes for type-safe validation
 
-5. **API Route** (`app/api/consumption/route.ts`):
-   - Use `serviceContainer.consumption.getData.execute()`
-   - Return JSON response
+5. **ServiceContainer** (`src/Shared/infrastructure/ServiceContainer.ts`):
+   - Add payment repository and use cases to container
+   - Inject dependencies into use cases
 
-6. **TanStack Query** (`lib/queries/consumption.ts`):
-   - Create `useConsumptionQuery()` hook
-   - Fetch from `/api/consumption`
+6. **API Route** (`app/api/payments/route.ts`):
+   - Use Zod schemas for input validation
+   - Use `serviceContainer` to access use cases
+   - Handle domain errors and return appropriate HTTP status codes
+   - Never call Prisma directly
 
-7. **Component**:
-   - Use `useConsumptionQuery()` hook
+7. **TanStack Query** (`lib/queries/payments.ts`):
+   - Create query hooks (e.g., `usePaymentsQuery()`)
+   - Fetch from API routes
+
+8. **Component**:
+   - Use TanStack Query hooks
    - Display data
 
 ## Authentication & Security
 - NextAuth is configured with credentials + Google. Extend providers through `auth.config.ts` and keep callbacks role-aware.
+- **Session Management**: Ensure `session.user.id` is correctly populated in NextAuth callbacks (`jwt` and `session` callbacks) for proper user identification in API routes.
 - Middleware enforces RBAC (`USER`, `ADMIN`, `NULL`). Maintain role checks when adding protected routes.
 - Never hardcode secrets. Load email, OAuth, Cloudinary, and database credentials via environment variables.
 - When sending emails, use the transporter configured in `app/api/auth/send-email/route.ts` and rely on env vars (`EMAIL_FROM`, `SMTP_*`, `GOOGLE_APP_PASSWORD` fallback).
+- **Input Validation**: Use Zod schemas for all API route input validation. Schemas are located in `zod/` directory.
+- **Error Handling**: Use domain-specific error classes extending `DomainError` for consistent error handling across the application.
 
 ## UI & Design
 - Follow the design guidelines in `DesignManual.md`: EcoBlue (#007BFF)/EcoGreen (#28A745) palette, Geist/Inter typography, responsive layouts.
@@ -182,7 +195,7 @@ When adding a new feature (e.g., Consumption):
 
 ## Data & Persistence
 - Update Prisma schema via migrations. After schema edits, run `pnpm prisma migrate dev` and regenerate client.
-- Domain models expect enums: `Role` (`USER` | `ADMIN` | `NULL`) and `PaymentStatus` (`PAID` | `UNPAID`). Keep new logic consistent with these values.
+- Domain models expect enums: `Role` (`USER` | `ADMIN` | `NULL`), `PaymentStatus` (`PAID` | `UNPAID`), and `PaymentMethod` (`YAPE` | `CASH` | `BANK_TRANSFER`). Keep new logic consistent with these values.
 - **Server Data**: Use TanStack Query for all server-side data fetching. Create API routes in `app/api/` or Server Actions in `actions/`.
 - **Client State**: Use Zustand stores only for client-side UI state and user preferences.
 - **Data Flow with DDD**: 
@@ -191,6 +204,9 @@ When adding a new feature (e.g., Consumption):
   ```
 - **API Routes Integration**: API routes must use `serviceContainer` to access application services. This maintains DDD boundaries and ensures business logic stays in the application layer.
 - **No Direct Prisma in API Routes**: API routes should never call Prisma directly. Always go through the application layer via `serviceContainer`.
+- **Input Validation**: All API routes must validate input using Zod schemas before processing. Validation schemas are located in `zod/` directory.
+- **Error Handling**: Use domain-specific error classes (`DomainError` subclasses) for business logic errors. Catch and map to appropriate HTTP status codes in API routes.
+- **Transactions**: Use Prisma transactions for operations that require atomicity (e.g., payment creation with invoice status updates). Use `Serializable` isolation level when needed to prevent race conditions.
 
 ## Environment Variables
 - Required: `DATABASE_URL`, `AUTH_SECRET`, `NEXTAUTH_URL`, `EMAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`.
@@ -228,6 +244,13 @@ When adding a new feature (e.g., Consumption):
 - **State Management Strategy**: Established clear separation between Zustand (client UI state) and TanStack Query (server data).
 - **Type Centralization**: ✅ All types centralized in `types/` directory with single import point (`@/types`).
 - **Component Reusability**: Created shared header components that work for both admin and tenant roles with proper customization.
+- **Payment System**: ✅ Complete payment system implemented for rentals and services with DDD architecture, Zod validation, and domain error handling.
+- **Domain Layer Expansion**: ✅ Added Rental and Invoice domain entities with repositories following DDD patterns.
+- **Error Handling**: ✅ Implemented `DomainError` base class and specific error types for better error management.
+- **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`).
+- **Authentication**: ✅ Fixed session.user.id population in NextAuth callbacks for proper user identification.
+- **CI/CD**: ✅ Migrated workflows from npm to pnpm for consistency with local development.
+- **Logging**: ✅ Improved error logging in client-side queries to ensure meaningful information is always displayed.
 
 ## Migration Notes
 - **Consumption Store**: ✅ Migrated to TanStack Query. The `useConsumptionStore` is deprecated and will be removed.

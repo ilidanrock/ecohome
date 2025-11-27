@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
-import { prisma } from '@/prisma';
+import { uuidParamSchema } from '@/zod/payment-schemas';
 
 /**
  * GET /api/payments/invoice/[invoiceId]
@@ -43,31 +43,48 @@ export async function GET(
 
     const { invoiceId } = await params;
 
-    // Validate that the invoice exists and get rental info
-    const invoice = await prisma.invoice.findUnique({
-      where: { id: invoiceId },
-      include: { rental: true },
-    });
-
-    if (!invoice) {
+    // Validate UUID format
+    try {
+      uuidParamSchema.parse(invoiceId);
+    } catch {
       return NextResponse.json(
         {
-          error: 'Not found',
-          message: 'Invoice not found',
+          error: 'Invalid request',
+          message: 'Invalid invoice ID format',
         },
-        { status: 404 }
+        { status: 400 }
       );
     }
 
-    // Validate user access: Tenant can only see their own invoices, Admin can see all
-    if (session.user.role !== 'ADMIN' && invoice.rental.userId !== session.user.id) {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'You do not have permission to access payments for this invoice',
-        },
-        { status: 403 }
+    // Validate that the invoice exists and user has access (using ServiceContainer maintains DDD boundaries)
+    try {
+      const invoice = await serviceContainer.invoice.getInvoiceById.execute(
+        invoiceId,
+        session.user.id,
+        session.user.role
       );
+
+      if (!invoice) {
+        return NextResponse.json(
+          {
+            error: 'Not found',
+            message: 'Invoice not found',
+          },
+          { status: 404 }
+        );
+      }
+    } catch (error) {
+      // Handle permission errors from use cases
+      if (error instanceof Error && error.message.includes('permission')) {
+        return NextResponse.json(
+          {
+            error: 'Forbidden',
+            message: error.message,
+          },
+          { status: 403 }
+        );
+      }
+      throw error; // Re-throw other errors
     }
 
     // Get payments using ServiceContainer

@@ -49,6 +49,7 @@ const authConfig: NextAuthConfig = {
         const user = await serviceContainer.user.userLogin.execute(email, password);
 
         return {
+          id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
@@ -85,6 +86,8 @@ const authConfig: NextAuthConfig = {
     },
     jwt: async ({ token, user, account, trigger, session }) => {
       if (user) {
+        // Store user ID in token (use user.id if available, otherwise use token.sub which is set by NextAuth)
+        token.id = user.id || token.sub;
         token.role = user.role;
         token.email = user.email;
         token.name = user.name;
@@ -104,12 +107,17 @@ const authConfig: NextAuthConfig = {
     },
     session: async ({ session, token }) => {
       if (session?.user) {
+        // Extract user ID from token (token.id or token.sub as fallback)
+        const userId = (token.id as string) || (token.sub as string);
+
+        session.user.id = userId;
         session.user.role = token.role as string;
         session.user.email = token.email as string;
         session.accessToken = token.accessToken as string;
 
         session.user = {
           ...session.user,
+          id: userId,
           email: token.email as string,
           name: token.name as string,
           image: token.picture as string,

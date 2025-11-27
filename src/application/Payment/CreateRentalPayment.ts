@@ -1,12 +1,11 @@
 import { IPaymentRepository } from '@/src/domain/Payment/IPaymentRepository';
 import { Payment, type PaymentMethod } from '@/src/domain/Payment/Payment';
-import { PrismaClient } from '@prisma/client';
-import { prisma } from '@/prisma';
+import { IRentalRepository } from '@/src/domain/Rental/IRentalRepository';
 
 export class CreateRentalPayment {
   constructor(
     private paymentRepository: IPaymentRepository,
-    private prismaClient: PrismaClient = prisma
+    private rentalRepository: IRentalRepository
   ) {}
 
   async execute(
@@ -18,9 +17,7 @@ export class CreateRentalPayment {
     receiptUrl?: string | null
   ): Promise<Payment> {
     // Validate that the Rental exists
-    const rental = await this.prismaClient.rental.findUnique({
-      where: { id: rentalId },
-    });
+    const rental = await this.rentalRepository.findById(rentalId);
 
     if (!rental) {
       throw new Error(`Rental with ID ${rentalId} not found`);

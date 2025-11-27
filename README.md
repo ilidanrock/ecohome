@@ -25,9 +25,11 @@ The administrator is responsible for managing tenant consumption and overseeing 
 - Generate monthly reports in **PDF format** summarizing utility usage.  
 - Upload electricity and water bills to register payments and calculate costs.  
 - Access a **multi-step form** preloaded with invoice data to automatically calculate the service costs (water, electricity, and total) for each tenant.  
+- **Record and track payments** for rentals and services with multiple payment methods (YAPE, CASH, BANK_TRANSFER).  
 - Mark whether a tenant has **paid or not** for the services directly from the UI.  
 - Store images and documents in **Amazon S3** for secure access.  
-- View payment status in the **billing history** and include this data in the **PDF reports**.  
+- View payment status in the **billing history** and include this data in the **PDF reports**.
+- **Automatic invoice status updates** when payments cover the total invoice amount.  
 
 ### **2️⃣ User (Tenant)**  
 Tenants can check their personal consumption history and view detailed cost calculations.
@@ -37,6 +39,8 @@ Tenants can check their personal consumption history and view detailed cost calc
 - Access a **multi-step form** to view a detailed breakdown of their consumption and costs.  
 - Download **PDF reports** with the final calculation of their payments, including payment status.  
 - Retrieve past consumption data stored securely.
+- **Record payments** for rentals and services with multiple payment methods (YAPE, CASH, BANK_TRANSFER).
+- View payment history for their rentals and invoices.
 
 ---
 
@@ -145,7 +149,7 @@ Estas son las herramientas y librerías que realmente se usan actualmente en el 
 ---
 
 ## 🚀 Instalación y ejecución rápida
-- **Requisitos previos**: Node.js 18+ y PNPM
+- **Requisitos previos**: Node.js 18+ y **PNPM** (el proyecto usa pnpm exclusivamente)
 - **Instalación**:  
   ```bash
   pnpm install
@@ -161,7 +165,10 @@ Estas son las herramientas y librerías que realmente se usan actualmente en el 
 - **Post-instalación** (automático): genera Prisma Client.  
 - **Linter y formato**: `pnpm lint`, `pnpm format`, `pnpm format:check`
 - **Tests E2E**: `pnpm test`
-> Nota: configura tus variables de entorno en `.env.local` (por ejemplo: `DATABASE_URL`, credenciales de NextAuth, claves de Sanity, email/resend, etc.).
+- **Migraciones de base de datos**: `pnpm prisma migrate dev`
+> **Nota importante**: El proyecto usa **pnpm** exclusivamente. No uses npm o yarn. Los workflows de CI/CD también usan pnpm.
+> 
+> Configura tus variables de entorno en `.env.local` (por ejemplo: `DATABASE_URL`, credenciales de NextAuth, claves de Sanity, email/resend, etc.).
 
 ## 📜 Scripts disponibles
 - **dev**: `next dev --turbopack`  

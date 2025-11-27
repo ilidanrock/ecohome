@@ -12,11 +12,12 @@ export async function POST(request: Request) {
 
     const { timestamp, signature } = signUpload(publicId, options);
 
+    // Only return signature and timestamp
+    // cloudName and apiKey are already available in the client via NEXT_PUBLIC_CLOUDINARY_* env vars
+    // No need to expose them in every response
     return NextResponse.json({
       signature,
       timestamp,
-      cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-      apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
     });
   } catch (error) {
     // Log error with context for debugging

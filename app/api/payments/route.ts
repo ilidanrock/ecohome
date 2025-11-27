@@ -77,9 +77,21 @@ export async function POST(request: NextRequest) {
     const { type, rentalId, invoiceId, amount, paidAt, paymentMethod, reference, receiptUrl } =
       validatedData;
 
-    // Validate user access using ServiceContainer (maintains DDD boundaries)
-    try {
-      if (type === 'rental') {
+    // TypeScript type narrowing: after Zod validation, we know these are defined based on type
+    // Add explicit checks to satisfy TypeScript's type checker
+    if (type === 'rental') {
+      if (!rentalId) {
+        return NextResponse.json(
+          {
+            error: 'Validation error',
+            message: 'rentalId is required when type is "rental"',
+          },
+          { status: 400 }
+        );
+      }
+
+      // Validate user access using ServiceContainer (maintains DDD boundaries)
+      try {
         const rental = await serviceContainer.rental.getRentalById.execute(
           rentalId,
           session.user.id,
@@ -95,7 +107,62 @@ export async function POST(request: NextRequest) {
             { status: 404 }
           );
         }
-      } else if (type === 'invoice') {
+      } catch (error) {
+        // Handle permission errors from use cases
+        if (error instanceof Error && error.message.includes('permission')) {
+          return NextResponse.json(
+            {
+              error: 'Forbidden',
+              message: error.message,
+            },
+            { status: 403 }
+          );
+        }
+        throw error; // Re-throw other errors
+      }
+
+      // Parse paidAt date
+      const paidAtDate = new Date(paidAt);
+
+      // Create payment using ServiceContainer
+      const payment = await serviceContainer.payment.createRentalPayment.execute(
+        rentalId,
+        amount,
+        paidAtDate,
+        paymentMethod as PaymentMethod,
+        reference || null,
+        receiptUrl || null
+      );
+
+      return NextResponse.json(
+        {
+          id: payment.id,
+          rentalId: payment.getRentalId(),
+          invoiceId: payment.getInvoiceId(),
+          amount: payment.getAmount(),
+          paidAt: payment.getPaidAt().toISOString(),
+          paymentMethod: payment.getPaymentMethod(),
+          reference: payment.getReference(),
+          receiptUrl: payment.getReceiptUrl(),
+          createdAt: payment.createdAt.toISOString(),
+          updatedAt: payment.updatedAt.toISOString(),
+        },
+        { status: 201 }
+      );
+    } else {
+      // type === 'invoice'
+      if (!invoiceId) {
+        return NextResponse.json(
+          {
+            error: 'Validation error',
+            message: 'invoiceId is required when type is "invoice"',
+          },
+          { status: 400 }
+        );
+      }
+
+      // Validate user access using ServiceContainer (maintains DDD boundaries)
+      try {
         const invoice = await serviceContainer.invoice.getInvoiceById.execute(
           invoiceId,
           session.user.id,
@@ -111,37 +178,25 @@ export async function POST(request: NextRequest) {
             { status: 404 }
           );
         }
+      } catch (error) {
+        // Handle permission errors from use cases
+        if (error instanceof Error && error.message.includes('permission')) {
+          return NextResponse.json(
+            {
+              error: 'Forbidden',
+              message: error.message,
+            },
+            { status: 403 }
+          );
+        }
+        throw error; // Re-throw other errors
       }
-    } catch (error) {
-      // Handle permission errors from use cases
-      if (error instanceof Error && error.message.includes('permission')) {
-        return NextResponse.json(
-          {
-            error: 'Forbidden',
-            message: error.message,
-          },
-          { status: 403 }
-        );
-      }
-      throw error; // Re-throw other errors
-    }
 
-    // Parse paidAt date
-    const paidAtDate = new Date(paidAt);
+      // Parse paidAt date
+      const paidAtDate = new Date(paidAt);
 
-    // Create payment using ServiceContainer
-    let payment;
-    if (type === 'rental') {
-      payment = await serviceContainer.payment.createRentalPayment.execute(
-        rentalId,
-        amount,
-        paidAtDate,
-        paymentMethod as PaymentMethod,
-        reference || null,
-        receiptUrl || null
-      );
-    } else {
-      payment = await serviceContainer.payment.createServicePayment.execute(
+      // Create payment using ServiceContainer
+      const payment = await serviceContainer.payment.createServicePayment.execute(
         invoiceId,
         amount,
         paidAtDate,
@@ -149,23 +204,23 @@ export async function POST(request: NextRequest) {
         reference || null,
         receiptUrl || null
       );
-    }
 
-    return NextResponse.json(
-      {
-        id: payment.id,
-        rentalId: payment.getRentalId(),
-        invoiceId: payment.getInvoiceId(),
-        amount: payment.getAmount(),
-        paidAt: payment.getPaidAt().toISOString(),
-        paymentMethod: payment.getPaymentMethod(),
-        reference: payment.getReference(),
-        receiptUrl: payment.getReceiptUrl(),
-        createdAt: payment.createdAt.toISOString(),
-        updatedAt: payment.updatedAt.toISOString(),
-      },
-      { status: 201 }
-    );
+      return NextResponse.json(
+        {
+          id: payment.id,
+          rentalId: payment.getRentalId(),
+          invoiceId: payment.getInvoiceId(),
+          amount: payment.getAmount(),
+          paidAt: payment.getPaidAt().toISOString(),
+          paymentMethod: payment.getPaymentMethod(),
+          reference: payment.getReference(),
+          receiptUrl: payment.getReceiptUrl(),
+          createdAt: payment.createdAt.toISOString(),
+          updatedAt: payment.updatedAt.toISOString(),
+        },
+        { status: 201 }
+      );
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;

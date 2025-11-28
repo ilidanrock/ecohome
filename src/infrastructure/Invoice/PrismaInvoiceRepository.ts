@@ -1,5 +1,8 @@
-import { PrismaClient, Invoice as PrismaInvoice, PaymentStatus } from '@prisma/client';
-import { IInvoiceRepository } from '@/src/domain/Invoice/IInvoiceRepository';
+import { PrismaClient, Invoice as PrismaInvoice, PaymentStatus, Prisma } from '@prisma/client';
+import {
+  IInvoiceRepository,
+  type TransactionClient,
+} from '@/src/domain/Invoice/IInvoiceRepository';
 import { Invoice } from '@/src/domain/Invoice/Invoice';
 import { Rental } from '@/src/domain/Rental/Rental';
 import type { PaymentStatus as DomainPaymentStatus } from '@/types';
@@ -35,6 +38,33 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
    */
   async updateStatus(id: string, status: DomainPaymentStatus, paidAt: Date): Promise<Invoice> {
     const updatedInvoice = await this.prisma.invoice.update({
+      where: { id },
+      data: {
+        status: status as PaymentStatus,
+        paidAt,
+      },
+    });
+
+    return this.mapToDomain(updatedInvoice);
+  }
+
+  /**
+   * Update invoice status and paidAt date within a transaction
+   *
+   * @param id - The invoice ID
+   * @param status - The new payment status
+   * @param paidAt - The date when the invoice was paid
+   * @param tx - The Prisma transaction client
+   * @returns The updated invoice entity
+   */
+  async updateStatusInTransaction(
+    id: string,
+    status: DomainPaymentStatus,
+    paidAt: Date,
+    tx: TransactionClient
+  ): Promise<Invoice> {
+    const transactionClient = tx as Prisma.TransactionClient;
+    const updatedInvoice = await transactionClient.invoice.update({
       where: { id },
       data: {
         status: status as PaymentStatus,

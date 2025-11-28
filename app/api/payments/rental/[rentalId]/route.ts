@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { uuidParamSchema } from '@/zod/payment-schemas';
+import { DomainError } from '@/src/domain/errors/DomainError';
+import { handleApiError } from '@/lib/error-handler';
 
 /**
  * GET /api/payments/rental/[rentalId]
@@ -74,7 +76,15 @@ export async function GET(
         );
       }
     } catch (error) {
-      // Handle permission errors from use cases
+      // Handle domain errors (including permission errors)
+      if (error instanceof DomainError) {
+        return handleApiError(error, {
+          endpoint: '/api/payments/rental/[rentalId]',
+          method: 'GET',
+          userId: session.user.id,
+        });
+      }
+      // Handle permission errors from use cases (legacy error format)
       if (error instanceof Error && error.message.includes('permission')) {
         return NextResponse.json(
           {
@@ -105,29 +115,9 @@ export async function GET(
       }))
     );
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : undefined;
-
-    console.error('[Payment API] Error fetching rental payments:', {
-      message: errorMessage,
-      stack: errorStack,
-      timestamp: new Date().toISOString(),
+    return handleApiError(error, {
+      endpoint: '/api/payments/rental/[rentalId]',
+      method: 'GET',
     });
-
-    const isDevelopment = process.env.NODE_ENV === 'development';
-
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: 'Failed to fetch payments. Please try again later.',
-        ...(isDevelopment && {
-          details: {
-            message: errorMessage,
-            ...(errorStack && { stack: errorStack }),
-          },
-        }),
-      },
-      { status: 500 }
-    );
   }
 }

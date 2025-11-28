@@ -4,6 +4,9 @@ import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import type { PaymentMethod } from '@/src/domain/Payment/Payment';
 import { createPaymentSchema } from '@/zod/payment-schemas';
 import { ZodError } from 'zod';
+import { rateLimiters } from '@/lib/rate-limit';
+import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { DomainError } from '@/src/domain/errors/DomainError';
 
 /**
  * POST /api/payments
@@ -28,6 +31,12 @@ export async function POST(request: NextRequest) {
     // Get authenticated session
     const session = await auth();
 
+    // Apply rate limiting
+    const rateLimitResult = await rateLimiters.payments(request, session?.user?.id);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response;
+    }
+
     if (!session?.user) {
       return NextResponse.json(
         {
@@ -46,6 +55,12 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       );
+    }
+
+    // Validate payload size
+    const payloadSizeError = validatePayloadSize(request);
+    if (payloadSizeError) {
+      return payloadSizeError;
     }
 
     // Parse and validate request body using Zod schema
@@ -179,7 +194,16 @@ export async function POST(request: NextRequest) {
           );
         }
       } catch (error) {
-        // Handle permission errors from use cases
+        // Handle domain errors (including permission errors)
+        if (error instanceof DomainError) {
+          return handleApiError(error, {
+            endpoint: '/api/payments',
+            method: 'POST',
+            userId: session.user.id,
+            type: 'invoice',
+          });
+        }
+        // Handle permission errors from use cases (legacy error format)
         if (error instanceof Error && error.message.includes('permission')) {
           return NextResponse.json(
             {
@@ -222,29 +246,9 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : undefined;
-
-    console.error('[Payment API] Error creating payment:', {
-      message: errorMessage,
-      stack: errorStack,
-      timestamp: new Date().toISOString(),
+    return handleApiError(error, {
+      endpoint: '/api/payments',
+      method: 'POST',
     });
-
-    const isDevelopment = process.env.NODE_ENV === 'development';
-
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: 'Failed to create payment. Please try again later.',
-        ...(isDevelopment && {
-          details: {
-            message: errorMessage,
-            ...(errorStack && { stack: errorStack }),
-          },
-        }),
-      },
-      { status: 500 }
-    );
   }
 }

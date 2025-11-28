@@ -1,5 +1,11 @@
 import type { Payment } from './Payment';
 
+/**
+ * Transaction Client type - abstracted to maintain DDD boundaries
+ * Implementations should use their specific transaction client type
+ */
+export type TransactionClient = unknown;
+
 export interface IPaymentRepository {
   /**
    * Create a new payment
@@ -7,6 +13,14 @@ export interface IPaymentRepository {
    * @returns The created payment entity
    */
   create(payment: Payment): Promise<Payment>;
+
+  /**
+   * Create a new payment within a transaction
+   * @param payment - The payment entity to create
+   * @param tx - The transaction client
+   * @returns The created payment entity
+   */
+  createInTransaction(payment: Payment, tx: TransactionClient): Promise<Payment>;
 
   /**
    * Find a payment by ID
@@ -28,6 +42,14 @@ export interface IPaymentRepository {
    * @returns Array of Payment entities ordered by paidAt descending
    */
   findByInvoiceId(invoiceId: string): Promise<Payment[]>;
+
+  /**
+   * Find all payments for a specific invoice within a transaction
+   * @param invoiceId - The invoice ID
+   * @param tx - The transaction client
+   * @returns Array of Payment entities ordered by paidAt descending
+   */
+  findByInvoiceIdInTransaction(invoiceId: string, tx: TransactionClient): Promise<Payment[]>;
 
   /**
    * Update an existing payment

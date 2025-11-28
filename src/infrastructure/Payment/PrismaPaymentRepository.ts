@@ -1,5 +1,8 @@
-import { PrismaClient, Payment as PrismaPayment } from '@prisma/client';
-import { IPaymentRepository } from '@/src/domain/Payment/IPaymentRepository';
+import { PrismaClient, Payment as PrismaPayment, Prisma } from '@prisma/client';
+import {
+  IPaymentRepository,
+  type TransactionClient,
+} from '@/src/domain/Payment/IPaymentRepository';
 import { Payment } from '@/src/domain/Payment/Payment';
 
 export class PrismaPaymentRepository implements IPaymentRepository {
@@ -86,6 +89,51 @@ export class PrismaPaymentRepository implements IPaymentRepository {
     });
 
     return payments.map((payment) => this.mapToDomain(payment));
+  }
+
+  /**
+   * Find all payments for a specific invoice within a transaction
+   *
+   * @param invoiceId - The invoice ID
+   * @param tx - The Prisma transaction client
+   * @returns Array of Payment entities ordered by paidAt descending
+   */
+  async findByInvoiceIdInTransaction(invoiceId: string, tx: TransactionClient): Promise<Payment[]> {
+    const transactionClient = tx as Prisma.TransactionClient;
+    const payments = await transactionClient.payment.findMany({
+      where: {
+        invoiceId,
+      },
+      orderBy: {
+        paidAt: 'desc',
+      },
+    });
+
+    return payments.map((payment) => this.mapToDomain(payment));
+  }
+
+  /**
+   * Create a new payment within a transaction
+   *
+   * @param payment - The payment entity to create
+   * @param tx - The Prisma transaction client
+   * @returns The created payment entity
+   */
+  async createInTransaction(payment: Payment, tx: TransactionClient): Promise<Payment> {
+    const transactionClient = tx as Prisma.TransactionClient;
+    const prismaPayment = await transactionClient.payment.create({
+      data: {
+        amount: payment.getAmount(),
+        paidAt: payment.getPaidAt(),
+        paymentMethod: payment.getPaymentMethod(),
+        rentalId: payment.getRentalId() || undefined,
+        invoiceId: payment.getInvoiceId() || undefined,
+        reference: payment.getReference() || undefined,
+        receiptUrl: payment.getReceiptUrl() || undefined,
+      },
+    });
+
+    return this.mapToDomain(prismaPayment);
   }
 
   /**

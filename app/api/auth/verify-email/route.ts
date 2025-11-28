@@ -79,10 +79,10 @@ export async function GET(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;
 
-    console.error('[Verify Email API] Error verifying email:', {
+    const { logger } = await import('@/lib/logger');
+    logger.error('[Verify Email API] Error verifying email', {
       message: errorMessage,
       stack: errorStack,
-      timestamp: new Date().toISOString(),
     });
 
     // Return appropriate error response

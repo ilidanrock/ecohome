@@ -1,12 +1,14 @@
 import { IPaymentRepository } from '@/src/domain/Payment/IPaymentRepository';
 import { Payment, type PaymentMethod } from '@/src/domain/Payment/Payment';
 import { IInvoiceRepository } from '@/src/domain/Invoice/IInvoiceRepository';
-import { prisma } from '@/prisma';
+import { ITransactionManager } from '@/src/domain/Shared/ITransactionManager';
+import type { PaymentStatus } from '@/types';
 
 export class CreateServicePayment {
   constructor(
     private paymentRepository: IPaymentRepository,
-    private invoiceRepository: IInvoiceRepository
+    private invoiceRepository: IInvoiceRepository,
+    private transactionManager: ITransactionManager
   ) {}
 
   async execute(
@@ -25,7 +27,7 @@ export class CreateServicePayment {
     }
 
     // Use transaction to prevent race condition when calculating payments and updating invoice status
-    const result = await prisma.$transaction(
+    const result = await this.transactionManager.execute(
       async (tx) => {
         // Create Payment entity
         const now = new Date();
@@ -41,53 +43,29 @@ export class CreateServicePayment {
           now
         );
 
-        // Save payment using repository (but we need to create it directly in the transaction)
-        // For now, we'll create it and then recalculate
-        const prismaPayment = await tx.payment.create({
-          data: {
-            amount: payment.getAmount(),
-            paidAt: payment.getPaidAt(),
-            paymentMethod: payment.getPaymentMethod(),
-            rentalId: payment.getRentalId() || undefined,
-            invoiceId: payment.getInvoiceId() || undefined,
-            reference: payment.getReference() || undefined,
-            receiptUrl: payment.getReceiptUrl() || undefined,
-          },
-        });
+        // Create payment within transaction using repository
+        const createdPayment = await this.paymentRepository.createInTransaction(payment, tx);
 
         // Calculate total payments for this invoice within the transaction
-        const allPayments = await tx.payment.findMany({
-          where: { invoiceId },
-          select: { amount: true },
-        });
+        const allPayments = await this.paymentRepository.findByInvoiceIdInTransaction(
+          invoiceId,
+          tx
+        );
 
-        const totalPaid = allPayments.reduce((sum, p) => sum + Number(p.amount), 0);
-        const invoiceTotal = Number(invoice.getTotalCost());
+        const totalPaid = allPayments.reduce((sum, p) => sum + p.getAmount(), 0);
+        const invoiceTotal = invoice.getTotalCost();
 
         // Update Invoice status to PAID if total is covered (within transaction)
         if (totalPaid >= invoiceTotal) {
-          await tx.invoice.update({
-            where: { id: invoiceId },
-            data: {
-              status: 'PAID',
-              paidAt: paidAt,
-            },
-          });
+          await this.invoiceRepository.updateStatusInTransaction(
+            invoiceId,
+            'PAID' as PaymentStatus,
+            paidAt,
+            tx
+          );
         }
 
-        // Map Prisma payment to domain entity
-        return new Payment(
-          Number(prismaPayment.amount),
-          prismaPayment.paidAt,
-          prismaPayment.paymentMethod as PaymentMethod,
-          prismaPayment.rentalId,
-          prismaPayment.invoiceId,
-          prismaPayment.reference,
-          prismaPayment.receiptUrl,
-          prismaPayment.createdAt,
-          prismaPayment.updatedAt,
-          prismaPayment.id
-        );
+        return createdPayment;
       },
       {
         isolationLevel: 'Serializable', // Highest isolation level to prevent race conditions

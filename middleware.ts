@@ -23,48 +23,58 @@ export async function middleware(request: NextRequest) {
     '/api/auth/signout',
   ];
 
-  // Allow access to public routes
+  // Check if current route is public
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register');
 
-  // If it's a public route, allow access
+  // ============================================
+  // STEP 1: Handle public routes
+  // ============================================
   if (isPublicRoute) {
-    // If user is logged in and tries to access login/register, redirect based on role
+    // If user is already logged in and tries to access login/register pages,
+    // redirect them to their appropriate dashboard based on role
     if (session && isAuthRoute) {
       if (session.user.role === 'USER') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
       } else if (session.user.role === 'ADMIN') {
         return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-      } else if (
-        session.user.role === 'NULL' &&
-        (pathname.startsWith('/login') || pathname.startsWith('/register'))
-      ) {
+      } else if (session.user.role === 'NULL') {
         return NextResponse.redirect(new URL('/select-role', request.url));
       }
     }
-    // Handle role-based access control for protected routes
-    const protectedRoutes = ['/dashboard', '/profile', '/billing'];
-    const adminRoutes = ['/admin'];
-
-    // Check user access to protected routes
-    if (
-      protectedRoutes.some((route) => pathname.startsWith(route)) &&
-      session?.user.role !== 'USER'
-    ) {
-      return NextResponse.redirect(new URL('/unauthorized', request.url));
-    }
-
-    // Check admin access to admin routes
-    if (adminRoutes.some((route) => pathname.startsWith(route)) && session?.user.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/unauthorized', request.url));
-    }
+    // Public routes are accessible without authentication
     return NextResponse.next();
   }
 
-  // If no session and not on a public route, redirect to login
+  // ============================================
+  // STEP 2: Authentication check for protected routes
+  // ============================================
+  // If route is not public and user is not authenticated, redirect to login
   if (!session) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
+
+  // ============================================
+  // STEP 3: Role-Based Access Control (RBAC)
+  // ============================================
+  // Define protected routes that require specific roles
+  const protectedRoutes = ['/dashboard', '/profile', '/billing'];
+  const adminRoutes = ['/admin'];
+
+  // Check if route requires USER role
+  const requiresUserRole = protectedRoutes.some((route) => pathname.startsWith(route));
+  if (requiresUserRole && session.user.role !== 'USER') {
+    return NextResponse.redirect(new URL('/unauthorized', request.url));
+  }
+
+  // Check if route requires ADMIN role
+  const requiresAdminRole = adminRoutes.some((route) => pathname.startsWith(route));
+  if (requiresAdminRole && session.user.role !== 'ADMIN') {
+    return NextResponse.redirect(new URL('/unauthorized', request.url));
+  }
+
+  // User is authenticated and has required role, allow access
+  return NextResponse.next();
 }
 
 export const config = {

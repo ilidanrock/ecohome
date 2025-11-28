@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import type { ConsumptionResponse } from '@/types';
+import { handleApiError } from '@/lib/error-handler';
 
 /**
  * GET /api/consumption
@@ -49,31 +50,9 @@ export async function GET() {
       quickStats: result.quickStats,
     });
   } catch (error) {
-    // Log error with context for debugging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorStack = error instanceof Error ? error.stack : undefined;
-
-    console.error('[Consumption API] Error fetching consumption data:', {
-      message: errorMessage,
-      stack: errorStack,
-      timestamp: new Date().toISOString(),
+    return handleApiError(error, {
+      endpoint: '/api/consumption',
+      method: 'GET',
     });
-
-    // Return appropriate error response
-    const isDevelopment = process.env.NODE_ENV === 'development';
-
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: 'Failed to fetch consumption data. Please try again later.',
-        ...(isDevelopment && {
-          details: {
-            message: errorMessage,
-            ...(errorStack && { stack: errorStack }),
-          },
-        }),
-      },
-      { status: 500 }
-    );
   }
 }

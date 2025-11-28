@@ -11,8 +11,16 @@
 - ✅ **Integración DDD**: TanStack Query se integra con la arquitectura DDD a través de API routes y ServiceContainer
 - ✅ **Payment System**: Sistema completo de pagos implementado con DDD, validación Zod, y manejo de errores de dominio
 - ✅ **Domain Expansion**: Repositorios de Rental e Invoice implementados siguiendo patrones DDD
+- ✅ **Service Split Calculation System**: Sistema automatizado de cálculo de split de servicios implementado:
+  - Entidades de dominio: `ElectricityBill`, `ServiceCharges`
+  - Cálculo proporcional de energía basado en consumo individual (kWh)
+  - Distribución equitativa de agua
+  - Aplicación de IGV del 18% a servicios antes de IGV
+  - Cálculo automático de consumo propio (diferencia entre total y consumo de inquilinos)
+  - Caso de uso `CreateInvoicesForProperty` para generación automática de invoices
+- ✅ **Consumption Enhancement**: Entidad `Consumption` mejorada con campo `previousReading` para cálculo preciso de consumo del período
 - ✅ **Error Handling**: Sistema de errores de dominio (`DomainError`) implementado
-- ✅ **Validation**: Validación con Zod integrada en API routes
+- ✅ **Validation**: Validación con Zod integrada en API routes (payment, electricity-bill, service-charges schemas)
 - ✅ **Authentication**: Mejoras en autenticación (session.user.id correctamente poblado)
 - ✅ **CI/CD**: Migrado a pnpm en workflows de GitHub Actions
 
@@ -233,17 +241,24 @@ app/layout.tsx
   - `Payment/` - Entidad Payment con validaciones de negocio
   - `Rental/` - Entidad Rental y repositorio
   - `Invoice/` - Entidad Invoice y repositorio
+  - `Consumption/` - Entidad Consumption con `previousReading` para cálculo de período
+  - `ElectricityBill/` - Entidad ElectricityBill con métodos de cálculo
+  - `ServiceCharges/` - Entidad ServiceCharges con métodos para calcular totales antes/después de IGV
   - `errors/` - Clase base DomainError para errores de dominio
 - `src/application/` - Casos de uso y orquestación
   - `Payment/` - CreateRentalPayment, CreateServicePayment
   - `Rental/` - GetRentalById con validación de permisos
-  - `Invoice/` - GetInvoiceById con validación de permisos
+  - `Invoice/` - GetInvoiceById, CreateInvoicesForProperty (generación automática con cálculo de split)
 - `src/infrastructure/` - Implementaciones concretas (Prisma)
   - `Payment/` - PrismaPaymentRepository
   - `Rental/` - PrismaRentalRepository
   - `Invoice/` - PrismaInvoiceRepository
-- `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias
-- `zod/` - Schemas de validación para API routes
+  - `Consumption/` - PrismaConsumptionRepository (con soporte para previousReading)
+  - `ElectricityBill/` - PrismaElectricityBillRepository
+  - `ServiceCharges/` - PrismaServiceChargesRepository
+  - `Shared/` - PrismaTransactionManager para transacciones
+- `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias centralizada
+- `zod/` - Schemas de validación para API routes (payment, electricity-bill, service-charges)
 
 ## 📊 Comparación: Antes vs Ahora
 
@@ -349,4 +364,57 @@ Component
 4. **Control de Acceso**: Validación de permisos usando casos de uso (GetRentalById, GetInvoiceById)
 5. **Métodos de Pago**: Soporte para YAPE, CASH, y BANK_TRANSFER
 6. **Actualización Automática**: El estado de Invoice se actualiza automáticamente a PAID cuando los pagos cubren el total
+
+## ⚡ Sistema de Cálculo de Split de Servicios Implementado
+
+### Arquitectura del Sistema de Split
+
+**Domain Layer:**
+- `src/domain/ElectricityBill/ElectricityBill.ts` - Entidad de dominio con métodos de cálculo (costPerKWh, includesDate, overlapsWith)
+- `src/domain/ElectricityBill/IElectricityBillRepository.ts` - Interfaz del repositorio
+- `src/domain/ServiceCharges/ServiceCharges.ts` - Entidad de dominio con métodos para calcular totales antes/después de IGV
+- `src/domain/ServiceCharges/IServiceChargesRepository.ts` - Interfaz del repositorio
+- `src/domain/Consumption/Consumption.ts` - Entidad mejorada con `previousReading` y método `getConsumptionForPeriod()`
+
+**Application Layer:**
+- `src/application/Invoice/CreateInvoicesForProperty.ts` - Caso de uso principal que implementa:
+  - Cálculo de consumos individuales (energyReading - previousReading)
+  - Cálculo de consumo propio (totalKWh - suma de consumos de inquilinos)
+  - Cálculo proporcional de energía por kWh
+  - Distribución equitativa de agua
+  - Aplicación de IGV del 18% a (energía + servicios antes de IGV)
+  - Distribución de servicios adicionales (antes y después de IGV)
+  - Creación automática de invoices para inquilinos y administradores
+
+**Infrastructure Layer:**
+- `src/infrastructure/ElectricityBill/PrismaElectricityBillRepository.ts` - Implementación con Prisma
+- `src/infrastructure/ServiceCharges/PrismaServiceChargesRepository.ts` - Implementación con Prisma
+- `src/infrastructure/Consumption/PrismaConsumptionRepository.ts` - Actualizado con soporte para previousReading
+
+**API Routes:**
+- `app/api/electricity-bills/route.ts` - POST para crear facturas de electricidad
+- `app/api/service-charges/route.ts` - POST para crear servicios adicionales
+- `app/api/invoices/generate/route.ts` - POST para generar invoices automáticamente
+
+**Validation:**
+- `zod/electricity-bill-schemas.ts` - Schemas Zod para validación de electricity bills y generación de invoices
+- `zod/service-charges-schemas.ts` - Schemas Zod para validación de service charges
+
+### Características Clave del Sistema de Split
+
+1. **Cálculo Proporcional de Energía**: Cada inquilino paga según su consumo individual (kWh) calculado como diferencia entre lectura actual y anterior
+2. **Distribución Equitativa de Agua**: El costo de agua se divide equitativamente entre todos los inquilinos y administradores
+3. **Aplicación de IGV**: IGV del 18% se aplica solo a (energía + servicios antes de IGV). Servicios después de IGV se suman directamente
+4. **Cálculo de Consumo Propio**: El consumo propio (diferencia entre total de factura y consumo de inquilinos) se asigna a los administradores de la propiedad
+5. **Transacciones Atómicas**: Uso de transacciones Prisma con nivel de aislamiento Serializable para garantizar atomicidad
+6. **Validación de Datos**: Validación completa con Zod en API routes y validaciones de dominio en entidades
+7. **Prevención de Duplicados**: Validación para evitar crear invoices duplicados para el mismo rentalId + month + year
+
+### Especificación de Envío de Invoices
+
+**Formato de Envío:**
+- **Email**: Los invoices se envían como **archivo PDF adjunto**
+- **WhatsApp**: Los invoices se envían como **mensaje de texto** (no como PDF)
+
+**Nota**: La funcionalidad de envío de invoices está planificada para futura implementación. Cuando se implemente, debe respetar estos formatos de entrega.
 

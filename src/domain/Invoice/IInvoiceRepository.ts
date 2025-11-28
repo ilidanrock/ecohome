@@ -17,6 +17,26 @@ export interface IInvoiceRepository {
   findById(id: string, includeRental?: boolean): Promise<Invoice | null>;
 
   /**
+   * Find invoice by rental, month and year
+   * @param rentalId - The rental ID
+   * @param month - The month (1-12)
+   * @param year - The year
+   * @returns The invoice entity or null if not found
+   */
+  findByRentalMonthYear(
+    rentalId: string,
+    month: number,
+    year: number
+  ): Promise<Invoice | null>;
+
+  /**
+   * Create a new invoice
+   * @param invoice - The invoice entity to create
+   * @returns The created invoice entity
+   */
+  create(invoice: Invoice): Promise<Invoice>;
+
+  /**
    * Update invoice status and paidAt date
    * @param id - The invoice ID
    * @param status - The new payment status

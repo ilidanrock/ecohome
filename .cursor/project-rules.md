@@ -137,40 +137,46 @@ src/
 
 ### Example: Adding a New Feature
 
-When adding a new feature (e.g., Payment):
+When adding a new feature (e.g., Payment, ElectricityBill, ServiceCharges):
 
-1. **Domain Layer** (`src/domain/Payment/`):
-   - Create `Payment.ts` domain model with business validations
-   - Create `IPaymentRepository.ts` interface
-   - Create domain error classes (`PaymentErrors.ts`) extending `DomainError`
-   - Create constants file (`PaymentConstants.ts`) for validation rules
+1. **Domain Layer** (`src/domain/FeatureName/`):
+   - Create domain model (e.g., `Payment.ts`, `ElectricityBill.ts`, `ServiceCharges.ts`) with business validations
+   - Create repository interface (e.g., `IPaymentRepository.ts`, `IElectricityBillRepository.ts`)
+   - Create domain error classes (e.g., `PaymentErrors.ts`) extending `DomainError`
+   - Create constants file (e.g., `PaymentConstants.ts`) for validation rules
 
-2. **Infrastructure Layer** (`src/infrastructure/Payment/`):
-   - Create `PrismaPaymentRepository.ts` implementing `IPaymentRepository`
+2. **Infrastructure Layer** (`src/infrastructure/FeatureName/`):
+   - Create Prisma repository (e.g., `PrismaPaymentRepository.ts`) implementing the interface
    - Map Prisma models to domain models
+   - Handle database-specific logic
 
-3. **Application Layer** (`src/application/Payment/`):
-   - Create use cases (e.g., `CreateRentalPayment.ts`, `CreateServicePayment.ts`)
+3. **Application Layer** (`src/application/FeatureName/`):
+   - Create use cases (e.g., `CreateRentalPayment.ts`, `CreateInvoicesForProperty.ts`)
    - Inject repository interfaces (not concrete implementations)
    - Handle business logic and transactions
+   - Use `ITransactionManager` for operations requiring atomicity
 
 4. **Validation Layer** (`zod/`):
-   - Create Zod schemas for API input validation (e.g., `payment-schemas.ts`)
+   - Create Zod schemas for API input validation (e.g., `payment-schemas.ts`, `electricity-bill-schemas.ts`)
    - Use schemas in API routes for type-safe validation
 
 5. **ServiceContainer** (`src/Shared/infrastructure/ServiceContainer.ts`):
-   - Add payment repository and use cases to container
+   - Add repository and use cases to container
    - Inject dependencies into use cases
+   - Export through serviceContainer for API routes
 
-6. **API Route** (`app/api/payments/route.ts`):
+6. **API Route** (`app/api/feature-name/route.ts`):
    - Use Zod schemas for input validation
    - Use `serviceContainer` to access use cases
    - Handle domain errors and return appropriate HTTP status codes
+   - Apply rate limiting and payload size validation
+   - Use centralized error handler (`handleApiError`)
    - Never call Prisma directly
 
-7. **TanStack Query** (`lib/queries/payments.ts`):
-   - Create query hooks (e.g., `usePaymentsQuery()`)
+7. **TanStack Query** (`lib/queries/feature-name.ts`):
+   - Create query hooks (e.g., `useFeatureQuery()`)
    - Fetch from API routes
+   - Implement proper error handling
 
 8. **Component**:
    - Use TanStack Query hooks
@@ -246,8 +252,19 @@ When adding a new feature (e.g., Payment):
 - **Component Reusability**: Created shared header components that work for both admin and tenant roles with proper customization.
 - **Payment System**: ✅ Complete payment system implemented for rentals and services with DDD architecture, Zod validation, and domain error handling.
 - **Domain Layer Expansion**: ✅ Added Rental and Invoice domain entities with repositories following DDD patterns.
+- **Service Split Calculation System**: ✅ Implemented automated invoice generation system with:
+  - `ElectricityBill` and `ServiceCharges` domain entities
+  - Proportional energy cost calculation based on individual consumption (kWh)
+  - Equitable water cost distribution
+  - Service charges distribution with 18% IGV application
+  - Automatic owner consumption calculation
+  - `CreateInvoicesForProperty` use case for automated invoice generation
+- **Invoice Delivery Specification**: 📋 Invoices can be sent via:
+  - **Email**: As PDF attachment
+  - **WhatsApp**: As text message (not PDF)
+- **Consumption Tracking**: ✅ Enhanced `Consumption` entity with `previousReading` field for accurate period consumption calculation.
 - **Error Handling**: ✅ Implemented `DomainError` base class and specific error types for better error management.
-- **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`).
+- **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`, `zod/electricity-bill-schemas.ts`, `zod/service-charges-schemas.ts`).
 - **Authentication**: ✅ Fixed session.user.id population in NextAuth callbacks for proper user identification.
 - **CI/CD**: ✅ Migrated workflows from npm to pnpm for consistency with local development.
 - **Logging**: ✅ Improved error logging in client-side queries to ensure meaningful information is always displayed.

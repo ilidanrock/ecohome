@@ -51,6 +51,24 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
     return consumptions.map((consumption) => this.mapToDomain(consumption));
   }
 
+  async findByRentalMonthYear(
+    rentalId: string,
+    month: number,
+    year: number
+  ): Promise<Consumption | null> {
+    const consumption = await this.prisma.consumption.findUnique({
+      where: {
+        rentalId_month_year: {
+          rentalId,
+          month,
+          year,
+        },
+      },
+    });
+
+    return consumption ? this.mapToDomain(consumption) : null;
+  }
+
   async findLatestByUserId(userId: string): Promise<Consumption | null> {
     const consumption = await this.prisma.consumption.findFirst({
       where: {
@@ -74,7 +92,8 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
       prismaConsumption.extractedAt,
       prismaConsumption.createdAt,
       prismaConsumption.updatedAt,
-      prismaConsumption.id
+      prismaConsumption.id,
+      prismaConsumption.previousReading ? Number(prismaConsumption.previousReading) : null
     );
   }
 }

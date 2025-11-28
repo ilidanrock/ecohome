@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { signUpload } from '@/lib/cloudinary';
+import { signUpload, getSignedImageUrl } from '@/lib/cloudinary';
 import { rateLimiters } from '@/lib/rate-limit';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
 import type { NextRequest } from 'next/server';
@@ -19,21 +19,11 @@ import type { NextRequest } from 'next/server';
  */
 export async function POST(request: NextRequest) {
   try {
-    // Get authenticated session
+    // Get authenticated session (optional for signing existing image URLs)
     const session = await auth();
 
-    if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required to generate signed URLs',
-        },
-        { status: 401 }
-      );
-    }
-
-    // Apply rate limiting
-    const rateLimitResult = await rateLimiters.cloudinary(request, session.user.id);
+    // Apply rate limiting (use user ID if authenticated, otherwise use IP)
+    const rateLimitResult = await rateLimiters.cloudinary(request, session?.user?.id);
     if (!rateLimitResult.success) {
       return rateLimitResult.response;
     }
@@ -50,12 +40,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'publicId is required' }, { status: 400 });
     }
 
-    const { timestamp, signature } = signUpload(publicId, options);
+    // Generate signed URL using the utility function
+    const signedUrl = getSignedImageUrl(publicId, options);
+    const { signature, timestamp } = signUpload(publicId, options);
 
-    // Only return signature and timestamp
-    // cloudName and apiKey are already available in the client via NEXT_PUBLIC_CLOUDINARY_* env vars
-    // No need to expose them in every response
+    // Return the complete signed URL along with signature and timestamp for client-side use if needed
     return NextResponse.json({
+      url: signedUrl,
       signature,
       timestamp,
     });

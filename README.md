@@ -25,11 +25,20 @@ The administrator is responsible for managing tenant consumption and overseeing 
 - Generate monthly reports in **PDF format** summarizing utility usage.  
 - Upload electricity and water bills to register payments and calculate costs.  
 - Access a **multi-step form** preloaded with invoice data to automatically calculate the service costs (water, electricity, and total) for each tenant.  
+- **Automated invoice generation** based on electricity bills and meter readings with automatic split calculation:
+  - Energy costs calculated proportionally based on individual consumption (kWh)
+  - Water costs distributed equitably among all tenants
+  - Service charges (maintenance, fixed charges, etc.) distributed with 18% IGV application
+  - Automatic calculation of owner consumption (difference between total and tenant consumption)
 - **Record and track payments** for rentals and services with multiple payment methods (YAPE, CASH, BANK_TRANSFER).  
 - Mark whether a tenant has **paid or not** for the services directly from the UI.  
 - Store images and documents in **Amazon S3** for secure access.  
 - View payment status in the **billing history** and include this data in the **PDF reports**.
-- **Automatic invoice status updates** when payments cover the total invoice amount.  
+- **Automatic invoice status updates** when payments cover the total invoice amount.
+- **Upload electricity bills** and automatically generate invoices for all active tenants.
+- **Track meter readings** with previous reading support for accurate consumption calculation.
+- **Send invoices to tenants** via email (as PDF attachment) or WhatsApp (as text message).
+- **Review and edit invoices** before sending to ensure accuracy.  
 
 ### **2️⃣ User (Tenant)**  
 Tenants can check their personal consumption history and view detailed cost calculations.
@@ -41,6 +50,7 @@ Tenants can check their personal consumption history and view detailed cost calc
 - Retrieve past consumption data stored securely.
 - **Record payments** for rentals and services with multiple payment methods (YAPE, CASH, BANK_TRANSFER).
 - View payment history for their rentals and invoices.
+- **Receive invoices** via email (as PDF attachment) or WhatsApp (as text message).
 
 ---
 
@@ -309,7 +319,8 @@ To guarantee privacy and data security, EcoHome implements:
 ---
 
 ## **📊 Benefits of EcoHome**  
-✅ **Automation & Accuracy:** Automatically calculates **each tenant’s monthly consumption**.  
+✅ **Automation & Accuracy:** Automatically calculates **each tenant's monthly consumption** and **generates invoices** with proportional energy costs and equitable water distribution.  
+✅ **Smart Split Calculation:** Implements **proportional energy cost calculation** (based on individual kWh consumption) and **equitable water cost distribution**, including service charges with 18% IGV application.  
 ✅ **Transparency & Control:** Keeps **detailed records of consumption history, costs, and payment status**.  
 ✅ **Secure & Centralized Access:** Stores **essential documents in the cloud**.  
 ✅ **User-Friendly Interface:** Optimized UI, responsive for all devices.  

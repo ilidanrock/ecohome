@@ -68,4 +68,12 @@ export class Invoice {
   public getRental(): Rental | undefined {
     return this.rental;
   }
+
+  public getMonth(): number {
+    return this.month;
+  }
+
+  public getYear(): number {
+    return this.year;
+  }
 }

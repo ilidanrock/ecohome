@@ -27,32 +27,32 @@ export function TenantHeader({ onOpenSidebar }: TenantHeaderProps) {
 
   // Initialize mock notifications on mount
   useEffect(() => {
-    const mockNotifications: Notification[] = [
-      {
-        id: '1',
-        title: 'Factura disponible',
-        message: 'Tu factura de energía de diciembre ya está disponible',
-        type: 'info',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-        read: false,
-      },
-      {
-        id: '2',
-        title: 'Consumo elevado',
-        message: 'Tu consumo de agua ha aumentado un 15% esta semana',
-        type: 'warning',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-        read: false,
-      },
-      {
-        id: '3',
-        title: 'Meta alcanzada',
-        message: '¡Felicidades! Has reducido tu consumo energético un 10%',
-        type: 'success',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-        read: true,
-      },
-    ];
+const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    title: 'Factura disponible',
+    message: 'Tu factura de energía de diciembre ya está disponible',
+    type: 'info',
+    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    read: false,
+  },
+  {
+    id: '2',
+    title: 'Consumo elevado',
+    message: 'Tu consumo de agua ha aumentado un 15% esta semana',
+    type: 'warning',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+    read: false,
+  },
+  {
+    id: '3',
+    title: 'Meta alcanzada',
+    message: '¡Felicidades! Has reducido tu consumo energético un 10%',
+    type: 'success',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+    read: true,
+  },
+];
 
     // Add mock notifications to store if empty
     if (notifications.length === 0) {

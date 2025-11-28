@@ -3,6 +3,7 @@ export class Consumption {
   rentalId: string;
   month: number;
   year: number;
+  previousReading: number | null;
   energyReading: number;
   meterImageUrl: string | null;
   extractedAt: Date | null;
@@ -18,12 +19,14 @@ export class Consumption {
     extractedAt: Date | null,
     createdAt: Date,
     updatedAt: Date,
-    id?: string
+    id?: string,
+    previousReading?: number | null
   ) {
     this.id = id || '';
     this.rentalId = rentalId;
     this.month = month;
     this.year = year;
+    this.previousReading = previousReading ?? null;
     this.energyReading = energyReading;
     this.meterImageUrl = meterImageUrl;
     this.extractedAt = extractedAt;
@@ -45,5 +48,20 @@ export class Consumption {
 
   public getRentalId(): string {
     return this.rentalId;
+  }
+
+  public getPreviousReading(): number | null {
+    return this.previousReading;
+  }
+
+  /**
+   * Calcula el consumo del período basado en la lectura actual y la anterior
+   * @returns El consumo del período en kWh
+   */
+  public getConsumptionForPeriod(): number {
+    if (!this.previousReading) {
+      return this.energyReading; // Si no hay lectura anterior, usar la actual
+    }
+    return Math.max(this.energyReading - this.previousReading, 0);
   }
 }

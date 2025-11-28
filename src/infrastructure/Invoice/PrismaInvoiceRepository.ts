@@ -28,6 +28,43 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     return invoice ? this.mapToDomain(invoice) : null;
   }
 
+  async findByRentalMonthYear(
+    rentalId: string,
+    month: number,
+    year: number
+  ): Promise<Invoice | null> {
+    const invoice = await this.prisma.invoice.findUnique({
+      where: {
+        rentalId_month_year: {
+          rentalId,
+          month,
+          year,
+        },
+      },
+    });
+
+    return invoice ? this.mapToDomain(invoice) : null;
+  }
+
+  async create(invoice: Invoice): Promise<Invoice> {
+    const created = await this.prisma.invoice.create({
+      data: {
+        rentalId: invoice.getRentalId(),
+        month: invoice.getMonth(),
+        year: invoice.getYear(),
+        waterCost: invoice.waterCost,
+        energyCost: invoice.energyCost,
+        totalCost: invoice.getTotalCost(),
+        status: invoice.getStatus() as PaymentStatus,
+        paidAt: invoice.paidAt,
+        receiptUrl: invoice.receiptUrl,
+        invoiceUrl: invoice.invoiceUrl,
+      },
+    });
+
+    return this.mapToDomain(created);
+  }
+
   /**
    * Update invoice status and paidAt date
    *

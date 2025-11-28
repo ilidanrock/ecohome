@@ -51,13 +51,25 @@ function ImageCloudynary({
         });
 
         if (!response.ok) {
-          throw new Error('Failed to sign URL');
+          // If authentication is required (401), silently fall back to unsigned URL
+          // This is expected behavior for public pages
+          if (response.status === 401) {
+            setError(null); // Clear error state, will use unsigned URL
+            return;
+          }
+          throw new Error(`Failed to sign URL: ${response.status}`);
         }
 
         const data = await response.json();
-        setSignedUrl(data.url);
+        if (data.url) {
+          setSignedUrl(data.url);
+        }
       } catch (err) {
-        console.error('Error signing URL:', err);
+        // Only log non-authentication errors
+        if (err instanceof Error && !err.message.includes('401')) {
+          console.error('Error signing URL:', err);
+        }
+        // Set error state to trigger fallback to unsigned URL
         setError(err instanceof Error ? err : new Error('Error signing URL'));
       } finally {
         setIsLoading(false);

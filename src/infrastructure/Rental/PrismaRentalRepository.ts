@@ -19,6 +19,23 @@ export class PrismaRentalRepository implements IRentalRepository {
     return rental ? this.mapToDomain(rental) : null;
   }
 
+  async findActiveByPropertyId(propertyId: string, date: Date): Promise<Rental[]> {
+    const rentals = await this.prisma.rental.findMany({
+      where: {
+        propertyId,
+        startDate: {
+          lte: date,
+        },
+        OR: [
+          { endDate: null },
+          { endDate: { gte: date } },
+        ],
+      },
+    });
+
+    return rentals.map((rental) => this.mapToDomain(rental));
+  }
+
   /**
    * Map Prisma Rental model to domain Rental entity
    *

@@ -105,10 +105,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Type assertion: after validation, rentalId is guaranteed to be a string
+      const validatedRentalId: string = rentalId;
+
       // Validate user access using ServiceContainer (maintains DDD boundaries)
       try {
         const rental = await serviceContainer.rental.getRentalById.execute(
-          rentalId,
+          validatedRentalId,
           session.user.id,
           session.user.role
         );
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
 
       // Create payment using ServiceContainer
       const payment = await serviceContainer.payment.createRentalPayment.execute(
-        rentalId,
+        validatedRentalId,
         amount,
         paidAtDate,
         paymentMethod as PaymentMethod,
@@ -176,10 +179,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Type assertion: after validation, invoiceId is guaranteed to be a string
+      const validatedInvoiceId: string = invoiceId;
+
       // Validate user access using ServiceContainer (maintains DDD boundaries)
       try {
         const invoice = await serviceContainer.invoice.getInvoiceById.execute(
-          invoiceId,
+          validatedInvoiceId,
           session.user.id,
           session.user.role
         );
@@ -221,7 +227,7 @@ export async function POST(request: NextRequest) {
 
       // Create payment using ServiceContainer
       const payment = await serviceContainer.payment.createServicePayment.execute(
-        invoiceId,
+        validatedInvoiceId,
         amount,
         paidAtDate,
         paymentMethod as PaymentMethod,

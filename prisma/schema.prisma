@@ -120,9 +120,10 @@ model Consumption {
   month         Int
   year          Int
 
-  energyReading Decimal  @db.Decimal(10,3)   // kWh
-  meterImageUrl String?
-  extractedAt   DateTime?
+  previousReading Decimal? @db.Decimal(10,3)  // Nueva: lectura anterior (kWh)
+  energyReading   Decimal  @db.Decimal(10,3)   // Lectura actual (kWh)
+  meterImageUrl   String?
+  extractedAt     DateTime?
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -142,8 +143,31 @@ model ElectricityBill {
   totalCost    Decimal  @db.Decimal(12,2)
   fileUrl      String?
 
+  serviceCharges ServiceCharges?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model ServiceCharges {
+  id                String         @id @default(uuid())
+  electricityBill   ElectricityBill @relation(fields: [electricityBillId], references: [id], onDelete: Cascade)
+  electricityBillId String         @unique
+  
+  // Servicios antes de IGV
+  maintenanceAndReplacement Decimal @db.Decimal(12,2)  // Reposición y mantenimiento
+  fixedCharge               Decimal @db.Decimal(12,2)  // Cargo fijo
+  compensatoryInterest      Decimal @db.Decimal(12,2)  // Interés compensatorio
+  publicLighting            Decimal @db.Decimal(12,2)  // Alumbrado público
+  
+  // Servicios después de IGV
+  lawContribution           Decimal @db.Decimal(12,2)  // Aporte Ley N° 28749
+  lateFee                   Decimal @db.Decimal(12,2)   // Recargo por mora
+  previousMonthRounding     Decimal @db.Decimal(12,2)  // Redondeo Mes Anterior
+  currentMonthRounding      Decimal @db.Decimal(12,2)  // Redondeo Mes Actual
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Invoice {

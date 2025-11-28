@@ -150,4 +150,25 @@ export const rateLimiters = {
    */
   consumption: (request: NextRequest, userId?: string) =>
     rateLimit(request, { interval: 60 * 1000, limit: 200 }, userId),
+
+  /**
+   * Rate limiter for OCR extraction endpoint
+   * 20 requests per minute (lower limit due to API costs)
+   */
+  ocrExtraction: (request: NextRequest, userId?: string) =>
+    rateLimit(request, { interval: 60 * 1000, limit: 20 }, userId),
+
+  /**
+   * Rate limiter for meter reading updates
+   * 100 requests per minute
+   */
+  updateMeterReading: (request: NextRequest, userId?: string) =>
+    rateLimit(request, { interval: 60 * 1000, limit: 100 }, userId),
+
+  /**
+   * Rate limiter for bill extraction endpoint
+   * 10 requests per minute (lower limit due to API costs and processing time)
+   */
+  billExtraction: (request: NextRequest, userId?: string) =>
+    rateLimit(request, { interval: 60 * 1000, limit: 10 }, userId),
 };

@@ -45,13 +45,13 @@ export const createServiceChargesSchema = z.object({
       required_error: 'Previous month rounding is required',
       invalid_type_error: 'Previous month rounding must be a number',
     })
-    .nonnegative('Previous month rounding must be non-negative'),
+    .default(0), // Can be negative
   currentMonthRounding: z
     .number({
       required_error: 'Current month rounding is required',
       invalid_type_error: 'Current month rounding must be a number',
     })
-    .nonnegative('Current month rounding must be non-negative'),
+    .default(0), // Can be negative
 });
 
 export type CreateServiceChargesInput = z.infer<typeof createServiceChargesSchema>;

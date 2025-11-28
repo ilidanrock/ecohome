@@ -12,6 +12,9 @@ import { UserFind } from '@/src/application/User/UserFind';
 import { AccountOAuthSignIn } from '@/src/application/Account/AccountOAuthSignIn';
 import { PrismaAccountsRepository } from '@/src/infrastructure/Accounts/PrismaAccountsRepository';
 import { GetConsumptionData } from '@/src/application/Consumption/GetConsumptionData';
+import { GetConsumptionById } from '@/src/application/Consumption/GetConsumptionById';
+import { ExtractMeterReading } from '@/src/application/Consumption/ExtractMeterReading';
+import { UpdateMeterReading } from '@/src/application/Consumption/UpdateMeterReading';
 import { PrismaConsumptionRepository } from '@/src/infrastructure/Consumption/PrismaConsumptionRepository';
 import { CreateRentalPayment } from '@/src/application/Payment/CreateRentalPayment';
 import { CreateServicePayment } from '@/src/application/Payment/CreateServicePayment';
@@ -63,6 +66,9 @@ export const serviceContainer = {
   },
   consumption: {
     getData: new GetConsumptionData(consumptionRepository),
+    getById: new GetConsumptionById(consumptionRepository),
+    extractMeterReading: new ExtractMeterReading(consumptionRepository),
+    updateMeterReading: new UpdateMeterReading(consumptionRepository),
   },
   rental: {
     getRentalById: new GetRentalById(rentalRepository),

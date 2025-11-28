@@ -123,7 +123,12 @@ model Consumption {
   previousReading Decimal? @db.Decimal(10,3)  // Nueva: lectura anterior (kWh)
   energyReading   Decimal  @db.Decimal(10,3)   // Lectura actual (kWh)
   meterImageUrl   String?
-  extractedAt     DateTime?
+  
+  // Campos de OCR
+  ocrExtracted    Boolean   @default(false)     // Si fue extraído por OCR
+  ocrConfidence   Decimal?  @db.Decimal(5,2)    // Confianza del OCR (0-100)
+  ocrRawText      String?                       // Texto crudo extraído por OCR
+  extractedAt     DateTime?                     // Fecha de extracción OCR
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

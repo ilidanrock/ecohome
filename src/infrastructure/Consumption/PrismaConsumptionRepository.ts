@@ -69,6 +69,16 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
     return consumption ? this.mapToDomain(consumption) : null;
   }
 
+  async findById(id: string): Promise<Consumption | null> {
+    const consumption = await this.prisma.consumption.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    return consumption ? this.mapToDomain(consumption) : null;
+  }
+
   async findLatestByUserId(userId: string): Promise<Consumption | null> {
     const consumption = await this.prisma.consumption.findFirst({
       where: {
@@ -82,6 +92,25 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
     return consumption ? this.mapToDomain(consumption) : null;
   }
 
+  async update(consumption: Consumption): Promise<Consumption> {
+    const updated = await this.prisma.consumption.update({
+      where: {
+        id: consumption.id,
+      },
+      data: {
+        energyReading: consumption.energyReading,
+        previousReading: consumption.previousReading,
+        meterImageUrl: consumption.meterImageUrl,
+        ocrExtracted: consumption.ocrExtracted,
+        ocrConfidence: consumption.ocrConfidence,
+        ocrRawText: consumption.ocrRawText,
+        extractedAt: consumption.extractedAt,
+      },
+    });
+
+    return this.mapToDomain(updated);
+  }
+
   private mapToDomain(prismaConsumption: PrismaConsumption): Consumption {
     return new Consumption(
       prismaConsumption.rentalId,
@@ -93,7 +122,10 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
       prismaConsumption.createdAt,
       prismaConsumption.updatedAt,
       prismaConsumption.id,
-      prismaConsumption.previousReading ? Number(prismaConsumption.previousReading) : null
+      prismaConsumption.previousReading ? Number(prismaConsumption.previousReading) : null,
+      prismaConsumption.ocrExtracted,
+      prismaConsumption.ocrConfidence ? Number(prismaConsumption.ocrConfidence) : null,
+      prismaConsumption.ocrRawText
     );
   }
 }

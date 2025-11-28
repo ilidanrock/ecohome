@@ -5,7 +5,7 @@
  * These hooks replace the Zustand store for server-side consumption data.
  */
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import type { ConsumptionResponse } from '@/types';
 import { consumptionKeys } from './keys';
 
@@ -245,4 +245,86 @@ export function useInvalidateConsumption() {
   return () => {
     queryClient.invalidateQueries({ queryKey: consumptionKeys.all });
   };
+}
+
+/**
+ * Mutation to extract meter reading using OCR
+ */
+export function useExtractMeterReadingMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      consumptionId,
+      imageUrl,
+    }: {
+      consumptionId: string;
+      imageUrl: string;
+    }) => {
+      const response = await fetch('/api/consumption/extract-reading', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ consumptionId, imageUrl }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ConsumptionClientError(
+          errorData.message || 'Failed to extract meter reading',
+          response.status,
+          errorData
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate consumption queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: consumptionKeys.all });
+    },
+  });
+}
+
+/**
+ * Mutation to update meter reading manually
+ */
+export function useUpdateMeterReadingMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      consumptionId,
+      energyReading,
+      previousReading,
+    }: {
+      consumptionId: string;
+      energyReading: number;
+      previousReading?: number | null;
+    }) => {
+      const response = await fetch(`/api/consumption/${consumptionId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ energyReading, previousReading }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ConsumptionClientError(
+          errorData.message || 'Failed to update meter reading',
+          response.status,
+          errorData
+        );
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate consumption queries to refetch updated data
+      queryClient.invalidateQueries({ queryKey: consumptionKeys.all });
+    },
+  });
 }

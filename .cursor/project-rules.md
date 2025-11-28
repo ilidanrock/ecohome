@@ -264,11 +264,78 @@ When adding a new feature (e.g., Payment, ElectricityBill, ServiceCharges):
   - **Email**: As PDF attachment
   - **WhatsApp**: As text message (not PDF)
 - **Consumption Tracking**: ✅ Enhanced `Consumption` entity with `previousReading` field for accurate period consumption calculation.
+- **OCR System**: ✅ Complete OCR system with OpenAI Vision for automatic extraction:
+  - **Meter Reading Extraction:**
+    - OCR service (`lib/ocr-service.ts`) using GPT-4o-mini for cost-effective extraction
+    - Automatic extraction with confidence scoring (0-100)
+    - Retry logic: 3 attempts with exponential backoff
+    - Error types: `OCRApiError`, `OCRParsingError`, `OCRValidationError` for better error handling
+    - Manual editing capability when confidence is low (< 70%)
+    - OCR fields tracked: `ocrExtracted`, `ocrConfidence`, `ocrRawText`, `extractedAt`
+    - UI components: `MeterImageUpload` (image upload + OCR), `MeterReadingDisplay` (reading display with confidence)
+    - TanStack Query mutations: `useExtractMeterReadingMutation`, `useUpdateMeterReadingMutation`
+    - Rate limiting: OCR extraction (20/min), meter reading updates (100/min)
+    - Use cases: `ExtractMeterReading`, `UpdateMeterReading`, `GetConsumptionById`
+    - API endpoints: `POST /api/consumption/extract-reading`, `GET/PUT /api/consumption/[consumptionId]`
+    - Validation: Readings must be positive, reasonable (0-10M kWh), and >= previous reading if exists
+  - **Bill Data Extraction:**
+    - Function `extractBillInformation` in `lib/ocr-service.ts` for complete bill data extraction
+    - Extracts `ElectricityBill` (periodStart, periodEnd, totalKWh, totalCost) and `ServiceCharges` (8 fields)
+    - Designed for Pluz Energía Perú format but adaptable to other formats
+    - API endpoint: `POST /api/electricity-bills/extract` (ADMIN only)
+    - UI components: `BillPDFUpload` (PDF/image upload + extraction), `ElectricityBillForm` (unified form with pre-fill)
+    - TanStack Query mutations: `useExtractBillDataMutation`, `useCreateElectricityBillWithChargesMutation`
+    - Rate limiting: Bill extraction (10/min)
+    - Validation: Complete validation of dates, numbers, and data structure
+    - Warnings when confidence < 70%
+    - Unified form allows review and editing before submission
 - **Error Handling**: ✅ Implemented `DomainError` base class and specific error types for better error management.
-- **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`, `zod/electricity-bill-schemas.ts`, `zod/service-charges-schemas.ts`).
+- **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`, `zod/electricity-bill-schemas.ts`, `zod/service-charges-schemas.ts`, `zod/consumption-schemas.ts`, `zod/ocr-schemas.ts`).
 - **Authentication**: ✅ Fixed session.user.id population in NextAuth callbacks for proper user identification.
 - **CI/CD**: ✅ Migrated workflows from npm to pnpm for consistency with local development.
 - **Logging**: ✅ Improved error logging in client-side queries to ensure meaningful information is always displayed.
+- **OCR Rules**: 
+  - **Meter Reading OCR:**
+    - When OCR confidence is below 70%, always allow and encourage manual editing
+    - OCR-extracted readings must be clearly marked in the UI with confidence badge
+    - Manual edits clear OCR fields (`ocrExtracted=false`, `ocrConfidence=null`, `ocrRawText=null`, `extractedAt=null`) to maintain data integrity
+    - Only ADMIN role can perform OCR extraction and manual updates
+    - Rate limiting applies to prevent API cost overruns (20 OCR extractions/min)
+    - Always validate readings: positive, reasonable range (0-10M kWh), and >= previous reading
+    - Use `UpdateMeterReading` use case for manual edits, never directly update OCR fields when manually editing
+  - **Bill Data OCR:**
+    - When OCR confidence is below 70%, show warning and require manual review
+    - All extracted data must be reviewable and editable in the unified form before submission
+    - Only ADMIN role can perform bill extraction
+    - Rate limiting: 10 bill extractions/min to prevent API cost overruns
+    - Validate all dates (periodStart < periodEnd), numbers (positive for most fields, can be negative for rounding)
+    - Use `useCreateElectricityBillWithChargesMutation` to create both ElectricityBill and ServiceCharges in sequence
+    - Always allow manual correction of extracted data before saving
+
+## OCR System Guidelines
+
+### OCR Implementation Rules
+- **Service Layer**: OCR logic is in `lib/ocr-service.ts`, not in domain/application layers
+- **Error Handling**: Use specific error types (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) for better error categorization
+- **Retry Logic**: Always implement retry with exponential backoff (3 attempts default)
+- **Confidence Threshold**: When OCR confidence < 70%, UI must show warning and allow manual editing
+- **Manual Edits**: When manually editing a reading, always clear OCR fields (`ocrExtracted=false`, `ocrConfidence=null`, `ocrRawText=null`, `extractedAt=null`)
+- **Rate Limiting**: OCR endpoints must use rate limiting (20 requests/min for extraction, 100/min for updates)
+- **Authorization**: Only ADMIN role can perform OCR extraction and manual meter reading updates
+- **Validation**: Readings must be validated: positive, reasonable (0-10M kWh), and >= previous reading if exists
+- **UI Components**: Use `MeterImageUpload` for image upload + OCR, `MeterReadingDisplay` for showing readings with confidence
+- **TanStack Query**: Use mutations (`useExtractMeterReadingMutation`, `useUpdateMeterReadingMutation`) for OCR operations, never direct API calls
+
+### OCR Data Flow
+1. User uploads image via `MeterImageUpload` component (Cloudinary)
+2. Component calls `useExtractMeterReadingMutation` with `consumptionId` and `imageUrl`
+3. Mutation calls `POST /api/consumption/extract-reading`
+4. API route validates auth/role, applies rate limiting, calls `ExtractMeterReading` use case
+5. Use case calls `lib/ocr-service.ts` to extract reading via OpenAI Vision
+6. Use case updates `Consumption` entity with OCR data
+7. Repository saves to database
+8. TanStack Query invalidates cache and refetches data
+9. UI updates to show extracted reading with confidence badge
 
 ## Migration Notes
 - **Consumption Store**: ✅ Migrated to TanStack Query. The `useConsumptionStore` is deprecated and will be removed.

@@ -19,8 +19,35 @@
   - Cálculo automático de consumo propio (diferencia entre total y consumo de inquilinos)
   - Caso de uso `CreateInvoicesForProperty` para generación automática de invoices
 - ✅ **Consumption Enhancement**: Entidad `Consumption` mejorada con campo `previousReading` para cálculo preciso de consumo del período
+- ✅ **OCR System**: Sistema completo de OCR con OpenAI Vision para extracción automática:
+  - **Lecturas de medidores:**
+    - Servicio OCR (`lib/ocr-service.ts`) con GPT-4o-mini y retry logic (3 intentos con backoff exponencial)
+    - Tipos de error específicos: `OCRApiError`, `OCRParsingError`, `OCRValidationError`
+    - Casos de uso: `ExtractMeterReading`, `UpdateMeterReading`, `GetConsumptionById`
+    - Endpoints API: 
+      - `POST /api/consumption/extract-reading` - Extracción OCR (solo ADMIN)
+      - `GET /api/consumption/[consumptionId]` - Obtener consumo por ID
+      - `PUT /api/consumption/[consumptionId]` - Actualizar lectura manualmente (solo ADMIN)
+    - Componentes UI: 
+      - `MeterImageUpload` - Subida de imagen y extracción OCR con Cloudinary
+      - `MeterReadingDisplay` - Visualización de lectura con indicadores de confianza
+    - Mutations TanStack Query: `useExtractMeterReadingMutation`, `useUpdateMeterReadingMutation`
+    - Rate limiting: 20 requests/min para OCR, 100 requests/min para actualizaciones
+    - Campos OCR en modelo `Consumption`: `ocrExtracted`, `ocrConfidence`, `ocrRawText`, `extractedAt`
+    - Validación: Lecturas deben ser positivas, razonables (0-10M kWh), y mayores o iguales a lectura anterior
+  - **Extracción de facturas:**
+    - Función `extractBillInformation` en `lib/ocr-service.ts` para extraer datos completos de facturas PDF
+    - Extrae `ElectricityBill` (periodStart, periodEnd, totalKWh, totalCost) y `ServiceCharges` (8 campos)
+    - Endpoint API: `POST /api/electricity-bills/extract` - Extracción de facturas (solo ADMIN)
+    - Componentes UI:
+      - `BillPDFUpload` - Subida de PDF/imagen y extracción de datos
+      - `ElectricityBillForm` - Formulario unificado con pre-llenado automático
+    - Mutations TanStack Query: `useExtractBillDataMutation`, `useCreateElectricityBillWithChargesMutation`
+    - Rate limiting: 10 requests/min para extracción de facturas
+    - Validación completa de fechas, números y estructura de datos
+    - Advertencias cuando confianza < 70%
 - ✅ **Error Handling**: Sistema de errores de dominio (`DomainError`) implementado
-- ✅ **Validation**: Validación con Zod integrada en API routes (payment, electricity-bill, service-charges schemas)
+- ✅ **Validation**: Validación con Zod integrada en API routes (payment, electricity-bill, service-charges, consumption, ocr schemas)
 - ✅ **Authentication**: Mejoras en autenticación (session.user.id correctamente poblado)
 - ✅ **CI/CD**: Migrado a pnpm en workflows de GitHub Actions
 

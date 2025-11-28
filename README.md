@@ -37,6 +37,17 @@ The administrator is responsible for managing tenant consumption and overseeing 
 - **Automatic invoice status updates** when payments cover the total invoice amount.
 - **Upload electricity bills** and automatically generate invoices for all active tenants.
 - **Track meter readings** with previous reading support for accurate consumption calculation.
+- **OCR-powered meter reading extraction**: Automatically extract meter readings from photos using OpenAI Vision (GPT-4o-mini):
+  - Upload photos of electricity meters taken on the 6th of each month
+  - Automatic extraction with confidence scoring (0-100%)
+  - Manual editing capability when confidence is low (< 70%)
+  - Full OCR history tracking (`ocrExtracted`, `ocrConfidence`, `ocrRawText`, `extractedAt`)
+- **OCR-powered bill data extraction**: Automatically extract complete bill information from PDFs/images:
+  - Upload electricity bill PDFs/images (Pluz Energía Perú format)
+  - Automatic extraction of ElectricityBill data (period, total kWh, total cost)
+  - Automatic extraction of ServiceCharges (all 8 fields: maintenance, fixed charge, interest, lighting, law contribution, late fee, rounding)
+  - Pre-fills unified form with extracted data for review and editing
+  - Confidence scoring with warnings when confidence is low (< 70%)
 - **Send invoices to tenants** via email (as PDF attachment) or WhatsApp (as text message).
 - **Review and edit invoices** before sending to ensure accuracy.  
 
@@ -90,6 +101,12 @@ Estas son las herramientas y librerías que realmente se usan actualmente en el 
 ### **📌 Email y notificaciones**  
 - **Nodemailer** (`~6.9.1`) y **Resend** (`~4.5.1`)  
 - **Sonner** (`~2.0.5`)  
+
+### **📌 Storage y Media**  
+- **Cloudinary** (`cloudinary@^2.7.0`, `next-cloudinary@^6.16.0`) - Almacenamiento de imágenes y documentos (facturas, fotos de medidores)
+
+### **📌 AI y OCR**  
+- **OpenAI API** - GPT-4o-mini para OCR de lecturas de medidores y code review automático
 
 ### **📌 Utilidades**  
 - `class-variance-authority`, `clsx`, `nanoid`, `reflect-metadata`  
@@ -221,12 +238,26 @@ Crea un archivo `.env.local` en la raíz del proyecto. Ejemplos típicos (ajusta
 - `SMTP_PASS=...`  
 - `GOOGLE_APP_PASSWORD=...` (opcional como fallback solo para Gmail)
 
+### Cloudinary (Storage de imágenes)
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=...` - Nombre de tu cloud en Cloudinary
+- `NEXT_PUBLIC_CLOUDINARY_API_KEY=...` - API key de Cloudinary
+- `CLOUDINARY_API_SECRET=...` - API secret de Cloudinary (solo servidor)
+- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...` - Upload preset para subir imágenes
+
 ### App (opcional)
 - `NEXT_PUBLIC_APP_URL="http://localhost:3000"`
 
-### Code Review con OpenAI (opcional)
-- `OPENAI_API_KEY=sk-...` - API key de OpenAI para code review automático
+### OpenAI (Code Review y OCR)
+- `OPENAI_API_KEY=sk-...` - API key de OpenAI para:
+  - Code review automático (opcional)
+  - OCR de lecturas de medidores (requerido para funcionalidad OCR)
 - `OPENAI_MODEL=gpt-4o-mini` - Modelo a usar (por defecto: gpt-4o-mini)
+
+**Nota sobre OCR:** El sistema OCR usa GPT-4o-mini para extraer lecturas de medidores desde imágenes. Se requiere `OPENAI_API_KEY` para habilitar esta funcionalidad. El sistema incluye:
+- Extracción automática con retry logic (3 intentos)
+- Scoring de confianza (0-100%)
+- Edición manual cuando la confianza es baja (< 70%)
+- Historial completo de extracciones OCR
 
 > Tras configurar `DATABASE_URL`, ejecuta la app con `pnpm dev`. `prisma generate` se ejecuta automáticamente en `postinstall`.
 

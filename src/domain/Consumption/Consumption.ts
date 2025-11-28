@@ -6,6 +6,9 @@ export class Consumption {
   previousReading: number | null;
   energyReading: number;
   meterImageUrl: string | null;
+  ocrExtracted: boolean;
+  ocrConfidence: number | null;
+  ocrRawText: string | null;
   extractedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -20,7 +23,10 @@ export class Consumption {
     createdAt: Date,
     updatedAt: Date,
     id?: string,
-    previousReading?: number | null
+    previousReading?: number | null,
+    ocrExtracted?: boolean,
+    ocrConfidence?: number | null,
+    ocrRawText?: string | null
   ) {
     this.id = id || '';
     this.rentalId = rentalId;
@@ -29,6 +35,9 @@ export class Consumption {
     this.previousReading = previousReading ?? null;
     this.energyReading = energyReading;
     this.meterImageUrl = meterImageUrl;
+    this.ocrExtracted = ocrExtracted ?? false;
+    this.ocrConfidence = ocrConfidence ?? null;
+    this.ocrRawText = ocrRawText ?? null;
     this.extractedAt = extractedAt;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;

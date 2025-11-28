@@ -25,9 +25,23 @@ export interface IConsumptionRepository {
   findByRentalMonthYear(rentalId: string, month: number, year: number): Promise<Consumption | null>;
 
   /**
+   * Find consumption by ID
+   * @param id - The consumption ID
+   * @returns The consumption entity or null if not found
+   */
+  findById(id: string): Promise<Consumption | null>;
+
+  /**
    * Find the most recent consumption for a user
    * @param userId - The user ID
    * @returns The most recent Consumption or null
    */
   findLatestByUserId(userId: string): Promise<Consumption | null>;
+
+  /**
+   * Update a consumption entity
+   * @param consumption - The consumption entity to update
+   * @returns The updated consumption entity
+   */
+  update(consumption: Consumption): Promise<Consumption>;
 }

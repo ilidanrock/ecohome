@@ -12,6 +12,7 @@
 - Favor named exports for components/utilities unless the file already uses default export.
 - UI components should leverage existing Shadcn primitives (`components/ui/*`) and helper utilities (`cn` in `lib/utils.ts`).
 - When working inside domain/application layers (`src/domain`, `src/application`), keep classes immutable where practical and respect DDD boundaries (no direct Prisma calls).
+- **Never use `eslint-disable` comments**. If a parameter is required by an interface but not used directly, use `void parameterName` to explicitly mark it as intentionally unused. Document why the parameter exists but isn't used in a comment above.
 
 ## Component Architecture
 - **Modular Components**: Extract reusable sub-components from large components (e.g., `HeaderSearch`, `HeaderNotifications`, `HeaderUserMenu` from `Header`).

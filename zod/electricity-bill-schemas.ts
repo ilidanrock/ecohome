@@ -54,4 +54,3 @@ export const generateInvoicesSchema = z.object({
 
 export type CreateElectricityBillInput = z.infer<typeof createElectricityBillSchema>;
 export type GenerateInvoicesInput = z.infer<typeof generateInvoicesSchema>;
-

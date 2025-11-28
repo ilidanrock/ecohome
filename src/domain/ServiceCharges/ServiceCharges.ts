@@ -1,19 +1,19 @@
 export class ServiceCharges {
   id: string;
   electricityBillId: string;
-  
+
   // Servicios antes de IGV
-  maintenanceAndReplacement: number;  // Reposición y mantenimiento
-  fixedCharge: number;                // Cargo fijo
-  compensatoryInterest: number;        // Interés compensatorio
-  publicLighting: number;              // Alumbrado público
-  
+  maintenanceAndReplacement: number; // Reposición y mantenimiento
+  fixedCharge: number; // Cargo fijo
+  compensatoryInterest: number; // Interés compensatorio
+  publicLighting: number; // Alumbrado público
+
   // Servicios después de IGV
-  lawContribution: number;             // Aporte Ley N° 28749
-  lateFee: number;                     // Recargo por mora
-  previousMonthRounding: number;       // Redondeo Mes Anterior
-  currentMonthRounding: number;        // Redondeo Mes Actual
-  
+  lawContribution: number; // Aporte Ley N° 28749
+  lateFee: number; // Recargo por mora
+  previousMonthRounding: number; // Redondeo Mes Anterior
+  currentMonthRounding: number; // Redondeo Mes Actual
+
   createdAt: Date;
   updatedAt: Date;
 
@@ -84,10 +84,7 @@ export class ServiceCharges {
    */
   public getTotalAfterIGV(): number {
     return (
-      this.lawContribution +
-      this.lateFee +
-      this.previousMonthRounding +
-      this.currentMonthRounding
+      this.lawContribution + this.lateFee + this.previousMonthRounding + this.currentMonthRounding
     );
   }
 
@@ -123,4 +120,3 @@ export class ServiceCharges {
     return this.getTotalAfterIGV() / numberOfPeople;
   }
 }
-

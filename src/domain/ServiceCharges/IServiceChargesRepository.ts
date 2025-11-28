@@ -28,4 +28,3 @@ export interface IServiceChargesRepository {
    */
   deleteByElectricityBillId(electricityBillId: string): Promise<void>;
 }
-

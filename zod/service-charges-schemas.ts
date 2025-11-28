@@ -55,4 +55,3 @@ export const createServiceChargesSchema = z.object({
 });
 
 export type CreateServiceChargesInput = z.infer<typeof createServiceChargesSchema>;
-

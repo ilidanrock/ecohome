@@ -48,4 +48,3 @@ export interface IElectricityBillRepository {
    */
   delete(id: string): Promise<void>;
 }
-

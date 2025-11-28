@@ -81,9 +81,6 @@ export class ElectricityBill {
    * @returns true si los períodos se solapan
    */
   public overlapsWith(other: ElectricityBill): boolean {
-    return (
-      this.periodStart <= other.periodEnd && this.periodEnd >= other.periodStart
-    );
+    return this.periodStart <= other.periodEnd && this.periodEnd >= other.periodStart;
   }
 }
-

@@ -23,11 +23,7 @@ export interface IInvoiceRepository {
    * @param year - The year
    * @returns The invoice entity or null if not found
    */
-  findByRentalMonthYear(
-    rentalId: string,
-    month: number,
-    year: number
-  ): Promise<Invoice | null>;
+  findByRentalMonthYear(rentalId: string, month: number, year: number): Promise<Invoice | null>;
 
   /**
    * Create a new invoice

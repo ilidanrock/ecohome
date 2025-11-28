@@ -22,11 +22,7 @@ export interface IConsumptionRepository {
    * @param year - The year
    * @returns The consumption entity or null if not found
    */
-  findByRentalMonthYear(
-    rentalId: string,
-    month: number,
-    year: number
-  ): Promise<Consumption | null>;
+  findByRentalMonthYear(rentalId: string, month: number, year: number): Promise<Consumption | null>;
 
   /**
    * Find the most recent consumption for a user

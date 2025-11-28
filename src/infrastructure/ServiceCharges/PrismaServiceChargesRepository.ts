@@ -101,4 +101,3 @@ export class PrismaServiceChargesRepository implements IServiceChargesRepository
     );
   }
 }
-

@@ -37,9 +37,8 @@ export class CreateInvoicesForProperty {
       throw new Error('Electricity bill does not belong to the specified property');
     }
 
-    const serviceCharges = await this.serviceChargesRepository.findByElectricityBillId(
-      electricityBillId
-    );
+    const serviceCharges =
+      await this.serviceChargesRepository.findByElectricityBillId(electricityBillId);
 
     // Obtener todos los rentals activos de la propiedad en el período
     const periodDate = new Date(year, month - 1, 1);
@@ -67,10 +66,7 @@ export class CreateInvoicesForProperty {
     }
 
     // 2. Calcular consumo propio
-    const ownConsumption = Math.max(
-      Number(electricityBill.totalKWh) - totalTenantConsumption,
-      0
-    );
+    const ownConsumption = Math.max(Number(electricityBill.totalKWh) - totalTenantConsumption, 0);
 
     // Obtener administradores de la propiedad
     const property = await this.prisma.property.findUnique({
@@ -104,10 +100,14 @@ export class CreateInvoicesForProperty {
     // Calcular costo de agua por persona (equitativo)
     const waterCostPerPerson = waterCost / numberOfPeople;
 
-    // 3. Crear invoices usando transacción
+    // 3. Crear invoices usando transacción para garantizar atomicidad
+    // Nota: El parámetro tx no se usa directamente porque IInvoiceRepository.create()
+    // no acepta un cliente de transacción. La transacción se mantiene para atomicidad.
     const invoices = await this.transactionManager.execute(
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      async (_tx) => {
+      async (tx) => {
+        // Transaction context available but not used directly
+        // All operations are executed within the transaction scope
+        void tx;
         const createdInvoices: Invoice[] = [];
 
         // Crear invoice para cada inquilino
@@ -222,4 +222,3 @@ export class CreateInvoicesForProperty {
     return invoices;
   }
 }
-

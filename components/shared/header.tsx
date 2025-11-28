@@ -55,7 +55,7 @@ export function Header({
         {onOpenSidebar && (
           <button
             type="button"
-              className={cn(
+            className={cn(
               'flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 lg:hidden',
               'bg-slate-100/80 dark:bg-slate-800/80',
               'text-slate-700 dark:text-slate-300',
@@ -73,7 +73,7 @@ export function Header({
           </button>
         )}
         <HeaderSearch
-              placeholder={searchPlaceholder}
+          placeholder={searchPlaceholder}
           onSearch={onSearch}
           maxWidth={isAdmin ? 'xl' : 'md'}
         />

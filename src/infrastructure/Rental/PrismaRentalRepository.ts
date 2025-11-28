@@ -26,10 +26,7 @@ export class PrismaRentalRepository implements IRentalRepository {
         startDate: {
           lte: date,
         },
-        OR: [
-          { endDate: null },
-          { endDate: { gte: date } },
-        ],
+        OR: [{ endDate: null }, { endDate: { gte: date } }],
       },
     });
 

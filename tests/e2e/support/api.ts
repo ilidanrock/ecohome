@@ -207,8 +207,7 @@ export class ApiHelper {
       throw new Error('Failed to get CSRF token');
     }
 
-    const csrfData = await csrfResponse.json();
-    const csrfToken = csrfData.csrfToken;
+    const { csrfToken } = await csrfResponse.json();
 
     // Attempt login via NextAuth callback
     const response = await context.post('/api/auth/callback/credentials', {

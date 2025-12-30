@@ -25,7 +25,7 @@ export abstract class DomainError extends Error {
    */
   toErrorResponse(errorId?: string): ErrorResponse {
     // Map domain error code to standard ErrorCode
-    const standardCode = this.mapCodeToErrorCode(this.code);
+    const standardCode = this.mapCodeToErrorCode();
     const level = getErrorLevelFromStatus(this.statusCode);
 
     return {

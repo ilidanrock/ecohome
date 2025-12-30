@@ -31,6 +31,6 @@ export function getTestConsumptionData(
     month: month || now.getMonth() + 1,
     year: year || now.getFullYear(),
     energyReading: energyReading || 100.0,
-    previousReading: previousReading || null,
+    previousReading: previousReading,
   };
 }

@@ -29,6 +29,6 @@ export function getTestRentalData(
     userId,
     propertyId,
     startDate: startDate || new Date(now.getFullYear(), now.getMonth() - 6, 1), // 6 months ago
-    endDate: endDate || null,
+    endDate: endDate,
   };
 }

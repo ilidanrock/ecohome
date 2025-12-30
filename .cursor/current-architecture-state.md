@@ -47,6 +47,17 @@
     - Validación completa de fechas, números y estructura de datos
     - Advertencias cuando confianza < 70%
 - ✅ **Error Handling**: Sistema de errores de dominio (`DomainError`) implementado
+- ✅ **Global Error System**: Sistema completo de manejo global de errores implementado:
+  - Códigos de error estandarizados (`ErrorCode` enum) con tres niveles (success, error, advisory)
+  - Interceptores automáticos para TanStack Query y fetch
+  - Toasts automáticos con colores apropiados (verde/rojo/amarillo)
+  - Backend error handler con mapeo de códigos y niveles
+  - Frontend interceptors para captura automática de errores
+  - Toast service para visualización consistente
+  - Hooks manuales (`useErrorToast`) para errores personalizados
+  - Handlers de errores de formularios para React Hook Form
+  - Fetch wrapper con manejo automático de errores
+  - Extensión de DomainError (`toErrorResponse()`) para mapeo de códigos
 - ✅ **Validation**: Validación con Zod integrada en API routes (payment, electricity-bill, service-charges, consumption, ocr schemas)
 - ✅ **Authentication**: Mejoras en autenticación (session.user.id correctamente poblado)
 - ✅ **CI/CD**: Migrado a pnpm en workflows de GitHub Actions
@@ -271,7 +282,7 @@ app/layout.tsx
   - `Consumption/` - Entidad Consumption con `previousReading` para cálculo de período
   - `ElectricityBill/` - Entidad ElectricityBill con métodos de cálculo
   - `ServiceCharges/` - Entidad ServiceCharges con métodos para calcular totales antes/después de IGV
-  - `errors/` - Clase base DomainError para errores de dominio
+  - `errors/` - Clase base DomainError para errores de dominio con método `toErrorResponse()`
 - `src/application/` - Casos de uso y orquestación
   - `Payment/` - CreateRentalPayment, CreateServicePayment
   - `Rental/` - GetRentalById con validación de permisos
@@ -286,6 +297,19 @@ app/layout.tsx
   - `Shared/` - PrismaTransactionManager para transacciones
 - `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias centralizada
 - `zod/` - Schemas de validación para API routes (payment, electricity-bill, service-charges)
+- `lib/errors/` - Sistema global de manejo de errores:
+  - `error-codes.ts` - Enum de códigos de error estandarizados
+  - `types.ts` - Tipos TypeScript (ErrorResponse, ToastConfig, ErrorLevel)
+  - `error-mapper.ts` - Mapeo de códigos a niveles y tipos de toast
+  - `error-level.ts` - Helpers para determinar niveles de error
+  - `toast-service.ts` - Servicio centralizado de toasts
+  - `query-error-interceptor.ts` - Interceptores para TanStack Query
+  - `fetch-wrapper.ts` - Wrapper de fetch con manejo automático
+  - `useErrorToast.ts` - Hook React para toasts manuales
+  - `form-error-handler.ts` - Manejo de errores de formularios
+  - `index.ts` - Exportaciones centralizadas
+- `lib/error-handler.ts` - Manejo de errores en API routes con código y nivel
+- `components/ui/sonner.tsx` - Componente Toaster con colores configurados
 
 ## 📊 Comparación: Antes vs Ahora
 
@@ -386,7 +410,7 @@ Component
 ### Características Clave
 
 1. **Validación Robusta**: Validación en múltiples capas (Zod en API, validaciones de dominio en entidades)
-2. **Manejo de Errores**: Errores específicos de dominio que se mapean a códigos HTTP apropiados
+2. **Manejo de Errores**: Sistema global de errores con códigos estandarizados (`ErrorCode` enum), tres niveles (success/error/advisory), interceptores automáticos para TanStack Query y fetch, y toasts automáticos con colores apropiados
 3. **Transacciones**: Uso de transacciones Prisma para operaciones atómicas (pagos de servicios con actualización de estado de invoice)
 4. **Control de Acceso**: Validación de permisos usando casos de uso (GetRentalById, GetInvoiceById)
 5. **Métodos de Pago**: Soporte para YAPE, CASH, y BANK_TRANSFER

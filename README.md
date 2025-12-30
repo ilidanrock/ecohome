@@ -100,7 +100,13 @@ Estas son las herramientas y librerías que realmente se usan actualmente en el 
 
 ### **📌 Email y notificaciones**  
 - **Nodemailer** (`~6.9.1`) y **Resend** (`~4.5.1`)  
-- **Sonner** (`~2.0.5`)  
+- **Sonner** (`~2.0.5`) - Sistema de toasts para notificaciones
+
+### **📌 Manejo de errores**  
+- **Sistema global de errores** (`lib/errors/`) - Manejo centralizado de errores con tres niveles (success, error, advisory)
+- **Interceptores automáticos** - Captura automática de errores de TanStack Query y fetch
+- **Códigos de error estandarizados** - Enum de códigos para consistencia
+- **Toasts automáticos** - Notificaciones automáticas al usuario con códigos y mensajes  
 
 ### **📌 Storage y Media**  
 - **Cloudinary** (`cloudinary@^2.7.0`, `next-cloudinary@^6.16.0`) - Almacenamiento de imágenes y documentos (facturas, fotos de medidores)
@@ -258,6 +264,12 @@ Crea un archivo `.env.local` en la raíz del proyecto. Ejemplos típicos (ajusta
 - Scoring de confianza (0-100%)
 - Edición manual cuando la confianza es baja (< 70%)
 - Historial completo de extracciones OCR
+
+**Nota sobre manejo de errores:** El sistema incluye un manejo global de errores que:
+- Captura automáticamente todos los errores del backend y frontend
+- Categoriza errores en tres niveles: success, error, advisory
+- Muestra toasts automáticamente con códigos de error estandarizados
+- Proporciona feedback consistente al usuario en todas las acciones
 
 > Tras configurar `DATABASE_URL`, ejecuta la app con `pnpm dev`. `prisma generate` se ejecuta automáticamente en `postinstall`.
 

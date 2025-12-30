@@ -7,18 +7,40 @@
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import type { BillOCRResult } from '@/lib/ocr-service';
 import { billKeys } from './keys';
+import type { ErrorResponse } from '@/lib/errors/types';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorCodeFromStatus, getErrorLevelFromStatus } from '@/lib/errors/error-level';
 
 /**
  * Base error class for bills API errors
+ * Includes ErrorResponse structure for automatic toast handling
  */
 export class BillsApiError extends Error {
+  public readonly errorResponse: ErrorResponse;
+
   constructor(
     message: string,
     public readonly statusCode?: number,
-    public readonly originalError?: unknown
+    public readonly originalError?: unknown,
+    errorResponse?: ErrorResponse
   ) {
     super(message);
     this.name = 'BillsApiError';
+
+    // Create ErrorResponse from parameters or use provided one
+    if (errorResponse) {
+      this.errorResponse = errorResponse;
+    } else {
+      const code = statusCode ? getErrorCodeFromStatus(statusCode) : ErrorCode.INTERNAL_ERROR;
+      const level = statusCode ? getErrorLevelFromStatus(statusCode) : 'error';
+      this.errorResponse = {
+        code,
+        message,
+        level,
+        details: originalError,
+      };
+    }
+
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, BillsApiError);
     }
@@ -87,6 +109,17 @@ export function useExtractBillDataMutation() {
 
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
+
+            // Check if errorData has ErrorResponse structure
+            if (errorData.code && errorData.message && errorData.level) {
+              throw new BillsApiError(
+                errorData.message,
+                response.status,
+                errorData,
+                errorData as ErrorResponse
+              );
+            }
+
             const errorMessage =
               errorData.message || `Failed to extract bill data: ${response.statusText}`;
 
@@ -190,6 +223,17 @@ export function useCreateElectricityBillWithChargesMutation() {
 
         if (!billResponse.ok) {
           const errorData = await billResponse.json().catch(() => ({}));
+
+          // Check if errorData has ErrorResponse structure
+          if (errorData.code && errorData.message && errorData.level) {
+            throw new BillsApiError(
+              errorData.message,
+              billResponse.status,
+              errorData,
+              errorData as ErrorResponse
+            );
+          }
+
           const errorMessage =
             errorData.message || `Failed to create electricity bill: ${billResponse.statusText}`;
 
@@ -216,6 +260,17 @@ export function useCreateElectricityBillWithChargesMutation() {
 
         if (!chargesResponse.ok) {
           const errorData = await chargesResponse.json().catch(() => ({}));
+
+          // Check if errorData has ErrorResponse structure
+          if (errorData.code && errorData.message && errorData.level) {
+            throw new BillsApiError(
+              errorData.message,
+              chargesResponse.status,
+              errorData,
+              errorData as ErrorResponse
+            );
+          }
+
           const errorMessage =
             errorData.message || `Failed to create service charges: ${chargesResponse.statusText}`;
 

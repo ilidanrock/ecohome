@@ -5,6 +5,7 @@ import { SessionProvider } from '@/providers/session-provider';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import './globals.css';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -38,6 +39,7 @@ export default async function RootLayout({
               <SidebarProvider>
                 <SessionProvider>{children}</SessionProvider>
               </SidebarProvider>
+              <Toaster position="top-right" richColors />
             </div>
           </ThemeProvider>
         </QueryProvider>

@@ -8,18 +8,40 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import type { ConsumptionResponse } from '@/types';
 import { consumptionKeys } from './keys';
+import type { ErrorResponse } from '@/lib/errors/types';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorCodeFromStatus, getErrorLevelFromStatus } from '@/lib/errors/error-level';
 
 /**
  * Base error class for consumption API errors
+ * Includes ErrorResponse structure for automatic toast handling
  */
 export class ConsumptionApiError extends Error {
+  public readonly errorResponse: ErrorResponse;
+
   constructor(
     message: string,
     public readonly statusCode?: number,
-    public readonly originalError?: unknown
+    public readonly originalError?: unknown,
+    errorResponse?: ErrorResponse
   ) {
     super(message);
     this.name = 'ConsumptionApiError';
+
+    // Create ErrorResponse from parameters or use provided one
+    if (errorResponse) {
+      this.errorResponse = errorResponse;
+    } else {
+      const code = statusCode ? getErrorCodeFromStatus(statusCode) : ErrorCode.INTERNAL_ERROR;
+      const level = statusCode ? getErrorLevelFromStatus(statusCode) : 'error';
+      this.errorResponse = {
+        code,
+        message,
+        level,
+        details: originalError,
+      };
+    }
+
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ConsumptionApiError);
@@ -101,13 +123,21 @@ async function fetchConsumptionData(): Promise<ConsumptionResponse> {
       const statusCode = response.status;
       let errorMessage = `Failed to fetch consumption data (${statusCode})`;
       let errorDetails: unknown;
+      let errorResponse: ErrorResponse | undefined;
 
       // Try to extract error details from the response body
       // The API may return structured error information in JSON format
       try {
         const errorData = await response.json();
-        // Prefer specific error messages from the API response
-        errorMessage = errorData.error || errorData.message || errorMessage;
+
+        // Check if errorData has ErrorResponse structure
+        if (errorData.code && errorData.message && errorData.level) {
+          errorResponse = errorData as ErrorResponse;
+          errorMessage = errorData.message;
+        } else {
+          // Prefer specific error messages from the API response
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        }
         errorDetails = errorData;
       } catch {
         // If response is not JSON (e.g., plain text error), use status text
@@ -140,6 +170,16 @@ async function fetchConsumptionData(): Promise<ConsumptionResponse> {
         }
 
         console.error(...logParts);
+      }
+
+      // Use ErrorResponse if available, otherwise categorize by status code
+      if (errorResponse) {
+        throw new ConsumptionApiError(
+          errorResponse.message,
+          statusCode,
+          errorDetails,
+          errorResponse
+        );
       }
 
       // Categorize error by HTTP status code range

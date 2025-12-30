@@ -72,7 +72,7 @@ export class OCRValidationError extends Error {
   }
 }
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const { OPENAI_API_KEY } = process.env;
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL = 'gpt-4o-mini'; // More economical, sufficient for OCR
 const MAX_RETRIES = 3;
@@ -416,7 +416,7 @@ If you cannot clearly read the bill, set confidence to a low value (below 50) an
         throw new OCRValidationError('Missing serviceCharges in OCR result');
       }
 
-      const serviceCharges = result.serviceCharges;
+      const { serviceCharges } = result;
       const serviceChargeFields = [
         'maintenanceAndReplacement',
         'fixedCharge',
@@ -436,13 +436,15 @@ If you cannot clearly read the bill, set confidence to a low value (below 50) an
           );
         }
         // Most fields should be non-negative, except rounding which can be negative
-        if (field !== 'previousMonthRounding' && field !== 'currentMonthRounding') {
-          if (serviceCharges[field] < 0) {
-            throw new OCRValidationError(
-              `Invalid ${field}: expected non-negative number, got ${serviceCharges[field]}`,
-              serviceCharges[field]
-            );
-          }
+        if (
+          field !== 'previousMonthRounding' &&
+          field !== 'currentMonthRounding' &&
+          serviceCharges[field] < 0
+        ) {
+          throw new OCRValidationError(
+            `Invalid ${field}: expected non-negative number, got ${serviceCharges[field]}`,
+            serviceCharges[field]
+          );
         }
       }
 

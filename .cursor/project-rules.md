@@ -192,6 +192,132 @@ When adding a new feature (e.g., Payment, ElectricityBill, ServiceCharges):
 - **Input Validation**: Use Zod schemas for all API route input validation. Schemas are located in `zod/` directory.
 - **Error Handling**: Use domain-specific error classes extending `DomainError` for consistent error handling across the application.
 
+## Global Error Handling System
+
+### Overview
+EcoHome implements a centralized global error handling system that automatically captures errors from backend and frontend, categorizes them into three levels (success, error, advisory), and displays toast notifications to users with standardized error codes and messages.
+
+### Error Levels
+- **success**: Successful operations (2xx status codes)
+- **error**: Client (4xx) or server (5xx) errors
+- **advisory**: Warnings or informational messages
+
+### Error Codes
+All errors use standardized codes from `ErrorCode` enum (`lib/errors/error-codes.ts`):
+- Success: `SUCCESS`, `CREATED`, `UPDATED`, `DELETED`
+- Client errors: `VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `RATE_LIMIT_EXCEEDED`, `PAYLOAD_TOO_LARGE`, `BAD_REQUEST`
+- Server errors: `INTERNAL_ERROR`, `DATABASE_ERROR`, `EXTERNAL_SERVICE_ERROR`, `SERVICE_UNAVAILABLE`
+- Advisory: `WARNING`, `INFO`, `PARTIAL_SUCCESS`
+
+### Backend Error Handling
+- **API Routes**: Use `handleApiError()` from `lib/error-handler.ts` which automatically:
+  - Generates unique error IDs for tracking
+  - Maps errors to standardized `ErrorCode` enum
+  - Determines error level based on status code
+  - Returns `ErrorResponse` structure with `code`, `message`, `level`, `errorId`, and optional `details`
+  - Logs full error details server-side (never exposed to client)
+- **Domain Errors**: Extend `DomainError` and implement `toErrorResponse()` method to map domain codes to standard codes
+- **Response Structure**: All API error responses follow `ErrorResponse` interface:
+  ```typescript
+  {
+    code: ErrorCode,
+    message: string,
+    level: 'success' | 'error' | 'advisory',
+    errorId?: string,
+    details?: unknown
+  }
+  ```
+
+### Frontend Error Handling
+
+#### Automatic Interceptors
+- **TanStack Query**: Errors are automatically intercepted via `queryCache` and `mutationCache` in `QueryProvider`
+- **Fetch Wrapper**: Use `fetchWithErrorHandling()` from `lib/errors/fetch-wrapper.ts` for automatic error handling
+- **Error Extraction**: Interceptors extract `ErrorResponse` from:
+  - Custom error classes with `errorResponse` property (e.g., `BillsApiError`, `ConsumptionApiError`)
+  - API responses with `ErrorResponse` structure
+  - Standard Error objects (fallback)
+
+#### Toast Service
+- **Automatic Display**: `ToastService.show()` automatically displays toasts based on error level:
+  - `success` → green toast (toast.success)
+  - `error` → red toast (toast.error)
+  - `advisory` → yellow/orange toast (toast.warning or toast.info)
+- **Manual Display**: Use `useErrorToast()` hook for manual toast display:
+  ```typescript
+  const { showSuccess, showError, showAdvisory } = useErrorToast();
+  ```
+- **Toast Configuration**: Toasts include error code in message format: `"Message (CODE)"`
+- **Duration**: Automatic duration based on level (success: 3s, error: 5s, advisory: 4s)
+
+#### Form Error Handling
+- **React Hook Form**: Use `useFormErrorHandler()` hook to automatically show toasts on validation errors
+- **Server Validation**: Use `showServerFormErrors()` for server-side validation errors
+- **Manual Display**: Use `showFormErrors()` to manually display form validation errors
+
+### Usage Guidelines
+
+#### In API Routes
+```typescript
+import { handleApiError } from '@/lib/error-handler';
+
+export async function POST(request: NextRequest) {
+  try {
+    // ... business logic ...
+  } catch (error) {
+    return handleApiError(error, { endpoint: '/api/example', method: 'POST' });
+  }
+}
+```
+
+#### In TanStack Query
+Errors are automatically intercepted. No manual handling needed:
+```typescript
+// Errors automatically show toast via interceptor
+const { data, error } = useQuery({ queryKey: ['key'], queryFn: fetchData });
+```
+
+#### Manual Toast Display
+```typescript
+import { useErrorToast } from '@/lib/errors/useErrorToast';
+
+const { showSuccess, showError, showAdvisory } = useErrorToast();
+
+// Show success
+showSuccess('Operation completed successfully', ErrorCode.CREATED);
+
+// Show error
+showError('Something went wrong', ErrorCode.INTERNAL_ERROR);
+
+// Show advisory
+showAdvisory('Please review the data', ErrorCode.WARNING);
+```
+
+#### In Forms
+```typescript
+import { useFormErrorHandler } from '@/lib/errors/form-error-handler';
+
+const form = useForm<FormData>({ ... });
+useFormErrorHandler(form); // Automatically shows toasts on validation errors
+```
+
+### Error Flow
+```
+Backend Error → handleApiError() → ErrorResponse (code, message, level)
+                                           ↓
+Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
+                                                      ↓
+                                              Sonner Toast (success/error/warning)
+```
+
+### Key Principles
+- **Always show feedback**: Every user action should result in a toast notification (success or error)
+- **Use standardized codes**: Always use `ErrorCode` enum, never custom strings
+- **Automatic handling**: Let interceptors handle errors automatically when possible
+- **Manual when needed**: Use manual toast display for specific UI feedback
+- **Error details**: Include relevant details in `ErrorResponse.details` for debugging (only in development)
+- **No stack traces**: Never expose stack traces to clients, only in server logs
+
 ## UI & Design
 - Follow the design guidelines in `DesignManual.md`: EcoBlue (#007BFF)/EcoGreen (#28A745) palette, Geist/Inter typography, responsive layouts.
 - **Header Styling**: Use `ecoblue` and `ecogreen` Tailwind classes for brand colors. Ensure dark/light mode contrast meets WCAG AA standards.

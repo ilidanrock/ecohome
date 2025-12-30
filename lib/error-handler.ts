@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { DomainError } from '@/src/domain/errors/DomainError';
 import { logger } from './logger';
+import { ErrorCode } from './errors/error-codes';
+import { getErrorCodeFromStatus, getErrorLevelFromStatus } from './errors/error-level';
+import type { ErrorResponse } from './errors/types';
 
 /**
  * Maximum payload size in bytes (1MB)
@@ -53,48 +56,56 @@ export function handleApiError(error: unknown, context: ErrorContext = {}): Next
 
   // Handle domain errors specifically
   if (error instanceof DomainError) {
-    return NextResponse.json(
-      {
-        error: error.code,
-        message: error.message,
-        ...(isDevelopment && {
-          errorId,
-          details: {
-            name: errorName,
-            ...context,
-          },
-        }),
-      },
-      {
-        status: error.statusCode,
-        headers: {
-          'X-Error-ID': errorId,
-        },
-      }
-    );
-  }
+    const statusCode = error.statusCode;
+    const errorCode = getErrorCodeFromStatus(statusCode);
+    const level = getErrorLevelFromStatus(statusCode);
 
-  // Handle generic errors
-  return NextResponse.json(
-    {
-      error: 'Internal server error',
-      message: 'An unexpected error occurred. Please try again later.',
+    const errorResponse: ErrorResponse = {
+      code: errorCode,
+      message: error.message,
+      level,
       ...(isDevelopment && {
         errorId,
         details: {
-          message: errorMessage,
           name: errorName,
           ...context,
         },
       }),
-    },
-    {
-      status: 500,
+    };
+
+    return NextResponse.json(errorResponse, {
+      status: statusCode,
       headers: {
         'X-Error-ID': errorId,
       },
-    }
-  );
+    });
+  }
+
+  // Handle generic errors
+  const statusCode = 500;
+  const errorCode = ErrorCode.INTERNAL_ERROR;
+  const level = getErrorLevelFromStatus(statusCode);
+
+  const errorResponse: ErrorResponse = {
+    code: errorCode,
+    message: 'An unexpected error occurred. Please try again later.',
+    level,
+    ...(isDevelopment && {
+      errorId,
+      details: {
+        message: errorMessage,
+        name: errorName,
+        ...context,
+      },
+    }),
+  };
+
+  return NextResponse.json(errorResponse, {
+    status: statusCode,
+    headers: {
+      'X-Error-ID': errorId,
+    },
+  });
 }
 
 /**
@@ -110,14 +121,19 @@ export function validatePayloadSize(request: Request): NextResponse | null {
     const size = parseInt(contentLength, 10);
 
     if (isNaN(size) || size > MAX_PAYLOAD_SIZE) {
-      return NextResponse.json(
-        {
-          error: 'Payload Too Large',
-          message: `Request payload exceeds maximum size of ${MAX_PAYLOAD_SIZE / 1024}KB`,
+      const errorCode = ErrorCode.PAYLOAD_TOO_LARGE;
+      const level = getErrorLevelFromStatus(413);
+
+      const errorResponse: ErrorResponse = {
+        code: errorCode,
+        message: `Request payload exceeds maximum size of ${MAX_PAYLOAD_SIZE / 1024}KB`,
+        level,
+        details: {
           maxSize: MAX_PAYLOAD_SIZE,
         },
-        { status: 413 }
-      );
+      };
+
+      return NextResponse.json(errorResponse, { status: 413 });
     }
   }
 

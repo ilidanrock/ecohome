@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { createQueryCache, createMutationCache } from '@/lib/errors/query-error-interceptor';
 
 /**
  * QueryClient configuration
@@ -14,6 +15,8 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
  * - Single instance for better performance
  */
 const queryClient = new QueryClient({
+  queryCache: createQueryCache(),
+  mutationCache: createMutationCache(),
   defaultOptions: {
     queries: {
       // With SSR, we usually want to set some default staleTime

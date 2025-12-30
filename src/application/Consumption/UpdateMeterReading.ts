@@ -1,5 +1,11 @@
 import { IConsumptionRepository } from '@/src/domain/Consumption/IConsumptionRepository';
 import { Consumption } from '@/src/domain/Consumption/Consumption';
+import {
+  ConsumptionNotFoundError,
+  InvalidEnergyReadingError,
+  EnergyReadingTooHighError,
+  InvalidPreviousReadingError,
+} from '@/src/domain/Consumption/errors/ConsumptionErrors';
 
 export class UpdateMeterReading {
   constructor(private consumptionRepository: IConsumptionRepository) {}
@@ -22,28 +28,28 @@ export class UpdateMeterReading {
     const consumption = await this.consumptionRepository.findById(consumptionId);
 
     if (!consumption) {
-      throw new Error(`Consumption with ID ${consumptionId} not found`);
+      throw new ConsumptionNotFoundError(consumptionId);
     }
 
     // Validate energy reading is positive
     if (energyReading < 0) {
-      throw new Error('Energy reading must be positive');
+      throw new InvalidEnergyReadingError('Energy reading must be positive');
     }
 
     // Validate energy reading is reasonable (0 to 10 million kWh)
     if (energyReading > 10000000) {
-      throw new Error('Energy reading value too high (max 10,000,000 kWh)');
+      throw new EnergyReadingTooHighError(10000000);
     }
 
     // Validate previous reading if provided
     if (previousReading !== undefined && previousReading !== null) {
       if (previousReading < 0) {
-        throw new Error('Previous reading must be non-negative');
+        throw new InvalidPreviousReadingError('Previous reading must be non-negative');
       }
 
       // Validate that energy reading is greater than or equal to previous reading
       if (energyReading < previousReading) {
-        throw new Error(
+        throw new InvalidPreviousReadingError(
           `Energy reading (${energyReading}) cannot be less than previous reading (${previousReading})`
         );
       }

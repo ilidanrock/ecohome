@@ -1,7 +1,11 @@
 import { withCORS } from '@/lib/cors';
-import { prisma } from '@/prisma';
 import { redirect } from 'next/navigation';
 import { NextResponse, type NextRequest } from 'next/server';
+import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
+import { logger } from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,67 +14,35 @@ export async function GET(request: NextRequest) {
     const token = await searchParams.get('token');
 
     if (!token) {
-      return NextResponse.json({ error: 'Token no proporcionado' }, { status: 400 });
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.BAD_REQUEST,
+        message: 'Token no proporcionado',
+        level: getErrorLevelFromStatus(400),
+      };
+      return withCORS(request, NextResponse.json(errorResponse, { status: 400 }));
     }
 
-    // Validate token format before querying database (prevents timing attacks and improves performance)
-    // Tokens should be at least 32 characters and contain only alphanumeric, dash, and underscore
-    if (token.length < 32 || !/^[a-zA-Z0-9_-]+$/.test(token)) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 400 });
-    }
+    // Use ServiceContainer to verify email (maintains DDD boundaries)
+    const result = await serviceContainer.verifyToken.verifyUserEmail.execute(token);
 
-    // Use findUnique for better performance (requires unique index on token)
-    // Note: If token is not unique in schema, consider adding @@unique([token]) to VerificationToken model
-    const verifyTokenExist = await prisma.verificationToken.findFirst({
-      where: {
-        token,
-      },
-    });
+    if (!result.success) {
+      let statusCode = 400;
+      let errorCode = ErrorCode.BAD_REQUEST;
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email: verifyTokenExist?.identifier,
-      },
-    });
+      if (result.error === 'Token no encontrado') {
+        statusCode = 404;
+        errorCode = ErrorCode.NOT_FOUND;
+      } else if (result.error === 'Token expirado') {
+        statusCode = 401;
+        errorCode = ErrorCode.UNAUTHORIZED;
+      }
 
-    if (!verifyTokenExist) {
-      return withCORS(
-        request,
-        NextResponse.json({ error: 'Token no encontrado' }, { status: 404 })
-      );
-    }
-
-    if (user?.emailVerified) {
-      return withCORS(
-        request,
-        NextResponse.json({ error: 'Correo ya verificado' }, { status: 400 })
-      );
-    }
-
-    if (verifyTokenExist.expires < new Date()) {
-      return withCORS(request, NextResponse.json({ error: 'Token expirado' }, { status: 401 }));
-    }
-
-    const userUpdated = await prisma.user.update({
-      where: {
-        email: verifyTokenExist.identifier,
-      },
-      data: {
-        emailVerified: new Date(),
-      },
-    });
-
-    await prisma.verificationToken.delete({
-      where: {
-        identifier: verifyTokenExist.identifier,
-      },
-    });
-
-    if (!userUpdated) {
-      return withCORS(
-        request,
-        NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
-      );
+      const errorResponse: ErrorResponse = {
+        code: errorCode,
+        message: result.error || 'Error al verificar el correo',
+        level: getErrorLevelFromStatus(statusCode),
+      };
+      return withCORS(request, NextResponse.json(errorResponse, { status: statusCode }));
     }
 
     return redirect('/login?verified=true');
@@ -79,7 +51,6 @@ export async function GET(request: NextRequest) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : undefined;
 
-    const { logger } = await import('@/lib/logger');
     logger.error('[Verify Email API] Error verifying email', {
       message: errorMessage,
       stack: errorStack,
@@ -87,23 +58,19 @@ export async function GET(request: NextRequest) {
 
     // Return appropriate error response
     const isDevelopment = process.env.NODE_ENV === 'development';
-
-    return withCORS(
-      request,
-      NextResponse.json(
-        {
-          error: 'Internal server error',
-          message: 'Failed to verify email. Please try again later.',
-          ...(isDevelopment && {
-            details: {
-              message: errorMessage,
-              ...(errorStack && { stack: errorStack }),
-            },
-          }),
+    const errorResponse: ErrorResponse = {
+      code: ErrorCode.INTERNAL_ERROR,
+      message: 'Failed to verify email. Please try again later.',
+      level: getErrorLevelFromStatus(500),
+      ...(isDevelopment && {
+        details: {
+          message: errorMessage,
+          ...(errorStack && { stack: errorStack }),
         },
-        { status: 500 }
-      )
-    );
+      }),
+    };
+
+    return withCORS(request, NextResponse.json(errorResponse, { status: 500 }));
   }
 }
 

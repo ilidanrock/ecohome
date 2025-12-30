@@ -1,6 +1,7 @@
 import { IPaymentRepository } from '@/src/domain/Payment/IPaymentRepository';
 import { Payment, type PaymentMethod } from '@/src/domain/Payment/Payment';
 import { IRentalRepository } from '@/src/domain/Rental/IRentalRepository';
+import { RentalNotFoundError } from '@/src/domain/Rental/errors/RentalErrors';
 
 export class CreateRentalPayment {
   constructor(
@@ -20,7 +21,7 @@ export class CreateRentalPayment {
     const rental = await this.rentalRepository.findById(rentalId);
 
     if (!rental) {
-      throw new Error(`Rental with ID ${rentalId} not found`);
+      throw new RentalNotFoundError(rentalId);
     }
 
     // Create Payment entity

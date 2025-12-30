@@ -3,6 +3,7 @@ import { Payment, type PaymentMethod } from '@/src/domain/Payment/Payment';
 import { IInvoiceRepository } from '@/src/domain/Invoice/IInvoiceRepository';
 import { ITransactionManager } from '@/src/domain/Shared/ITransactionManager';
 import type { PaymentStatus } from '@/types';
+import { InvoiceNotFoundForPaymentError } from '@/src/domain/Payment/errors/PaymentErrors';
 
 export class CreateServicePayment {
   constructor(
@@ -23,7 +24,7 @@ export class CreateServicePayment {
     const invoice = await this.invoiceRepository.findById(invoiceId);
 
     if (!invoice) {
-      throw new Error(`Invoice with ID ${invoiceId} not found`);
+      throw new InvoiceNotFoundForPaymentError(invoiceId);
     }
 
     // Use transaction to prevent race condition when calculating payments and updating invoice status

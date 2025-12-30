@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/prisma';
+import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { createElectricityBillSchema } from '@/zod/electricity-bill-schemas';
 import { ElectricityBill } from '@/src/domain/ElectricityBill/ElectricityBill';
 import { ZodError } from 'zod';
 import { rateLimiters } from '@/lib/rate-limit';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 /**
  * POST /api/electricity-bills
@@ -35,23 +38,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'Only administrators can create electricity bills',
-        },
-        { status: 403 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'Only administrators can create electricity bills',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Validate payload size
@@ -67,43 +68,30 @@ export async function POST(request: NextRequest) {
       validatedData = createElectricityBillSchema.parse(body);
     } catch (error) {
       if (error instanceof ZodError) {
-        return NextResponse.json(
-          {
-            error: 'Validation error',
-            message: 'Invalid request data',
-            details: error.errors,
-          },
-          { status: 400 }
-        );
+        const errorResponse: ErrorResponse = {
+          code: ErrorCode.VALIDATION_ERROR,
+          message: 'Invalid request data',
+          level: getErrorLevelFromStatus(400),
+          details: error.errors,
+        };
+        return NextResponse.json(errorResponse, { status: 400 });
       }
       throw error;
     }
 
     // Verify that the user is an administrator of the property
-    const property = await prisma.property.findUnique({
-      where: { id: validatedData.propertyId },
-      include: { administrators: true },
-    });
+    const isAdmin = await serviceContainer.property.repository.isUserAdministrator(
+      validatedData.propertyId,
+      session.user.id
+    );
 
-    if (!property) {
-      return NextResponse.json(
-        {
-          error: 'Not found',
-          message: 'Property not found',
-        },
-        { status: 404 }
-      );
-    }
-
-    const isAdmin = property.administrators.some((admin) => admin.id === session.user.id);
     if (!isAdmin) {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'You are not an administrator of this property',
-        },
-        { status: 403 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'You are not an administrator of this property',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Create electricity bill entity
@@ -119,18 +107,8 @@ export async function POST(request: NextRequest) {
       now
     );
 
-    // Save to database using repository (we'll add this to ServiceContainer later)
-    // For now, using Prisma directly
-    const created = await prisma.electricityBill.create({
-      data: {
-        propertyId: electricityBill.propertyId,
-        periodStart: electricityBill.periodStart,
-        periodEnd: electricityBill.periodEnd,
-        totalKWh: electricityBill.totalKWh,
-        totalCost: electricityBill.totalCost,
-        fileUrl: electricityBill.fileUrl,
-      },
-    });
+    // Save to database using repository
+    const created = await serviceContainer.electricityBill.repository.create(electricityBill);
 
     return NextResponse.json(
       {

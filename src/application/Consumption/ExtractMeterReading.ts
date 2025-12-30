@@ -1,6 +1,7 @@
 import { IConsumptionRepository } from '@/src/domain/Consumption/IConsumptionRepository';
 import { extractMeterReading } from '@/lib/ocr-service';
 import { Consumption } from '@/src/domain/Consumption/Consumption';
+import { ConsumptionNotFoundError } from '@/src/domain/Consumption/errors/ConsumptionErrors';
 
 export class ExtractMeterReading {
   constructor(private consumptionRepository: IConsumptionRepository) {}
@@ -17,7 +18,7 @@ export class ExtractMeterReading {
     const consumption = await this.consumptionRepository.findById(consumptionId);
 
     if (!consumption) {
-      throw new Error(`Consumption with ID ${consumptionId} not found`);
+      throw new ConsumptionNotFoundError(consumptionId);
     }
 
     // Extract reading using OCR

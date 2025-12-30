@@ -4,6 +4,9 @@ import { signUpload, getSignedImageUrl } from '@/lib/cloudinary';
 import { rateLimiters } from '@/lib/rate-limit';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
 import type { NextRequest } from 'next/server';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 /**
  * POST /api/cloudinary/sign
@@ -37,7 +40,12 @@ export async function POST(request: NextRequest) {
     const { publicId, options = {} } = await request.json();
 
     if (!publicId) {
-      return NextResponse.json({ error: 'publicId is required' }, { status: 400 });
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.BAD_REQUEST,
+        message: 'publicId is required',
+        level: getErrorLevelFromStatus(400),
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Generate signed URL using the utility function

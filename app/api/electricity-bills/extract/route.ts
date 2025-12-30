@@ -4,6 +4,9 @@ import { extractBillInformation } from '@/lib/ocr-service';
 import { extractBillDataSchema } from '@/zod/bill-ocr-schemas';
 import { rateLimiters } from '@/lib/rate-limit';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 /**
  * POST /api/electricity-bills/extract
@@ -28,23 +31,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'Only administrators can extract bill information',
-        },
-        { status: 403 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'Only administrators can extract bill information',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Validate payload size
@@ -58,26 +59,24 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return NextResponse.json(
-        {
-          error: 'Bad Request',
-          message: 'Invalid JSON in request body',
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.BAD_REQUEST,
+        message: 'Invalid JSON in request body',
+        level: getErrorLevelFromStatus(400),
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Validate with Zod
     const validationResult = extractBillDataSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Validation Error',
-          message: 'Invalid request data',
-          details: validationResult.error.errors,
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.VALIDATION_ERROR,
+        message: 'Invalid request data',
+        level: getErrorLevelFromStatus(400),
+        details: validationResult.error.errors,
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     const { fileUrl } = validationResult.data;

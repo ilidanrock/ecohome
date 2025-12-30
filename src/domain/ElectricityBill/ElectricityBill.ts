@@ -1,3 +1,23 @@
+import { DomainError } from '@/src/domain/errors/DomainError';
+
+export class InvalidElectricityBillError extends DomainError {
+  readonly code = 'INVALID_ELECTRICITY_BILL';
+  readonly statusCode = 400;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class InvalidPeriodError extends DomainError {
+  readonly code = 'INVALID_PERIOD';
+  readonly statusCode = 400;
+
+  constructor() {
+    super('Period start must be before period end');
+  }
+}
+
 export class ElectricityBill {
   id: string;
   propertyId: string;
@@ -22,13 +42,13 @@ export class ElectricityBill {
   ) {
     // Validaciones básicas
     if (totalKWh <= 0) {
-      throw new Error('Total kWh must be greater than zero');
+      throw new InvalidElectricityBillError('Total kWh must be greater than zero');
     }
     if (totalCost <= 0) {
-      throw new Error('Total cost must be greater than zero');
+      throw new InvalidElectricityBillError('Total cost must be greater than zero');
     }
     if (periodStart >= periodEnd) {
-      throw new Error('Period start must be before period end');
+      throw new InvalidPeriodError();
     }
 
     this.id = id || '';

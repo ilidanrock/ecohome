@@ -5,25 +5,30 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { withCORS } from '@/lib/cors';
 import { getVerificationEmailTemplate } from '@/lib/email-templates';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 export async function POST(request: NextRequest) {
   const { email, token } = await request.json();
 
   if (!email || !token) {
-    const response = NextResponse.json(
-      { error: 'Missing required fields: email and token' },
-      { status: 400 }
-    );
-    return withCORS(request, response);
+    const errorResponse: ErrorResponse = {
+      code: ErrorCode.BAD_REQUEST,
+      message: 'Missing required fields: email and token',
+      level: getErrorLevelFromStatus(400),
+    };
+    return withCORS(request, NextResponse.json(errorResponse, { status: 400 }));
   }
 
   const verificationBaseUrl = process.env.NEXTAUTH_URL;
   if (!verificationBaseUrl) {
-    const response = NextResponse.json(
-      { error: 'NEXTAUTH_URL is not configured' },
-      { status: 500 }
-    );
-    return withCORS(request, response);
+    const errorResponse: ErrorResponse = {
+      code: ErrorCode.INTERNAL_ERROR,
+      message: 'NEXTAUTH_URL is not configured',
+      level: getErrorLevelFromStatus(500),
+    };
+    return withCORS(request, NextResponse.json(errorResponse, { status: 500 }));
   }
 
   const smtpHost = process.env.SMTP_HOST ?? 'smtp.gmail.com';
@@ -82,20 +87,18 @@ export async function POST(request: NextRequest) {
     // Return appropriate error response
     const isDevelopment = process.env.NODE_ENV === 'development';
 
-    const errorResponse = NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: 'Failed to send verification email. Please try again later.',
-        ...(isDevelopment && {
-          details: {
-            message: errorMessage,
-            ...(errorStack && { stack: errorStack }),
-          },
-        }),
-      },
-      { status: 500 }
-    );
-    return withCORS(request, errorResponse);
+    const errorResponse: ErrorResponse = {
+      code: ErrorCode.INTERNAL_ERROR,
+      message: 'Failed to send verification email. Please try again later.',
+      level: getErrorLevelFromStatus(500),
+      ...(isDevelopment && {
+        details: {
+          message: errorMessage,
+          ...(errorStack && { stack: errorStack }),
+        },
+      }),
+    };
+    return withCORS(request, NextResponse.json(errorResponse, { status: 500 }));
   }
 }
 

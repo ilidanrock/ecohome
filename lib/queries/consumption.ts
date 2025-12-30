@@ -11,6 +11,7 @@ import { consumptionKeys } from './keys';
 import type { ErrorResponse } from '@/lib/errors/types';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorCodeFromStatus, getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import { logger } from '@/lib/logger';
 
 /**
  * Base error class for consumption API errors
@@ -145,32 +146,13 @@ async function fetchConsumptionData(): Promise<ConsumptionResponse> {
         errorMessage = response.statusText || errorMessage;
       }
 
-      // Log error for debugging (only in development mode)
-      // This helps developers identify issues during development
-      // Note: In Next.js, NODE_ENV is available in both server and client
-      const isDevelopment =
-        typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
-
-      if (isDevelopment) {
-        // Build log message with guaranteed values
-        const logParts = [
-          '[Consumption API Error]',
-          `Status: ${statusCode}`,
-          `Message: ${errorMessage || 'No error message available'}`,
-        ];
-
-        // Add details if available and not empty
-        if (
-          errorDetails !== undefined &&
-          errorDetails !== null &&
-          (typeof errorDetails !== 'object' ||
-            (typeof errorDetails === 'object' && Object.keys(errorDetails).length > 0))
-        ) {
-          logParts.push(`Details: ${JSON.stringify(errorDetails)}`);
-        }
-
-        console.error(...logParts);
-      }
+      // Log error for debugging
+      // Using structured logging for better parsing and monitoring
+      logger.error('Consumption API error', {
+        statusCode,
+        errorMessage: errorMessage || 'No error message available',
+        errorDetails,
+      });
 
       // Use ErrorResponse if available, otherwise categorize by status code
       if (errorResponse) {

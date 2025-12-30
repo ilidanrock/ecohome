@@ -23,6 +23,7 @@
   - **Lecturas de medidores:**
     - Servicio OCR (`lib/ocr-service.ts`) con GPT-4o-mini y retry logic (3 intentos con backoff exponencial)
     - Tipos de error específicos: `OCRApiError`, `OCRParsingError`, `OCRValidationError`
+    - Preservación de tipos de error: Los errores específicos se preservan cuando los retries fallan, mejorando el manejo de errores y debugging
     - Casos de uso: `ExtractMeterReading`, `UpdateMeterReading`, `GetConsumptionById`
     - Endpoints API: 
       - `POST /api/consumption/extract-reading` - Extracción OCR (solo ADMIN)
@@ -278,7 +279,7 @@ app/layout.tsx
 - `src/domain/` - Modelos de dominio y reglas de negocio
   - `Payment/` - Entidad Payment con validaciones de negocio
   - `Rental/` - Entidad Rental y repositorio
-  - `Invoice/` - Entidad Invoice y repositorio
+  - `Invoice/` - Entidad Invoice y repositorio con métodos de transacción (`findByRentalMonthYearInTransaction`)
   - `Consumption/` - Entidad Consumption con `previousReading` para cálculo de período
   - `ElectricityBill/` - Entidad ElectricityBill con métodos de cálculo
   - `ServiceCharges/` - Entidad ServiceCharges con métodos para calcular totales antes/después de IGV
@@ -286,15 +287,16 @@ app/layout.tsx
 - `src/application/` - Casos de uso y orquestación
   - `Payment/` - CreateRentalPayment, CreateServicePayment
   - `Rental/` - GetRentalById con validación de permisos
-  - `Invoice/` - GetInvoiceById, CreateInvoicesForProperty (generación automática con cálculo de split)
+  - `Invoice/` - GetInvoiceById, CreateInvoicesForProperty (generación automática con cálculo de split y transacciones atómicas)
 - `src/infrastructure/` - Implementaciones concretas (Prisma)
   - `Payment/` - PrismaPaymentRepository
   - `Rental/` - PrismaRentalRepository
-  - `Invoice/` - PrismaInvoiceRepository
+  - `Invoice/` - PrismaInvoiceRepository con métodos de transacción (`findByRentalMonthYearInTransaction`, `createInTransaction`, `updateStatusInTransaction`)
   - `Consumption/` - PrismaConsumptionRepository (con soporte para previousReading)
   - `ElectricityBill/` - PrismaElectricityBillRepository
   - `ServiceCharges/` - PrismaServiceChargesRepository
-  - `Shared/` - PrismaTransactionManager para transacciones
+  - `Property/` - PrismaPropertyRepository para gestión de propiedades y administradores
+  - `Shared/` - PrismaTransactionManager para transacciones con nivel de aislamiento configurable
 - `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias centralizada
 - `zod/` - Schemas de validación para API routes (payment, electricity-bill, service-charges)
 - `lib/errors/` - Sistema global de manejo de errores:
@@ -458,8 +460,10 @@ Component
 3. **Aplicación de IGV**: IGV del 18% se aplica solo a (energía + servicios antes de IGV). Servicios después de IGV se suman directamente
 4. **Cálculo de Consumo Propio**: El consumo propio (diferencia entre total de factura y consumo de inquilinos) se asigna a los administradores de la propiedad
 5. **Transacciones Atómicas**: Uso de transacciones Prisma con nivel de aislamiento Serializable para garantizar atomicidad
+   - Todas las verificaciones dentro de transacciones usan métodos específicos de transacción (e.g., `findByRentalMonthYearInTransaction`)
+   - Esto previene race conditions y garantiza consistencia de datos
 6. **Validación de Datos**: Validación completa con Zod en API routes y validaciones de dominio en entidades
-7. **Prevención de Duplicados**: Validación para evitar crear invoices duplicados para el mismo rentalId + month + year
+7. **Prevención de Duplicados**: Validación para evitar crear invoices duplicados para el mismo rentalId + month + year (dentro de transacciones para prevenir race conditions)
 
 ### Especificación de Envío de Invoices
 

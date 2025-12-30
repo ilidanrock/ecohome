@@ -1,3 +1,23 @@
+import { DomainError } from '@/src/domain/errors/DomainError';
+
+export class InvalidServiceChargeError extends DomainError {
+  readonly code = 'INVALID_SERVICE_CHARGE';
+  readonly statusCode = 400;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
+export class InvalidNumberOfPeopleError extends DomainError {
+  readonly code = 'INVALID_NUMBER_OF_PEOPLE';
+  readonly statusCode = 400;
+
+  constructor() {
+    super('Number of people must be greater than zero');
+  }
+}
+
 export class ServiceCharges {
   id: string;
   electricityBillId: string;
@@ -33,22 +53,22 @@ export class ServiceCharges {
   ) {
     // Validaciones básicas
     if (maintenanceAndReplacement < 0) {
-      throw new Error('Maintenance and replacement must be non-negative');
+      throw new InvalidServiceChargeError('Maintenance and replacement must be non-negative');
     }
     if (fixedCharge < 0) {
-      throw new Error('Fixed charge must be non-negative');
+      throw new InvalidServiceChargeError('Fixed charge must be non-negative');
     }
     if (compensatoryInterest < 0) {
-      throw new Error('Compensatory interest must be non-negative');
+      throw new InvalidServiceChargeError('Compensatory interest must be non-negative');
     }
     if (publicLighting < 0) {
-      throw new Error('Public lighting must be non-negative');
+      throw new InvalidServiceChargeError('Public lighting must be non-negative');
     }
     if (lawContribution < 0) {
-      throw new Error('Law contribution must be non-negative');
+      throw new InvalidServiceChargeError('Law contribution must be non-negative');
     }
     if (lateFee < 0) {
-      throw new Error('Late fee must be non-negative');
+      throw new InvalidServiceChargeError('Late fee must be non-negative');
     }
 
     this.id = id || '';
@@ -103,7 +123,7 @@ export class ServiceCharges {
    */
   public getTotalBeforeIGVPerPerson(numberOfPeople: number): number {
     if (numberOfPeople <= 0) {
-      throw new Error('Number of people must be greater than zero');
+      throw new InvalidNumberOfPeopleError();
     }
     return this.getTotalBeforeIGV() / numberOfPeople;
   }
@@ -115,7 +135,7 @@ export class ServiceCharges {
    */
   public getTotalAfterIGVPerPerson(numberOfPeople: number): number {
     if (numberOfPeople <= 0) {
-      throw new Error('Number of people must be greater than zero');
+      throw new InvalidNumberOfPeopleError();
     }
     return this.getTotalAfterIGV() / numberOfPeople;
   }

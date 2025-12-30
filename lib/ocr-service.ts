@@ -218,8 +218,17 @@ If you cannot clearly read the meter, set confidence to a low value (below 50) a
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
-      // If it's the last attempt, throw the error
+      // If it's the last attempt, preserve the original error type if possible
       if (attempt === MAX_RETRIES) {
+        // Preserve specific OCR error types
+        if (
+          lastError instanceof OCRApiError ||
+          lastError instanceof OCRParsingError ||
+          lastError instanceof OCRValidationError
+        ) {
+          throw lastError;
+        }
+        // Otherwise, wrap in a generic error with context
         throw new Error(
           `Failed to extract meter reading after ${MAX_RETRIES} attempts: ${lastError.message}`
         );
@@ -498,8 +507,17 @@ If you cannot clearly read the bill, set confidence to a low value (below 50) an
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
-      // If it's the last attempt, throw the error
+      // If it's the last attempt, preserve the original error type if possible
       if (attempt === MAX_RETRIES) {
+        // Preserve specific OCR error types
+        if (
+          lastError instanceof OCRApiError ||
+          lastError instanceof OCRParsingError ||
+          lastError instanceof OCRValidationError
+        ) {
+          throw lastError;
+        }
+        // Otherwise, wrap in a generic error with context
         throw new Error(
           `Failed to extract bill information after ${MAX_RETRIES} attempts: ${lastError.message}`
         );

@@ -1,5 +1,6 @@
 import { IRentalRepository } from '@/src/domain/Rental/IRentalRepository';
 import { Rental } from '@/src/domain/Rental/Rental';
+import { RentalAccessDeniedError } from '@/src/domain/Rental/errors/RentalErrors';
 
 export class GetRentalById {
   constructor(private rentalRepository: IRentalRepository) {}
@@ -22,7 +23,7 @@ export class GetRentalById {
 
     // Admin can access any rental, User can only access their own
     if (userRole !== 'ADMIN' && userId && rental.getUserId() !== userId) {
-      throw new Error('You do not have permission to access this rental');
+      throw new RentalAccessDeniedError('You do not have permission to access this rental');
     }
 
     return rental;

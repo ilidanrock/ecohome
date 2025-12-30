@@ -3,6 +3,9 @@ import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import type { ConsumptionResponse } from '@/types';
 import { handleApiError } from '@/lib/error-handler';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 /**
  * GET /api/consumption
@@ -19,24 +22,22 @@ export async function GET() {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required to access consumption data',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required to access consumption data',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     // Validate user ID exists
     if (!session.user.id) {
-      return NextResponse.json(
-        {
-          error: 'Invalid session',
-          message: 'User ID is missing from session',
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.BAD_REQUEST,
+        message: 'User ID is missing from session',
+        level: getErrorLevelFromStatus(400),
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Use ServiceContainer to fetch consumption data via DDD architecture

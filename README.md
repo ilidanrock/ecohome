@@ -259,11 +259,13 @@ Crea un archivo `.env.local` en la raíz del proyecto. Ejemplos típicos (ajusta
   - OCR de lecturas de medidores (requerido para funcionalidad OCR)
 - `OPENAI_MODEL=gpt-4o-mini` - Modelo a usar (por defecto: gpt-4o-mini)
 
-**Nota sobre OCR:** El sistema OCR usa GPT-4o-mini para extraer lecturas de medidores desde imágenes. Se requiere `OPENAI_API_KEY` para habilitar esta funcionalidad. El sistema incluye:
-- Extracción automática con retry logic (3 intentos)
+**Nota sobre OCR:** El sistema OCR usa GPT-4o-mini para extraer lecturas de medidores y datos de facturas desde imágenes/PDFs. Se requiere `OPENAI_API_KEY` para habilitar esta funcionalidad. El sistema incluye:
+- Extracción automática con retry logic (3 intentos con backoff exponencial)
 - Scoring de confianza (0-100%)
 - Edición manual cuando la confianza es baja (< 70%)
 - Historial completo de extracciones OCR
+- Tipos de error específicos (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) que se preservan para mejor debugging
+- Extracción de datos completos de facturas (ElectricityBill + ServiceCharges) con pre-llenado de formularios
 
 **Nota sobre manejo de errores:** El sistema incluye un manejo global de errores que:
 - Captura automáticamente todos los errores del backend y frontend

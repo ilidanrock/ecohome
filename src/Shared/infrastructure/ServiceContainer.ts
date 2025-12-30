@@ -6,7 +6,10 @@ import { PrismaUserRepository } from '@/src/infrastructure/User/PrismaUserReposi
 import { PrismaVerifyTokenRepository } from '@/src/infrastructure/VerifyToken/PrismaVerifyTokenRepository';
 import { GmailRepository } from '@/src/infrastructure/VerifyToken/GmailRepository';
 import { NanoIdRepository } from '@/src/infrastructure/VerifyToken/NanoIdRepository';
-import { VerifyTokenDelete } from '@/src/application/VerifyToken/VerifyTokenDelete';
+import {
+  VerifyTokenDelete,
+  VerifyUserEmail,
+} from '@/src/application/VerifyToken/VerifyTokenDelete';
 import { UserLogin } from '@/src/application/User/UserLogin';
 import { UserFind } from '@/src/application/User/UserFind';
 import { AccountOAuthSignIn } from '@/src/application/Account/AccountOAuthSignIn';
@@ -28,8 +31,25 @@ import { GetInvoiceById } from '@/src/application/Invoice/GetInvoiceById';
 import { PrismaTransactionManager } from '@/src/infrastructure/Shared/PrismaTransactionManager';
 import { PrismaElectricityBillRepository } from '@/src/infrastructure/ElectricityBill/PrismaElectricityBillRepository';
 import { PrismaServiceChargesRepository } from '@/src/infrastructure/ServiceCharges/PrismaServiceChargesRepository';
+import { PrismaPropertyRepository } from '@/src/infrastructure/Property/PrismaPropertyRepository';
 import { CreateInvoicesForProperty } from '@/src/application/Invoice/CreateInvoicesForProperty';
 import { prisma } from '@/prisma';
+import { validateEnv } from '@/lib/env-validation';
+import { logger } from '@/lib/logger';
+
+// Validate environment variables on server initialization
+// Only run in server-side code (not in client bundles)
+if (typeof window === 'undefined') {
+  try {
+    validateEnv();
+  } catch (error) {
+    // Log error but don't crash - let the application start
+    // Individual features will fail gracefully if env vars are missing
+    logger.error('Environment validation failed during ServiceContainer initialization', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 
 const userRepository = new PrismaUserRepository(prisma);
 const hasherRepository = new BcryptHasherRepository();
@@ -44,6 +64,7 @@ const invoiceRepository = new PrismaInvoiceRepository(prisma);
 const transactionManager = new PrismaTransactionManager(prisma);
 const electricityBillRepository = new PrismaElectricityBillRepository(prisma);
 const serviceChargesRepository = new PrismaServiceChargesRepository(prisma);
+const propertyRepository = new PrismaPropertyRepository(prisma);
 
 const verifyTokenCreate = new VerifyTokenCreate(
   verifyTokenRepository,
@@ -60,6 +81,7 @@ export const serviceContainer = {
   verifyToken: {
     createVerifyToken: verifyTokenCreate,
     deleteVerifyToken: new VerifyTokenDelete(verifyTokenRepository),
+    verifyUserEmail: new VerifyUserEmail(verifyTokenRepository, userRepository),
   },
   account: {
     accountOAuthSignIn: new AccountOAuthSignIn(accountRepository, userRepository),
@@ -81,8 +103,8 @@ export const serviceContainer = {
       rentalRepository,
       consumptionRepository,
       invoiceRepository,
-      transactionManager,
-      prisma
+      propertyRepository,
+      transactionManager
     ),
   },
   electricityBill: {
@@ -90,6 +112,9 @@ export const serviceContainer = {
   },
   serviceCharges: {
     repository: serviceChargesRepository,
+  },
+  property: {
+    repository: propertyRepository,
   },
   transactionManager,
   payment: {

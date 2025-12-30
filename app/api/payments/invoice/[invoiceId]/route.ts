@@ -4,6 +4,9 @@ import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { uuidParamSchema } from '@/zod/payment-schemas';
 import { DomainError } from '@/src/domain/errors/DomainError';
 import { handleApiError } from '@/lib/error-handler';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 /**
  * GET /api/payments/invoice/[invoiceId]
@@ -24,23 +27,21 @@ export async function GET(
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required to access payments',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required to access payments',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     if (!session.user.id) {
-      return NextResponse.json(
-        {
-          error: 'Invalid session',
-          message: 'User ID is missing from session',
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.BAD_REQUEST,
+        message: 'User ID is missing from session',
+        level: getErrorLevelFromStatus(400),
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     const { invoiceId } = await params;
@@ -49,13 +50,12 @@ export async function GET(
     try {
       uuidParamSchema.parse(invoiceId);
     } catch {
-      return NextResponse.json(
-        {
-          error: 'Invalid request',
-          message: 'Invalid invoice ID format',
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.BAD_REQUEST,
+        message: 'Invalid invoice ID format',
+        level: getErrorLevelFromStatus(400),
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Validate that the invoice exists and user has access (using ServiceContainer maintains DDD boundaries)
@@ -67,13 +67,12 @@ export async function GET(
       );
 
       if (!invoice) {
-        return NextResponse.json(
-          {
-            error: 'Not found',
-            message: 'Invoice not found',
-          },
-          { status: 404 }
-        );
+        const errorResponse: ErrorResponse = {
+          code: ErrorCode.NOT_FOUND,
+          message: 'Invoice not found',
+          level: getErrorLevelFromStatus(404),
+        };
+        return NextResponse.json(errorResponse, { status: 404 });
       }
     } catch (error) {
       // Handle domain errors (including permission errors)
@@ -83,16 +82,6 @@ export async function GET(
           method: 'GET',
           userId: session.user.id,
         });
-      }
-      // Handle permission errors from use cases (legacy error format)
-      if (error instanceof Error && error.message.includes('permission')) {
-        return NextResponse.json(
-          {
-            error: 'Forbidden',
-            message: error.message,
-          },
-          { status: 403 }
-        );
       }
       throw error; // Re-throw other errors
     }

@@ -27,6 +27,17 @@ export class PrismaVerifyTokenRepository implements VerifyTokenRepository {
       : null;
   }
 
+  async findVerifyTokenByToken(token: string): Promise<VerifyToken | null> {
+    const verifyToken = await this.prisma.verificationToken.findFirst({
+      where: {
+        token,
+      },
+    });
+    return verifyToken
+      ? new VerifyToken(verifyToken.identifier, verifyToken.expires, verifyToken.token)
+      : null;
+  }
+
   async findAccountByProvider(userId: string, provider: string): Promise<Account | null> {
     const account = await this.prisma.account.findUnique({
       where: {

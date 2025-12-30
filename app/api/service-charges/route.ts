@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { prisma } from '@/prisma';
+import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { createServiceChargesSchema } from '@/zod/service-charges-schemas';
 import { ServiceCharges } from '@/src/domain/ServiceCharges/ServiceCharges';
 import { ZodError } from 'zod';
 import { rateLimiters } from '@/lib/rate-limit';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 /**
  * POST /api/service-charges
@@ -38,23 +41,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'Only administrators can create service charges',
-        },
-        { status: 403 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'Only administrators can create service charges',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Validate payload size
@@ -70,64 +71,58 @@ export async function POST(request: NextRequest) {
       validatedData = createServiceChargesSchema.parse(body);
     } catch (error) {
       if (error instanceof ZodError) {
-        return NextResponse.json(
-          {
-            error: 'Validation error',
-            message: 'Invalid request data',
-            details: error.errors,
-          },
-          { status: 400 }
-        );
+        const errorResponse: ErrorResponse = {
+          code: ErrorCode.VALIDATION_ERROR,
+          message: 'Invalid request data',
+          level: getErrorLevelFromStatus(400),
+          details: error.errors,
+        };
+        return NextResponse.json(errorResponse, { status: 400 });
       }
       throw error;
     }
 
-    // Verify that the electricity bill exists and user is admin of the property
-    const electricityBill = await prisma.electricityBill.findUnique({
-      where: { id: validatedData.electricityBillId },
-      include: {
-        property: {
-          include: { administrators: true },
-        },
-      },
-    });
+    // Verify that the electricity bill exists
+    const electricityBill = await serviceContainer.electricityBill.repository.findById(
+      validatedData.electricityBillId
+    );
 
     if (!electricityBill) {
-      return NextResponse.json(
-        {
-          error: 'Not found',
-          message: 'Electricity bill not found',
-        },
-        { status: 404 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Electricity bill not found',
+        level: getErrorLevelFromStatus(404),
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
-    const isAdmin = electricityBill.property.administrators.some(
-      (admin) => admin.id === session.user.id
+    // Verify that the user is an administrator of the property
+    const isAdmin = await serviceContainer.property.repository.isUserAdministrator(
+      electricityBill.propertyId,
+      session.user.id
     );
+
     if (!isAdmin) {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'You are not an administrator of this property',
-        },
-        { status: 403 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'You are not an administrator of this property',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Check if service charges already exist
-    const existing = await prisma.serviceCharges.findUnique({
-      where: { electricityBillId: validatedData.electricityBillId },
-    });
+    const existing = await serviceContainer.serviceCharges.repository.findByElectricityBillId(
+      validatedData.electricityBillId
+    );
 
     if (existing) {
-      return NextResponse.json(
-        {
-          error: 'Conflict',
-          message: 'Service charges already exist for this electricity bill',
-        },
-        { status: 409 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.CONFLICT,
+        message: 'Service charges already exist for this electricity bill',
+        level: getErrorLevelFromStatus(409),
+      };
+      return NextResponse.json(errorResponse, { status: 409 });
     }
 
     // Create service charges entity
@@ -146,20 +141,8 @@ export async function POST(request: NextRequest) {
       now
     );
 
-    // Save to database
-    const created = await prisma.serviceCharges.create({
-      data: {
-        electricityBillId: serviceCharges.electricityBillId,
-        maintenanceAndReplacement: serviceCharges.maintenanceAndReplacement,
-        fixedCharge: serviceCharges.fixedCharge,
-        compensatoryInterest: serviceCharges.compensatoryInterest,
-        publicLighting: serviceCharges.publicLighting,
-        lawContribution: serviceCharges.lawContribution,
-        lateFee: serviceCharges.lateFee,
-        previousMonthRounding: serviceCharges.previousMonthRounding,
-        currentMonthRounding: serviceCharges.currentMonthRounding,
-      },
-    });
+    // Save to database using repository
+    const created = await serviceContainer.serviceCharges.repository.create(serviceCharges);
 
     return NextResponse.json(
       {

@@ -46,8 +46,55 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     return invoice ? this.mapToDomain(invoice) : null;
   }
 
+  async findByRentalMonthYearInTransaction(
+    rentalId: string,
+    month: number,
+    year: number,
+    tx: TransactionClient
+  ): Promise<Invoice | null> {
+    const transactionClient = tx as Prisma.TransactionClient;
+    const invoice = await transactionClient.invoice.findUnique({
+      where: {
+        rentalId_month_year: {
+          rentalId,
+          month,
+          year,
+        },
+      },
+    });
+
+    return invoice ? this.mapToDomain(invoice) : null;
+  }
+
   async create(invoice: Invoice): Promise<Invoice> {
     const created = await this.prisma.invoice.create({
+      data: {
+        rentalId: invoice.getRentalId(),
+        month: invoice.getMonth(),
+        year: invoice.getYear(),
+        waterCost: invoice.waterCost,
+        energyCost: invoice.energyCost,
+        totalCost: invoice.getTotalCost(),
+        status: invoice.getStatus() as PaymentStatus,
+        paidAt: invoice.paidAt,
+        receiptUrl: invoice.receiptUrl,
+        invoiceUrl: invoice.invoiceUrl,
+      },
+    });
+
+    return this.mapToDomain(created);
+  }
+
+  /**
+   * Create a new invoice within a transaction
+   *
+   * @param invoice - The invoice entity to create
+   * @param tx - The Prisma transaction client
+   * @returns The created invoice entity
+   */
+  async createInTransaction(invoice: Invoice, tx: TransactionClient): Promise<Invoice> {
+    const transactionClient = tx as Prisma.TransactionClient;
+    const created = await transactionClient.invoice.create({
       data: {
         rentalId: invoice.getRentalId(),
         month: invoice.getMonth(),

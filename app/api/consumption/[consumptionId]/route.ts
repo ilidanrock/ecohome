@@ -6,6 +6,10 @@ import { handleApiError } from '@/lib/error-handler';
 import { rateLimiters } from '@/lib/rate-limit';
 import { MAX_PAYLOAD_SIZE } from '@/lib/error-handler';
 import { z } from 'zod';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
+import { DomainError } from '@/src/domain/errors/DomainError';
 
 const uuidParamSchema = z.object({
   consumptionId: z.string().uuid('Consumption ID must be a valid UUID'),
@@ -29,39 +33,36 @@ export async function GET(
 
     // Validate authentication
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required to access consumption data',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required to access consumption data',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     // Validate UUID parameter
     const paramValidation = uuidParamSchema.safeParse({ consumptionId });
     if (!paramValidation.success) {
-      return NextResponse.json(
-        {
-          error: 'Validation error',
-          message: 'Invalid consumption ID',
-          details: paramValidation.error.errors,
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.VALIDATION_ERROR,
+        message: 'Invalid consumption ID',
+        level: getErrorLevelFromStatus(400),
+        details: paramValidation.error.errors,
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Get consumption by ID using ServiceContainer
     const consumption = await serviceContainer.consumption.getById.execute(consumptionId);
 
     if (!consumption) {
-      return NextResponse.json(
-        {
-          error: 'Not found',
-          message: 'Consumption not found',
-        },
-        { status: 404 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.NOT_FOUND,
+        message: 'Consumption not found',
+        level: getErrorLevelFromStatus(404),
+      };
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     // Authorization check: Admin can access any, tenant can only access their own
@@ -75,24 +76,21 @@ export async function GET(
         );
 
         if (!rental) {
-          return NextResponse.json(
-            {
-              error: 'Forbidden',
-              message: 'You do not have permission to access this consumption',
-            },
-            { status: 403 }
-          );
+          const errorResponse: ErrorResponse = {
+            code: ErrorCode.FORBIDDEN,
+            message: 'You do not have permission to access this consumption',
+            level: getErrorLevelFromStatus(403),
+          };
+          return NextResponse.json(errorResponse, { status: 403 });
         }
       } catch (error) {
-        // GetRentalById throws error if user doesn't have permission
-        if (error instanceof Error && error.message.includes('permission')) {
-          return NextResponse.json(
-            {
-              error: 'Forbidden',
-              message: 'You do not have permission to access this consumption',
-            },
-            { status: 403 }
-          );
+        // Handle domain errors
+        if (error instanceof DomainError) {
+          return handleApiError(error, {
+            endpoint: '/api/consumption/[consumptionId]',
+            method: 'GET',
+            userId: session.user.id,
+          });
         }
         throw error; // Re-throw other errors
       }
@@ -145,49 +143,45 @@ export async function PUT(
 
     // Validate authentication
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required to update meter readings',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required to update meter readings',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     // Check admin role
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'Only administrators can update meter readings',
-        },
-        { status: 403 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'Only administrators can update meter readings',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Validate UUID parameter
     const paramValidation = uuidParamSchema.safeParse({ consumptionId });
     if (!paramValidation.success) {
-      return NextResponse.json(
-        {
-          error: 'Validation error',
-          message: 'Invalid consumption ID',
-          details: paramValidation.error.errors,
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.VALIDATION_ERROR,
+        message: 'Invalid consumption ID',
+        level: getErrorLevelFromStatus(400),
+        details: paramValidation.error.errors,
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Validate payload size
     const contentLength = request.headers.get('content-length');
     if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_SIZE) {
-      return NextResponse.json(
-        {
-          error: 'Payload too large',
-          message: `Request body must be smaller than ${MAX_PAYLOAD_SIZE} bytes`,
-        },
-        { status: 413 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.PAYLOAD_TOO_LARGE,
+        message: `Request body must be smaller than ${MAX_PAYLOAD_SIZE} bytes`,
+        level: getErrorLevelFromStatus(413),
+      };
+      return NextResponse.json(errorResponse, { status: 413 });
     }
 
     // Parse and validate request body
@@ -195,14 +189,13 @@ export async function PUT(
     const validationResult = updateMeterReadingSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Validation error',
-          message: 'Invalid request data',
-          details: validationResult.error.errors,
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.VALIDATION_ERROR,
+        message: 'Invalid request data',
+        level: getErrorLevelFromStatus(400),
+        details: validationResult.error.errors,
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     const { energyReading, previousReading } = validationResult.data;

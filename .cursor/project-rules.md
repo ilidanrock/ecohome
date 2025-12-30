@@ -340,6 +340,8 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 - **Input Validation**: All API routes must validate input using Zod schemas before processing. Validation schemas are located in `zod/` directory.
 - **Error Handling**: Use domain-specific error classes (`DomainError` subclasses) for business logic errors. Catch and map to appropriate HTTP status codes in API routes.
 - **Transactions**: Use Prisma transactions for operations that require atomicity (e.g., payment creation with invoice status updates). Use `Serializable` isolation level when needed to prevent race conditions.
+  - **Transaction Consistency**: All database operations within a transaction must use the transaction client. For example, when checking for existing invoices within a transaction, use `findByRentalMonthYearInTransaction()` instead of `findByRentalMonthYear()` to ensure consistency and prevent race conditions.
+  - **Repository Methods**: Repository interfaces should provide both regular methods and transaction-aware methods (e.g., `findByRentalMonthYear()` and `findByRentalMonthYearInTransaction()`) for operations that may be called within transactions.
 
 ## Environment Variables
 - Required: `DATABASE_URL`, `AUTH_SECRET`, `NEXTAUTH_URL`, `EMAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`.
@@ -415,6 +417,7 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
     - Validation: Complete validation of dates, numbers, and data structure
     - Warnings when confidence < 70%
     - Unified form allows review and editing before submission
+    - **Error Handling**: Preserves specific OCR error types (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) when retries fail, improving error categorization and debugging
 - **Error Handling**: ✅ Implemented `DomainError` base class and specific error types for better error management.
 - **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`, `zod/electricity-bill-schemas.ts`, `zod/service-charges-schemas.ts`, `zod/consumption-schemas.ts`, `zod/ocr-schemas.ts`).
 - **Authentication**: ✅ Fixed session.user.id population in NextAuth callbacks for proper user identification.
@@ -443,6 +446,8 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 ### OCR Implementation Rules
 - **Service Layer**: OCR logic is in `lib/ocr-service.ts`, not in domain/application layers
 - **Error Handling**: Use specific error types (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) for better error categorization
+  - **Error Preservation**: When retries fail, preserve the original error type instead of wrapping in generic `Error`. This improves error handling and debugging
+  - **Error Types**: Always throw specific OCR error types (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) when possible
 - **Retry Logic**: Always implement retry with exponential backoff (3 attempts default)
 - **Confidence Threshold**: When OCR confidence < 70%, UI must show warning and allow manual editing
 - **Manual Edits**: When manually editing a reading, always clear OCR fields (`ocrExtracted=false`, `ocrConfidence=null`, `ocrRawText=null`, `extractedAt=null`)

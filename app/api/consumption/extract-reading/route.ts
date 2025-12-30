@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { extractMeterReadingSchema } from '@/zod/ocr-schemas';
-import { handleApiError } from '@/lib/error-handler';
+import { handleApiError, validatePayloadSize } from '@/lib/error-handler';
 import { rateLimiters } from '@/lib/rate-limit';
-import { MAX_PAYLOAD_SIZE } from '@/lib/error-handler';
+import { ErrorCode } from '@/lib/errors/error-codes';
+import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
+import type { ErrorResponse } from '@/lib/errors/types';
 
 /**
  * POST /api/consumption/extract-reading
@@ -28,36 +30,28 @@ export async function POST(request: NextRequest) {
 
     // Validate authentication
     if (!session?.user) {
-      return NextResponse.json(
-        {
-          error: 'Unauthorized',
-          message: 'Authentication required to extract meter readings',
-        },
-        { status: 401 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required to extract meter readings',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     // Check admin role
     if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        {
-          error: 'Forbidden',
-          message: 'Only administrators can extract meter readings',
-        },
-        { status: 403 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'Only administrators can extract meter readings',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Validate payload size
-    const contentLength = request.headers.get('content-length');
-    if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_SIZE) {
-      return NextResponse.json(
-        {
-          error: 'Payload too large',
-          message: `Request body must be smaller than ${MAX_PAYLOAD_SIZE} bytes`,
-        },
-        { status: 413 }
-      );
+    const payloadSizeError = validatePayloadSize(request);
+    if (payloadSizeError) {
+      return payloadSizeError;
     }
 
     // Parse and validate request body
@@ -65,14 +59,13 @@ export async function POST(request: NextRequest) {
     const validationResult = extractMeterReadingSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: 'Validation error',
-          message: 'Invalid request data',
-          details: validationResult.error.errors,
-        },
-        { status: 400 }
-      );
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.VALIDATION_ERROR,
+        message: 'Invalid request data',
+        level: getErrorLevelFromStatus(400),
+        details: validationResult.error.errors,
+      };
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     const { consumptionId, imageUrl } = validationResult.data;

@@ -96,6 +96,18 @@ export class PrismaUserRepository implements IUserRepository {
     return this.mapToDomain(updatedUser);
   }
 
+  async verifyUserEmail(email: string): Promise<User> {
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        email,
+      },
+      data: {
+        emailVerified: new Date(),
+      },
+    });
+    return this.mapToDomain(updatedUser);
+  }
+
   async deleteUser(id: string): Promise<void> {
     await this.prisma.user.delete({
       where: {

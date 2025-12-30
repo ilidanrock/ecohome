@@ -1,5 +1,6 @@
 import { IInvoiceRepository } from '@/src/domain/Invoice/IInvoiceRepository';
 import { Invoice } from '@/src/domain/Invoice/Invoice';
+import { InvoiceAccessDeniedError } from '@/src/domain/Invoice/errors/InvoiceErrors';
 
 export class GetInvoiceById {
   constructor(private invoiceRepository: IInvoiceRepository) {}
@@ -24,7 +25,7 @@ export class GetInvoiceById {
     // Admin can access any invoice, User can only access their own
     const rental = invoice.getRental();
     if (userRole !== 'ADMIN' && userId && rental && rental.getUserId() !== userId) {
-      throw new Error('You do not have permission to access this invoice');
+      throw new InvoiceAccessDeniedError('You do not have permission to access this invoice');
     }
 
     return invoice;

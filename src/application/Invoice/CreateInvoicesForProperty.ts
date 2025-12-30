@@ -3,9 +3,16 @@ import { IServiceChargesRepository } from '@/src/domain/ServiceCharges/IServiceC
 import { IRentalRepository } from '@/src/domain/Rental/IRentalRepository';
 import { IConsumptionRepository } from '@/src/domain/Consumption/IConsumptionRepository';
 import { IInvoiceRepository } from '@/src/domain/Invoice/IInvoiceRepository';
+import { IPropertyRepository } from '@/src/domain/Property/IPropertyRepository';
 import { ITransactionManager } from '@/src/domain/Shared/ITransactionManager';
 import { Invoice } from '@/src/domain/Invoice/Invoice';
-import { PrismaClient } from '@prisma/client';
+import { logger } from '@/lib/logger';
+import {
+  ElectricityBillNotFoundError,
+  ElectricityBillPropertyMismatchError,
+  PropertyNotFoundError,
+  PropertyNoAdministratorsError,
+} from '@/src/domain/Invoice/errors/InvoiceErrors';
 
 const IGV_RATE = 0.18; // 18% IGV
 
@@ -16,8 +23,8 @@ export class CreateInvoicesForProperty {
     private rentalRepository: IRentalRepository,
     private consumptionRepository: IConsumptionRepository,
     private invoiceRepository: IInvoiceRepository,
-    private transactionManager: ITransactionManager,
-    private prisma: PrismaClient // Temporary: for accessing Property administrators
+    private propertyRepository: IPropertyRepository,
+    private transactionManager: ITransactionManager
   ) {}
 
   async execute(
@@ -30,11 +37,11 @@ export class CreateInvoicesForProperty {
     // 1. Obtener datos base
     const electricityBill = await this.electricityBillRepository.findById(electricityBillId);
     if (!electricityBill) {
-      throw new Error(`Electricity bill with ID ${electricityBillId} not found`);
+      throw new ElectricityBillNotFoundError(electricityBillId);
     }
 
     if (electricityBill.propertyId !== propertyId) {
-      throw new Error('Electricity bill does not belong to the specified property');
+      throw new ElectricityBillPropertyMismatchError();
     }
 
     const serviceCharges =
@@ -69,20 +76,17 @@ export class CreateInvoicesForProperty {
     const ownConsumption = Math.max(Number(electricityBill.totalKWh) - totalTenantConsumption, 0);
 
     // Obtener administradores de la propiedad
-    const property = await this.prisma.property.findUnique({
-      where: { id: propertyId },
-      include: { administrators: true },
-    });
+    const propertyData = await this.propertyRepository.findByIdWithAdministrators(propertyId);
 
-    if (!property) {
-      throw new Error(`Property with ID ${propertyId} not found`);
+    if (!propertyData) {
+      throw new PropertyNotFoundError(propertyId);
     }
 
-    const administrators = property.administrators;
+    const administrators = propertyData.administrators;
     const numberOfAdministrators = administrators.length;
 
     if (numberOfAdministrators === 0) {
-      throw new Error('Property must have at least one administrator');
+      throw new PropertyNoAdministratorsError();
     }
 
     // Calcular costos
@@ -101,22 +105,18 @@ export class CreateInvoicesForProperty {
     const waterCostPerPerson = waterCost / numberOfPeople;
 
     // 3. Crear invoices usando transacción para garantizar atomicidad
-    // Nota: El parámetro tx no se usa directamente porque IInvoiceRepository.create()
-    // no acepta un cliente de transacción. La transacción se mantiene para atomicidad.
     const invoices = await this.transactionManager.execute(
       async (tx) => {
-        // Transaction context available but not used directly
-        // All operations are executed within the transaction scope
-        void tx;
         const createdInvoices: Invoice[] = [];
 
         // Crear invoice para cada inquilino
         for (const rental of activeRentals) {
-          // Validar que no exista invoice para ese rentalId + month + year
-          const existingInvoice = await this.invoiceRepository.findByRentalMonthYear(
+          // Validar que no exista invoice para ese rentalId + month + year (dentro de la transacción)
+          const existingInvoice = await this.invoiceRepository.findByRentalMonthYearInTransaction(
             rental.id,
             month,
-            year
+            year,
+            tx
           );
 
           if (existingInvoice) {
@@ -151,8 +151,7 @@ export class CreateInvoicesForProperty {
           );
 
           // Crear invoice dentro de la transacción
-          // Note: We need to add createInTransaction to IInvoiceRepository if needed
-          const created = await this.invoiceRepository.create(invoice);
+          const created = await this.invoiceRepository.createInTransaction(invoice, tx);
           createdInvoices.push(created);
         }
 
@@ -167,10 +166,12 @@ export class CreateInvoicesForProperty {
 
           if (adminRental) {
             // Si el admin ya tiene un rental activo, usar ese
-            const existingInvoice = await this.invoiceRepository.findByRentalMonthYear(
+            // Validar que no exista invoice (dentro de la transacción)
+            const existingInvoice = await this.invoiceRepository.findByRentalMonthYearInTransaction(
               adminRental.id,
               month,
-              year
+              year,
+              tx
             );
 
             if (existingInvoice) {
@@ -200,15 +201,16 @@ export class CreateInvoicesForProperty {
               now
             );
 
-            const created = await this.invoiceRepository.create(invoice);
+            const created = await this.invoiceRepository.createInTransaction(invoice, tx);
             createdInvoices.push(created);
           } else {
             // Si el admin no tiene rental, necesitamos crear uno o manejar de otra manera
             // Por ahora, lanzamos un error o lo saltamos
             // TODO: Considerar crear rentals virtuales para administradores
-            console.warn(
-              `Administrator ${admin.id} does not have an active rental for property ${propertyId}`
-            );
+            logger.warn('Administrator missing rental for property', {
+              adminId: admin.id,
+              propertyId,
+            });
           }
         }
 

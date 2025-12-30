@@ -71,3 +71,15 @@ export class PaymentNotFoundError extends DomainError {
     super(message);
   }
 }
+
+/**
+ * Error thrown when an invoice is not found for payment creation
+ */
+export class InvoiceNotFoundForPaymentError extends DomainError {
+  readonly code = 'INVOICE_NOT_FOUND_FOR_PAYMENT';
+  readonly statusCode = 404;
+
+  constructor(invoiceId: string) {
+    super(`Invoice with ID ${invoiceId} not found`);
+  }
+}

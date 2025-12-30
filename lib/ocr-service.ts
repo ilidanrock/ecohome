@@ -78,6 +78,11 @@ const MODEL = 'gpt-4o-mini'; // More economical, sufficient for OCR
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
+// Validate API key at module load (warn only, actual check happens in functions)
+if (!OPENAI_API_KEY && process.env.NODE_ENV !== 'test') {
+  console.warn('⚠️  OPENAI_API_KEY is not configured. OCR features will not work.');
+}
+
 /**
  * Extracts meter reading from an image URL using OpenAI Vision
  * @param imageUrl - URL of the meter image (Cloudinary URL)

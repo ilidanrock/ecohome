@@ -81,20 +81,20 @@ function extractErrorResponse(error: unknown): ErrorResponse | null {
 }
 
 /**
- * Handle query errors
+ * Internal helper to handle errors (reduces code duplication)
  */
-export function handleQueryError(error: unknown): void {
+function handleError(error: unknown, errorType: 'query' | 'mutation'): void {
   const errorResponse = extractErrorResponse(error);
 
   if (errorResponse) {
-    logger.error('Query error intercepted', {
+    logger.error(`${errorType} error intercepted`, {
       errorResponse,
       error: error instanceof Error ? error.message : String(error),
     });
     ToastService.show(errorResponse);
   } else {
     // Fallback for unknown errors
-    logger.error('Unknown query error', {
+    logger.error(`Unknown ${errorType} error`, {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
@@ -103,25 +103,17 @@ export function handleQueryError(error: unknown): void {
 }
 
 /**
+ * Handle query errors
+ */
+export function handleQueryError(error: unknown): void {
+  handleError(error, 'query');
+}
+
+/**
  * Handle mutation errors
  */
 export function handleMutationError(error: unknown): void {
-  const errorResponse = extractErrorResponse(error);
-
-  if (errorResponse) {
-    logger.error('Mutation error intercepted', {
-      errorResponse,
-      error: error instanceof Error ? error.message : String(error),
-    });
-    ToastService.show(errorResponse);
-  } else {
-    // Fallback for unknown errors
-    logger.error('Unknown mutation error', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    ToastService.error('An unexpected error occurred', ErrorCode.INTERNAL_ERROR);
-  }
+  handleError(error, 'mutation');
 }
 
 /**

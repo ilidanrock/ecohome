@@ -26,29 +26,44 @@ export class ToastService {
         ? `${response.message} (${response.code})`
         : response.message;
 
+    // Safely format details for description (truncate if too long, avoid sensitive data)
+    const formatDescription = (details: unknown): string | undefined => {
+      if (!details) return undefined;
+
+      try {
+        const detailsStr = typeof details === 'string' ? details : JSON.stringify(details);
+        // Truncate to 200 chars to avoid overly long descriptions
+        return detailsStr.length > 200 ? `${detailsStr.slice(0, 200)}...` : detailsStr;
+      } catch {
+        return 'Error details unavailable';
+      }
+    };
+
+    const description = formatDescription(response.details);
+
     switch (toastType) {
       case 'success':
         toast.success(message, {
           duration,
-          description: response.details ? JSON.stringify(response.details) : undefined,
+          description,
         });
         break;
       case 'error':
         toast.error(message, {
           duration,
-          description: response.details ? JSON.stringify(response.details) : undefined,
+          description,
         });
         break;
       case 'warning':
         toast.warning(message, {
           duration,
-          description: response.details ? JSON.stringify(response.details) : undefined,
+          description,
         });
         break;
       case 'info':
         toast.info(message, {
           duration,
-          description: response.details ? JSON.stringify(response.details) : undefined,
+          description,
         });
         break;
       default:

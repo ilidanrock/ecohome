@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto';
 import { DomainError } from '@/src/domain/errors/DomainError';
 import { logger } from './logger';
 import { ErrorCode } from './errors/error-codes';
-import { getErrorCodeFromStatus, getErrorLevelFromStatus } from './errors/error-level';
+import { getErrorLevelFromStatus } from './errors/error-level';
 import type { ErrorResponse } from './errors/types';
 
 /**
@@ -57,21 +57,17 @@ export function handleApiError(error: unknown, context: ErrorContext = {}): Next
   // Handle domain errors specifically
   if (error instanceof DomainError) {
     const statusCode = error.statusCode;
-    const errorCode = getErrorCodeFromStatus(statusCode);
-    const level = getErrorLevelFromStatus(statusCode);
 
-    const errorResponse: ErrorResponse = {
-      code: errorCode,
-      message: error.message,
-      level,
-      ...(isDevelopment && {
-        errorId,
-        details: {
-          name: errorName,
-          ...context,
-        },
-      }),
-    };
+    // Use toErrorResponse if available for consistent mapping
+    const errorResponse = error.toErrorResponse(errorId);
+
+    // Add development details if needed
+    if (isDevelopment && !errorResponse.details) {
+      errorResponse.details = {
+        name: errorName,
+        ...context,
+      };
+    }
 
     return NextResponse.json(errorResponse, {
       status: statusCode,

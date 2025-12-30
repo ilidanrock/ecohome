@@ -136,10 +136,15 @@ export async function fetchWithErrorHandling<T = unknown>(
       );
     }
 
-    // Create extended response
-    const extendedResponse = response as FetchResponse<T>;
-    extendedResponse.data = data;
-    extendedResponse.error = errorResponse;
+    // Create extended response without mutating original
+    const extendedResponse = Object.assign(
+      Object.create(Object.getPrototypeOf(response)),
+      response,
+      {
+        data,
+        error: errorResponse,
+      }
+    ) as FetchResponse<T>;
 
     // Handle errors
     if (!response.ok && errorResponse && showToastOnError) {

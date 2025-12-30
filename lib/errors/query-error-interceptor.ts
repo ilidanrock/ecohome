@@ -5,6 +5,7 @@ import { ToastService } from './toast-service';
 import type { ErrorResponse } from './types';
 import { ErrorCode } from './error-codes';
 import { getErrorCodeFromStatus, getErrorLevelFromStatus } from './error-level';
+import { logger } from '@/lib/logger';
 
 /**
  * Extract ErrorResponse from error object
@@ -86,9 +87,17 @@ export function handleQueryError(error: unknown): void {
   const errorResponse = extractErrorResponse(error);
 
   if (errorResponse) {
+    logger.error('Query error intercepted', {
+      errorResponse,
+      error: error instanceof Error ? error.message : String(error),
+    });
     ToastService.show(errorResponse);
   } else {
     // Fallback for unknown errors
+    logger.error('Unknown query error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     ToastService.error('An unexpected error occurred', ErrorCode.INTERNAL_ERROR);
   }
 }
@@ -100,9 +109,17 @@ export function handleMutationError(error: unknown): void {
   const errorResponse = extractErrorResponse(error);
 
   if (errorResponse) {
+    logger.error('Mutation error intercepted', {
+      errorResponse,
+      error: error instanceof Error ? error.message : String(error),
+    });
     ToastService.show(errorResponse);
   } else {
     // Fallback for unknown errors
+    logger.error('Unknown mutation error', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     ToastService.error('An unexpected error occurred', ErrorCode.INTERNAL_ERROR);
   }
 }

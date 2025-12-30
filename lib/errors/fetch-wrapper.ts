@@ -12,6 +12,7 @@ import { ToastService } from './toast-service';
 import type { ErrorResponse } from './types';
 import { ErrorCode } from './error-codes';
 import { getErrorCodeFromStatus, getErrorLevelFromStatus } from './error-level';
+import { logger } from '@/lib/logger';
 
 /**
  * Extended fetch options with error handling configuration
@@ -49,6 +50,33 @@ export interface FetchResponse<T = unknown> extends Response {
 }
 
 /**
+ * Helper function to create ErrorResponse from status code and message
+ * Reduces code duplication in error handling paths
+ */
+function createErrorResponse(
+  statusCode: number,
+  message: string,
+  details?: unknown,
+  errorId?: string
+): ErrorResponse {
+  const response: ErrorResponse = {
+    code: getErrorCodeFromStatus(statusCode),
+    message,
+    level: getErrorLevelFromStatus(statusCode),
+  };
+
+  if (details !== undefined) {
+    response.details = details;
+  }
+
+  if (errorId !== undefined) {
+    response.errorId = errorId;
+  }
+
+  return response;
+}
+
+/**
  * Wrapped fetch function with automatic error handling
  */
 export async function fetchWithErrorHandling<T = unknown>(
@@ -81,34 +109,31 @@ export async function fetchWithErrorHandling<T = unknown>(
           errorResponse = json as ErrorResponse;
         } else if (!response.ok) {
           // Legacy error format or standard error
-          errorResponse = {
-            code: getErrorCodeFromStatus(response.status),
-            message: json.message || json.error || `Request failed with status ${response.status}`,
-            level: getErrorLevelFromStatus(response.status),
-            details: json.details,
-            errorId: json.errorId,
-          };
+          errorResponse = createErrorResponse(
+            response.status,
+            json.message || json.error || `Request failed with status ${response.status}`,
+            json.details,
+            json.errorId
+          );
         } else {
           data = json as T;
         }
       } catch {
         // If JSON parsing fails, create error response
         if (!response.ok) {
-          errorResponse = {
-            code: getErrorCodeFromStatus(response.status),
-            message: `Request failed with status ${response.status}`,
-            level: getErrorLevelFromStatus(response.status),
-          };
+          errorResponse = createErrorResponse(
+            response.status,
+            `Request failed with status ${response.status}`
+          );
         }
       }
     } else if (!response.ok) {
       // Non-JSON error response
       const text = await response.text().catch(() => '');
-      errorResponse = {
-        code: getErrorCodeFromStatus(response.status),
-        message: text || `Request failed with status ${response.status}`,
-        level: getErrorLevelFromStatus(response.status),
-      };
+      errorResponse = createErrorResponse(
+        response.status,
+        text || `Request failed with status ${response.status}`
+      );
     }
 
     // Create extended response
@@ -118,6 +143,11 @@ export async function fetchWithErrorHandling<T = unknown>(
 
     // Handle errors
     if (!response.ok && errorResponse && showToastOnError) {
+      logger.error('Fetch request failed', {
+        url: typeof url === 'string' ? url : url.toString(),
+        status: response.status,
+        errorResponse,
+      });
       ToastService.show(errorResponse);
     }
 
@@ -135,6 +165,12 @@ export async function fetchWithErrorHandling<T = unknown>(
         error instanceof Error ? error.message : 'Network error: Unable to connect to the server',
       level: 'error',
     };
+
+    logger.error('Network error in fetch request', {
+      url: typeof url === 'string' ? url : url.toString(),
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
 
     if (showToastOnError) {
       ToastService.show(errorResponse);

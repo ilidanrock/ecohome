@@ -4,6 +4,8 @@
  * Extracts bill information from electricity bill PDFs/images
  */
 
+import { logger } from '@/lib/logger';
+
 interface OCRResult {
   reading: number;
   confidence: number; // 0-100
@@ -80,7 +82,7 @@ const RETRY_DELAY_MS = 1000;
 
 // Validate API key at module load (warn only, actual check happens in functions)
 if (!OPENAI_API_KEY && process.env.NODE_ENV !== 'test') {
-  console.warn('⚠️  OPENAI_API_KEY is not configured. OCR features will not work.');
+  logger.warn('OPENAI_API_KEY is not configured. OCR features will not work.');
 }
 
 /**

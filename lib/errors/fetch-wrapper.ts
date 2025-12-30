@@ -137,6 +137,7 @@ export async function fetchWithErrorHandling<T = unknown>(
     }
 
     // Create extended response without mutating original
+    // Note: This creates a new object that extends Response but preserves all methods
     const extendedResponse = Object.assign(
       Object.create(Object.getPrototypeOf(response)),
       response,
@@ -145,6 +146,15 @@ export async function fetchWithErrorHandling<T = unknown>(
         error: errorResponse,
       }
     ) as FetchResponse<T>;
+
+    // Ensure critical Response methods are available (they should be via prototype)
+    // This is a safety check in case Object.assign doesn't preserve them
+    if (typeof extendedResponse.json !== 'function') {
+      extendedResponse.json = response.json.bind(response);
+    }
+    if (typeof extendedResponse.text !== 'function') {
+      extendedResponse.text = response.text.bind(response);
+    }
 
     // Handle errors
     if (!response.ok && errorResponse && showToastOnError) {

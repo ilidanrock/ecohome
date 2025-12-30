@@ -6,6 +6,22 @@ import { getToastTypeFromCode, getToastDuration } from './error-mapper';
 import { ErrorCode } from './error-codes';
 
 /**
+ * Safely format details for description (truncate if too long, avoid sensitive data)
+ * Moved outside class for better performance (not recreated on each call)
+ */
+function formatDescription(details: unknown): string | undefined {
+  if (!details) return undefined;
+
+  try {
+    const detailsStr = typeof details === 'string' ? details : JSON.stringify(details);
+    // Truncate to 200 chars to avoid overly long descriptions
+    return detailsStr.length > 200 ? `${detailsStr.slice(0, 200)}...` : detailsStr;
+  } catch {
+    return 'Error details unavailable';
+  }
+}
+
+/**
  * Global Toast Service
  *
  * Provides centralized toast notification management with automatic
@@ -25,19 +41,6 @@ export class ToastService {
       response.code && response.code !== ErrorCode.INTERNAL_ERROR
         ? `${response.message} (${response.code})`
         : response.message;
-
-    // Safely format details for description (truncate if too long, avoid sensitive data)
-    const formatDescription = (details: unknown): string | undefined => {
-      if (!details) return undefined;
-
-      try {
-        const detailsStr = typeof details === 'string' ? details : JSON.stringify(details);
-        // Truncate to 200 chars to avoid overly long descriptions
-        return detailsStr.length > 200 ? `${detailsStr.slice(0, 200)}...` : detailsStr;
-      } catch {
-        return 'Error details unavailable';
-      }
-    };
 
     const description = formatDescription(response.details);
 

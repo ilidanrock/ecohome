@@ -5,6 +5,7 @@
  */
 
 import { logger } from '@/lib/logger';
+import cloudinary from '@/lib/cloudinary';
 
 interface OCRResult {
   reading: number;
@@ -244,6 +245,74 @@ If you cannot clearly read the meter, set confidence to a low value (below 50) a
 }
 
 /**
+ * Converts a PDF URL to an image URL using Cloudinary transformations
+ * @param fileUrl - Cloudinary URL (PDF or image)
+ * @returns Image URL (converted from PDF if needed, or original if already an image)
+ */
+function convertPdfToImageUrl(fileUrl: string): string {
+  // Check if the URL is a PDF
+  const isPdf =
+    fileUrl.toLowerCase().endsWith('.pdf') ||
+    fileUrl.includes('/pdf/') ||
+    fileUrl.includes('format=pdf');
+
+  if (!isPdf) {
+    // Already an image, return as-is
+    return fileUrl;
+  }
+
+  // Try to extract public_id from Cloudinary URL
+  // Cloudinary URLs can have different formats:
+  // 1. https://res.cloudinary.com/{cloud_name}/{resource_type}/{type}/v{version}/{public_id}.{format}
+  // 2. https://res.cloudinary.com/{cloud_name}/image/upload/v{version}/{public_id}.{format}
+  // 3. https://res.cloudinary.com/{cloud_name}/image/upload/{public_id}.{format}
+
+  let publicId: string | null = null;
+
+  // Pattern 1: /v{version}/{public_id}.pdf
+  const versionPattern = /\/v\d+\/(.+)\.pdf$/;
+  const versionMatch = fileUrl.match(versionPattern);
+  if (versionMatch) {
+    publicId = versionMatch[1];
+  } else {
+    // Pattern 2: Extract from URL path after /upload/
+    const uploadPattern = /\/upload\/(?:v\d+\/)?(.+)\.pdf$/;
+    const uploadMatch = fileUrl.match(uploadPattern);
+    if (uploadMatch) {
+      publicId = uploadMatch[1];
+    }
+  }
+
+  if (publicId) {
+    try {
+      // Convert PDF to PNG image (first page) using Cloudinary SDK
+      return cloudinary.url(publicId, {
+        format: 'png',
+        page: 1, // First page of PDF
+        secure: true,
+        resource_type: 'image', // Force image resource type
+      });
+    } catch (error) {
+      logger.warn(
+        `Error converting PDF with Cloudinary SDK: ${error instanceof Error ? error.message : error}`
+      );
+    }
+  }
+
+  // Fallback: Try adding transformation parameters directly to URL
+  if (fileUrl.includes('res.cloudinary.com')) {
+    // Remove existing query parameters and add transformation
+    const urlWithoutQuery = fileUrl.split('?')[0];
+    // Add transformation: convert to PNG, first page
+    return `${urlWithoutQuery}?f_png,pg_1`;
+  }
+
+  // Last fallback: return original URL (will fail at OpenAI but at least we tried)
+  logger.warn(`Could not convert PDF URL to image: ${fileUrl}`);
+  return fileUrl;
+}
+
+/**
  * Extracts complete bill information from an electricity bill PDF/image using OpenAI Vision
  * Designed for Pluz Energía Perú bills but should work with other formats
  * @param fileUrl - URL of the bill PDF/image (Cloudinary URL)
@@ -253,6 +322,13 @@ If you cannot clearly read the meter, set confidence to a low value (below 50) a
 export async function extractBillInformation(fileUrl: string): Promise<BillOCRResult> {
   if (!OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  // Convert PDF to image URL if needed
+  const imageUrl = convertPdfToImageUrl(fileUrl);
+
+  if (imageUrl !== fileUrl) {
+    logger.info(`Converted PDF to image URL: ${fileUrl} -> ${imageUrl}`);
   }
 
   const prompt = `You are an expert at reading electricity bills from Peru (specifically Pluz Energía Perú format). Analyze this bill image/PDF and extract all the information needed.
@@ -326,7 +402,7 @@ If you cannot clearly read the bill, set confidence to a low value (below 50) an
                 {
                   type: 'image_url',
                   image_url: {
-                    url: fileUrl,
+                    url: imageUrl, // Use converted image URL instead of original fileUrl
                   },
                 },
               ],

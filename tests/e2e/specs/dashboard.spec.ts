@@ -22,9 +22,9 @@ test.describe('Tenant Dashboard', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Hola', {
       timeout: 5000,
     });
-    // Accesos rápidos
+    // Accesos rápidos (en main, no en sidebar)
     await expect(page.getByText('Accesos rápidos')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByRole('link', { name: /Mi Consumo/ })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('link', { name: /Mi Consumo/ })).toBeVisible();
   });
 });
 

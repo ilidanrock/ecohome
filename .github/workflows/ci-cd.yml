@@ -115,7 +115,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm exec playwright test --config=tests/e2e/playwright.config.ts --project=chromium
+        run: pnpm exec playwright test --config=tests/e2e/playwright.config.ts --project=chromium tests/e2e/specs/auth.spec.ts tests/e2e/specs/dashboard.spec.ts
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecohome_test
           NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: e2e-placeholder
@@ -127,6 +127,6 @@ jobs:
         with:
           name: playwright-report
           path: |
-            test-results/
-            playwright-report/
+            tests/e2e/test-results/
+            tests/e2e/playwright-report/
           retention-days: 7

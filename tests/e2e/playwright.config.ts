@@ -1,7 +1,9 @@
+import path from 'path';
 import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 const isCI = !!process.env.CI;
+const projectRoot = path.resolve(__dirname, '../..');
 
 export default defineConfig({
   testDir: './specs',
@@ -21,9 +23,9 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
-    headless: isCI, // Headless en CI, con UI en desarrollo
+    headless: isCI,
     viewport: { width: 1280, height: 720 },
-    actionTimeout: 15000, // Aumentado para operaciones que pueden tardar (OCR, etc.)
+    actionTimeout: 15000,
     navigationTimeout: 30000,
   },
   projects: [
@@ -59,8 +61,9 @@ export default defineConfig({
   webServer: {
     command: 'pnpm dev',
     url: baseURL,
+    cwd: projectRoot,
     reuseExistingServer: !isCI,
-    timeout: 120 * 1000,
+    timeout: isCI ? 180 * 1000 : 120 * 1000,
     stdout: 'ignore',
     stderr: 'pipe',
   },

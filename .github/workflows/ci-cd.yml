@@ -73,6 +73,8 @@ jobs:
           --health-retries 5
 
     env:
+      AUTH_SECRET: ci-auth-secret-min-32-chars-long
+      NEXTAUTH_URL: http://localhost:3000
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecohome_test
       E2E_TEST_USER_EMAIL: e2e@test.com
       E2E_TEST_USER_PASSWORD: Test1234!

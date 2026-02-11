@@ -423,6 +423,7 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 - **Authentication**: ✅ Fixed session.user.id population in NextAuth callbacks for proper user identification.
 - **CI/CD**: ✅ Migrated workflows from npm to pnpm for consistency with local development.
 - **Logging**: ✅ Improved error logging in client-side queries to ensure meaningful information is always displayed.
+- **ServiceCharges (Pluz Perú):** Documentadas correcciones manuales y magnitudes típicas de los 8 campos; revisión manual obligatoria tras OCR. Ver sección "Pluz Perú – ServiceCharges" en OCR System Guidelines.
 - **OCR Rules**: 
   - **Meter Reading OCR:**
     - When OCR confidence is below 70%, always allow and encourage manual editing
@@ -441,10 +442,27 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
     - Use `useCreateElectricityBillWithChargesMutation` to create both ElectricityBill and ServiceCharges in sequence
     - Always allow manual correction of extracted data before saving
 
+### Pluz Perú – ServiceCharges (facturas de luz)
+
+- **Revisión manual obligatoria:** El OCR suele confundir líneas de la factura (p. ej. "Cargo Fijo" con importes de otra sección). Siempre revisar y corregir los 8 campos antes de guardar.
+- **Campos y magnitudes típicas (referencia de facturas corregidas):**
+  - `maintenanceAndReplacement` (Reposición y mantenimiento): suele ser bajo, 0–2.25. No confundir con totales de sección.
+  - `fixedCharge` (Cargo fijo): en Pluz suele ser bajo (2.25–2.3). Si el OCR devuelve valores altos (30+, 150+), es muy probable que esté leyendo otra línea.
+  - `compensatoryInterest` (Interés compensatorio): típicamente 0 o decimal pequeño (0.12).
+  - `publicLighting` (Alumbrado público): puede ser 0, 9 o 13.5 según factura.
+  - `lawContribution` (Aporte Ley N° 28749): suele ser bajo, 0–2.78.
+  - `lateFee` (Recargo por mora): suele ser 0 o bajo (0.01–0.05); si sale > 1.5 revisar.
+  - `previousMonthRounding` / `currentMonthRounding`: pueden ser negativos (p. ej. -0.08, -0.14, -3.67) o pequeños positivos.
+- **Ejemplos de períodos ya corregidos en DB (usar como referencia):**
+  - **2025-09-05 → 2025-10-06:** mant 1.65, fijo 2.3, interés 0, alumbrado 13.5, ley 2.78, mora 0.05, redondeo actual -0.14.
+  - **2025-11-07 → 2025-12-05:** mant 1.61, fijo 2.25, interés 0.12, alumbrado 9, ley 2.65, mora 0.01, red anterior 0.07, red actual -0.08.
+- Al mejorar prompts o validaciones de OCR, usar estos rangos y ejemplos para detectar valores sospechosos (p. ej. cargo fijo > 10 o mora > 1 sin contexto).
+
 ## OCR System Guidelines
 
 ### OCR Implementation Rules
 - **Service Layer**: OCR logic is in `lib/ocr-service.ts`, not in domain/application layers
+- **ServiceCharges (facturas luz):** Tras extraer facturas Pluz Perú, revisar siempre los 8 campos contra la factura; el OCR suele intercambiar o malinterpretar líneas (p. ej. cargo fijo vs otros importes). Ver "Pluz Perú – ServiceCharges" más arriba para magnitudes típicas y ejemplos.
 - **Error Handling**: Use specific error types (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) for better error categorization
   - **Error Preservation**: When retries fail, preserve the original error type instead of wrapping in generic `Error`. This improves error handling and debugging
   - **Error Types**: Always throw specific OCR error types (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) when possible

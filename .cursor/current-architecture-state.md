@@ -47,6 +47,7 @@
     - Rate limiting: 10 requests/min para extracción de facturas
     - Validación completa de fechas, números y estructura de datos
     - Advertencias cuando confianza < 70%
+    - **ServiceCharges (Pluz Perú):** Revisión manual obligatoria; documentadas magnitudes típicas y ejemplos corregidos en `.cursor/project-rules.md` (sección Pluz Perú – ServiceCharges) para validar/sospechar valores OCR
 - ✅ **Error Handling**: Sistema de errores de dominio (`DomainError`) implementado
 - ✅ **Global Error System**: Sistema completo de manejo global de errores implementado:
   - Códigos de error estandarizados (`ErrorCode` enum) con tres niveles (success, error, advisory)

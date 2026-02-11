@@ -8,6 +8,9 @@ import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
 import type { ErrorResponse } from '@/lib/errors/types';
 
+// Force Node.js runtime (required for OCR operations)
+export const runtime = 'nodejs';
+
 /**
  * POST /api/consumption/extract-reading
  *

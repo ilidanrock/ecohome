@@ -31,6 +31,8 @@ import { GetInvoiceById } from '@/src/application/Invoice/GetInvoiceById';
 import { PrismaTransactionManager } from '@/src/infrastructure/Shared/PrismaTransactionManager';
 import { PrismaElectricityBillRepository } from '@/src/infrastructure/ElectricityBill/PrismaElectricityBillRepository';
 import { PrismaServiceChargesRepository } from '@/src/infrastructure/ServiceCharges/PrismaServiceChargesRepository';
+import { PrismaWaterBillRepository } from '@/src/infrastructure/WaterBill/PrismaWaterBillRepository';
+import { PrismaWaterServiceChargesRepository } from '@/src/infrastructure/WaterServiceCharges/PrismaWaterServiceChargesRepository';
 import { PrismaPropertyRepository } from '@/src/infrastructure/Property/PrismaPropertyRepository';
 import { CreateInvoicesForProperty } from '@/src/application/Invoice/CreateInvoicesForProperty';
 import { prisma } from '@/prisma';
@@ -64,6 +66,8 @@ const invoiceRepository = new PrismaInvoiceRepository(prisma);
 const transactionManager = new PrismaTransactionManager(prisma);
 const electricityBillRepository = new PrismaElectricityBillRepository(prisma);
 const serviceChargesRepository = new PrismaServiceChargesRepository(prisma);
+const waterBillRepository = new PrismaWaterBillRepository(prisma);
+const waterServiceChargesRepository = new PrismaWaterServiceChargesRepository(prisma);
 const propertyRepository = new PrismaPropertyRepository(prisma);
 
 const verifyTokenCreate = new VerifyTokenCreate(
@@ -112,6 +116,12 @@ export const serviceContainer = {
   },
   serviceCharges: {
     repository: serviceChargesRepository,
+  },
+  waterBill: {
+    repository: waterBillRepository,
+  },
+  waterServiceCharges: {
+    repository: waterServiceChargesRepository,
   },
   property: {
     repository: propertyRepository,

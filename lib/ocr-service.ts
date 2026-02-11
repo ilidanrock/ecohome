@@ -5,7 +5,6 @@
  */
 
 import { logger } from '@/lib/logger';
-import cloudinary from '@/lib/cloudinary';
 
 interface OCRResult {
   reading: number;
@@ -26,6 +25,24 @@ export interface BillOCRResult {
     compensatoryInterest: number;
     publicLighting: number;
     lawContribution: number;
+    lateFee: number;
+    previousMonthRounding: number;
+    currentMonthRounding: number;
+  };
+  confidence: number; // 0-100
+  rawText?: string;
+}
+
+export interface WaterBillOCRResult {
+  waterBill: {
+    periodStart: string; // ISO date string
+    periodEnd: string; // ISO date string
+    totalConsumption: number; // m³
+    totalCost: number;
+  };
+  serviceCharges: {
+    fixedCharge: number;
+    sewerageCharge: number;
     lateFee: number;
     previousMonthRounding: number;
     currentMonthRounding: number;
@@ -283,28 +300,50 @@ function convertPdfToImageUrl(fileUrl: string): string {
     }
   }
 
-  if (publicId) {
-    try {
-      // Convert PDF to PNG image (first page) using Cloudinary SDK
-      return cloudinary.url(publicId, {
-        format: 'png',
-        page: 1, // First page of PDF
-        secure: true,
-        resource_type: 'image', // Force image resource type
-      });
-    } catch (error) {
-      logger.warn(
-        `Error converting PDF with Cloudinary SDK: ${error instanceof Error ? error.message : error}`
-      );
+  // Build Cloudinary transformation URL manually (avoid SDK dependency for Edge Runtime compatibility)
+  if (publicId && fileUrl.includes('res.cloudinary.com')) {
+    // Extract cloud_name and check for version in URL
+    const cloudNameMatch = fileUrl.match(/res\.cloudinary\.com\/([^/]+)/);
+    if (cloudNameMatch) {
+      const cloudName = cloudNameMatch[1];
+      // Check if URL has version (v1234567890)
+      const versionMatch = fileUrl.match(/\/v(\d+)\//);
+      const version = versionMatch ? versionMatch[1] : null;
+      
+      // Build URL with transformation: convert PDF to PNG, first page
+      // Format: https://res.cloudinary.com/{cloud_name}/image/upload/f_png,pg_1/{public_id}.png
+      // Or with version: https://res.cloudinary.com/{cloud_name}/image/upload/v{version}/f_png,pg_1/{public_id}.png
+      const baseUrl = `https://res.cloudinary.com/${cloudName}/image/upload`;
+      const transformation = 'f_png,pg_1';
+      
+      if (version) {
+        return `${baseUrl}/v${version}/${transformation}/${publicId}.png`;
+      } else {
+        return `${baseUrl}/${transformation}/${publicId}.png`;
+      }
     }
   }
 
   // Fallback: Try adding transformation parameters directly to URL
   if (fileUrl.includes('res.cloudinary.com')) {
-    // Remove existing query parameters and add transformation
+    // Remove existing query parameters
     const urlWithoutQuery = fileUrl.split('?')[0];
-    // Add transformation: convert to PNG, first page
-    return `${urlWithoutQuery}?f_png,pg_1`;
+    // Replace .pdf with .png
+    const urlWithPng = urlWithoutQuery.replace(/\.pdf$/, '.png');
+    // Extract the path after /upload/ and add transformation before the filename
+    // Handle both with and without version
+    const uploadMatch = urlWithPng.match(/(.*\/upload\/)(v\d+\/)?(.*)/);
+    if (uploadMatch) {
+      const [, basePath, version, rest] = uploadMatch;
+      const transformation = 'f_png,pg_1';
+      if (version) {
+        return `${basePath}${version}${transformation}/${rest}`;
+      } else {
+        return `${basePath}${transformation}/${rest}`;
+      }
+    }
+    // Simple fallback: add transformation as query parameter (less reliable)
+    return `${urlWithPng}?f_png,pg_1`;
   }
 
   // Last fallback: return original URL (will fail at OpenAI but at least we tried)
@@ -606,4 +645,286 @@ If you cannot clearly read the bill, set confidence to a low value (below 50) an
 
   // This should never be reached, but TypeScript requires it
   throw lastError || new Error('Unknown error during bill OCR extraction');
+}
+
+/**
+ * Extracts complete bill information from a water bill PDF/image using OpenAI Vision
+ * Designed for Sedepal bills but should work with other formats
+ * @param fileUrl - URL of the bill PDF/image (Cloudinary URL)
+ * @returns Water bill OCR result with WaterBill and WaterServiceCharges data
+ * @throws Error if extraction fails after retries
+ */
+export async function extractWaterBillInformation(
+  fileUrl: string
+): Promise<WaterBillOCRResult> {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not configured');
+  }
+
+  // Convert PDF to image URL if needed
+  const imageUrl = convertPdfToImageUrl(fileUrl);
+
+  if (imageUrl !== fileUrl) {
+    logger.info(`Converted PDF to image URL: ${fileUrl} -> ${imageUrl}`);
+  }
+
+  const prompt = `You are an expert at reading water bills from Peru (specifically Sedepal format). Analyze this bill image/PDF and extract all the information needed.
+
+Extract the following information:
+
+**WaterBill:**
+- periodStart: Start date of the billing period (format: YYYY-MM-DD)
+- periodEnd: End date of the billing period (format: YYYY-MM-DD)
+- totalConsumption: Total water consumption in cubic meters (m³) for the period
+- totalCost: Total amount to pay (TOTAL A PAGAR or TOTAL)
+
+**ServiceCharges:**
+- fixedCharge: "Cargo Fijo" or similar (default: 0 if not found)
+- sewerageCharge: "Alcantarillado" or "Servicio de Alcantarillado" (default: 0 if not found)
+- lateFee: "Recargo por Mora" or "Mora" (default: 0 if not found)
+- previousMonthRounding: "Redondeo Mes Anterior" (can be negative, default: 0 if not found)
+- currentMonthRounding: "Redondeo Mes Actual" (can be negative, default: 0 if not found)
+
+Important notes:
+- Dates should be in format YYYY-MM-DD. If you see dates like "05/09/2025" or "06/10/2025", convert them properly.
+- All monetary values should be numbers (remove currency symbols like S/).
+- Water consumption is typically in cubic meters (m³).
+- If a field is not found, use 0 as default (except for dates which are required).
+- Rounding values can be negative.
+- The totalCost should be the final amount to pay (usually includes IGV).
+
+Respond ONLY with a JSON object in this exact format:
+{
+  "waterBill": {
+    "periodStart": "YYYY-MM-DD",
+    "periodEnd": "YYYY-MM-DD",
+    "totalConsumption": <number in m³>,
+    "totalCost": <number>
+  },
+  "serviceCharges": {
+    "fixedCharge": <number>,
+    "sewerageCharge": <number>,
+    "lateFee": <number>,
+    "previousMonthRounding": <number>,
+    "currentMonthRounding": <number>
+  },
+  "confidence": <number 0-100>,
+  "rawText": "<summary of what you see in the bill>"
+}
+
+If you cannot clearly read the bill, set confidence to a low value (below 50) and still provide your best guess for all fields.`;
+
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: imageUrl, // Use converted image URL instead of original fileUrl
+                  },
+                },
+              ],
+            },
+          ],
+          max_tokens: 1000, // More tokens needed for structured bill data
+          temperature: 0.1, // Low temperature for more consistent results
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new OCRApiError(
+          `OpenAI API error: ${response.status} - ${errorText}`,
+          response.status
+        );
+      }
+
+      const data: OpenAIResponse = await response.json();
+      const content = data.choices[0]?.message?.content;
+
+      if (!content) {
+        throw new OCRParsingError('No content in OpenAI response');
+      }
+
+      // Parse JSON from response (may be wrapped in markdown code blocks)
+      let jsonContent = content.trim();
+      const jsonMatch =
+        content.match(/```json\n([\s\S]*?)\n```/) || content.match(/```\n([\s\S]*?)\n```/);
+      if (jsonMatch) {
+        jsonContent = jsonMatch[1].trim();
+      } else {
+        // Try to extract JSON object directly
+        const jsonObjectMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonObjectMatch) {
+          jsonContent = jsonObjectMatch[0];
+        }
+      }
+
+      let result: WaterBillOCRResult;
+      try {
+        result = JSON.parse(jsonContent) as WaterBillOCRResult;
+      } catch (parseError) {
+        throw new OCRParsingError(
+          `Failed to parse JSON from OpenAI response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+          content
+        );
+      }
+
+      // Validate waterBill
+      if (!result.waterBill) {
+        throw new OCRValidationError('Missing waterBill in OCR result');
+      }
+
+      const { waterBill } = result;
+      const periodStart = new Date(waterBill.periodStart);
+      const periodEnd = new Date(waterBill.periodEnd);
+
+      if (isNaN(periodStart.getTime())) {
+        throw new OCRValidationError(
+          `Invalid periodStart: expected valid date, got ${waterBill.periodStart}`,
+          waterBill.periodStart
+        );
+      }
+
+      if (isNaN(periodEnd.getTime())) {
+        throw new OCRValidationError(
+          `Invalid periodEnd: expected valid date, got ${waterBill.periodEnd}`,
+          waterBill.periodEnd
+        );
+      }
+
+      if (periodStart >= periodEnd) {
+        throw new OCRValidationError(
+          `Invalid period: periodStart (${periodStart.toISOString()}) must be before periodEnd (${periodEnd.toISOString()})`
+        );
+      }
+
+      const totalConsumption = waterBill.totalConsumption;
+      const totalCost = waterBill.totalCost;
+
+      if (typeof totalConsumption !== 'number' || totalConsumption <= 0) {
+        throw new OCRValidationError(
+          `Invalid totalConsumption: expected positive number, got ${totalConsumption}`,
+          totalConsumption
+        );
+      }
+
+      if (typeof totalCost !== 'number' || totalCost <= 0) {
+        throw new OCRValidationError(
+          `Invalid totalCost: expected positive number, got ${totalCost}`,
+          totalCost
+        );
+      }
+
+      // Validate serviceCharges
+      if (!result.serviceCharges) {
+        throw new OCRValidationError('Missing serviceCharges in OCR result');
+      }
+
+      const { serviceCharges } = result;
+      const serviceChargeFields = [
+        'fixedCharge',
+        'sewerageCharge',
+        'lateFee',
+        'previousMonthRounding',
+        'currentMonthRounding',
+      ] as const;
+
+      for (const field of serviceChargeFields) {
+        if (typeof serviceCharges[field] !== 'number') {
+          throw new OCRValidationError(
+            `Invalid ${field}: expected number, got ${serviceCharges[field]}`,
+            serviceCharges[field]
+          );
+        }
+        // Most fields should be non-negative, except rounding which can be negative
+        if (
+          field !== 'previousMonthRounding' &&
+          field !== 'currentMonthRounding' &&
+          serviceCharges[field] < 0
+        ) {
+          throw new OCRValidationError(
+            `Invalid ${field}: expected non-negative number, got ${serviceCharges[field]}`,
+            serviceCharges[field]
+          );
+        }
+      }
+
+      // Validate confidence
+      if (
+        typeof result.confidence !== 'number' ||
+        result.confidence < 0 ||
+        result.confidence > 100
+      ) {
+        throw new OCRValidationError(
+          `Invalid confidence: expected number between 0-100, got ${result.confidence}`,
+          result.confidence
+        );
+      }
+
+      // Validate totalConsumption is reasonable (0 to 1 million m³)
+      if (totalConsumption > 1000000) {
+        throw new OCRValidationError(
+          `totalConsumption too high: expected value <= 1,000,000 m³, got ${totalConsumption}`,
+          totalConsumption
+        );
+      }
+
+      return {
+        waterBill: {
+          periodStart: periodStart.toISOString(),
+          periodEnd: periodEnd.toISOString(),
+          totalConsumption: Number(totalConsumption.toFixed(3)),
+          totalCost: Number(totalCost.toFixed(2)),
+        },
+        serviceCharges: {
+          fixedCharge: Number(serviceCharges.fixedCharge.toFixed(2)),
+          sewerageCharge: Number(serviceCharges.sewerageCharge.toFixed(2)),
+          lateFee: Number(serviceCharges.lateFee.toFixed(2)),
+          previousMonthRounding: Number(serviceCharges.previousMonthRounding.toFixed(2)),
+          currentMonthRounding: Number(serviceCharges.currentMonthRounding.toFixed(2)),
+        },
+        confidence: Math.round(result.confidence),
+        rawText: result.rawText,
+      };
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // If it's the last attempt, preserve the original error type if possible
+      if (attempt === MAX_RETRIES) {
+        // Preserve specific OCR error types
+        if (
+          lastError instanceof OCRApiError ||
+          lastError instanceof OCRParsingError ||
+          lastError instanceof OCRValidationError
+        ) {
+          throw lastError;
+        }
+        // Otherwise, wrap in a generic error with context
+        throw new Error(
+          `Failed to extract water bill information after ${MAX_RETRIES} attempts: ${lastError.message}`
+        );
+      }
+
+      // Wait before retrying (exponential backoff)
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS * attempt));
+    }
+  }
+
+  // This should never be reached, but TypeScript requires it
+  throw lastError || new Error('Unknown error during water bill OCR extraction');
 }

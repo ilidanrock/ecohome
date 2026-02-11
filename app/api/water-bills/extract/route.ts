@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
-import { extractBillInformation } from '@/lib/ocr-service';
+import { extractWaterBillInformation } from '@/lib/ocr-service';
 import { extractBillDataSchema } from '@/zod/bill-ocr-schemas';
 import { rateLimiters } from '@/lib/rate-limit';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
@@ -12,15 +12,15 @@ import type { ErrorResponse } from '@/lib/errors/types';
 export const runtime = 'nodejs';
 
 /**
- * POST /api/electricity-bills/extract
+ * POST /api/water-bills/extract
  *
- * Extracts bill information from a PDF/image using OCR.
+ * Extracts water bill information from a PDF/image using OCR.
  * Requires ADMIN authentication.
  *
  * Request body:
  * - fileUrl: string (URL of the bill PDF/image in Cloudinary)
  *
- * @returns {Promise<NextResponse>} Extracted bill data or error response
+ * @returns {Promise<NextResponse>} Extracted water bill data or error response
  */
 export async function POST(request: NextRequest) {
   try {
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     if (session.user.role !== 'ADMIN') {
       const errorResponse: ErrorResponse = {
         code: ErrorCode.FORBIDDEN,
-        message: 'Only administrators can extract bill information',
+        message: 'Only administrators can extract water bill information',
         level: getErrorLevelFromStatus(403),
       };
       return NextResponse.json(errorResponse, { status: 403 });
@@ -84,8 +84,8 @@ export async function POST(request: NextRequest) {
 
     const { fileUrl } = validationResult.data;
 
-    // Extract bill information using OCR
-    const extractedData = await extractBillInformation(fileUrl);
+    // Extract water bill information using OCR
+    const extractedData = await extractWaterBillInformation(fileUrl);
 
     return NextResponse.json(
       {
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return handleApiError(error, {
-      endpoint: '/api/electricity-bills/extract',
+      endpoint: '/api/water-bills/extract',
       method: 'POST',
     });
   }

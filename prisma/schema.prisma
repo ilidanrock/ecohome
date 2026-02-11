@@ -87,6 +87,7 @@ model Property {
   // contratos / lecturas / facturas
   rentals         Rental[]
   electricityBills ElectricityBill[]
+  waterBills      WaterBill[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -170,6 +171,38 @@ model ServiceCharges {
   lateFee                   Decimal @db.Decimal(12,2)   // Recargo por mora
   previousMonthRounding     Decimal @db.Decimal(12,2)  // Redondeo Mes Anterior
   currentMonthRounding      Decimal @db.Decimal(12,2)  // Redondeo Mes Actual
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WaterBill {
+  id              String   @id @default(uuid())
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId      String
+
+  periodStart     DateTime
+  periodEnd       DateTime
+  totalConsumption Decimal @db.Decimal(10,3)  // Consumo en m³
+  totalCost       Decimal  @db.Decimal(12,2)
+  fileUrl         String?
+
+  serviceCharges  WaterServiceCharges?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model WaterServiceCharges {
+  id                String      @id @default(uuid())
+  waterBill          WaterBill   @relation(fields: [waterBillId], references: [id], onDelete: Cascade)
+  waterBillId       String      @unique
+  
+  fixedCharge               Decimal @db.Decimal(12,2)  // Cargo fijo
+  sewerageCharge            Decimal @db.Decimal(12,2)  // Alcantarillado
+  lateFee                   Decimal @db.Decimal(12,2)  // Recargo por mora
+  previousMonthRounding     Decimal @db.Decimal(12,2)  // Redondeo Mes Anterior (puede ser negativo)
+  currentMonthRounding       Decimal @db.Decimal(12,2)  // Redondeo Mes Actual (puede ser negativo)
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

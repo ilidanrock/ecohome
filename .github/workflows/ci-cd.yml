@@ -76,6 +76,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecohome_test
       E2E_TEST_USER_EMAIL: e2e@test.com
       E2E_TEST_USER_PASSWORD: Test1234!
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: e2e-placeholder
 
     steps:
       - name: Checkout
@@ -117,6 +118,7 @@ jobs:
         run: pnpm exec playwright test --config=tests/e2e/playwright.config.ts --project=chromium
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecohome_test
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: e2e-placeholder
           CI: true
 
       - name: Upload Playwright report

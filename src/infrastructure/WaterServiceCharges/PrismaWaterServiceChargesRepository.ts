@@ -1,13 +1,8 @@
-import {
-  PrismaClient,
-  WaterServiceCharges as PrismaWaterServiceCharges,
-} from '@prisma/client';
+import { PrismaClient, WaterServiceCharges as PrismaWaterServiceCharges } from '@prisma/client';
 import { IWaterServiceChargesRepository } from '@/src/domain/WaterServiceCharges/IWaterServiceChargesRepository';
 import { WaterServiceCharges } from '@/src/domain/WaterServiceCharges/WaterServiceCharges';
 
-export class PrismaWaterServiceChargesRepository
-  implements IWaterServiceChargesRepository
-{
+export class PrismaWaterServiceChargesRepository implements IWaterServiceChargesRepository {
   constructor(private prisma: PrismaClient) {}
 
   /**
@@ -30,9 +25,7 @@ export class PrismaWaterServiceChargesRepository
    * @param waterServiceCharges - The water service charges entity to create
    * @returns The created WaterServiceCharges entity
    */
-  async create(
-    waterServiceCharges: WaterServiceCharges
-  ): Promise<WaterServiceCharges> {
+  async create(waterServiceCharges: WaterServiceCharges): Promise<WaterServiceCharges> {
     const created = await this.prisma.waterServiceCharges.create({
       data: {
         waterBillId: waterServiceCharges.waterBillId,
@@ -53,9 +46,7 @@ export class PrismaWaterServiceChargesRepository
    * @param waterServiceCharges - The water service charges entity to update
    * @returns The updated WaterServiceCharges entity
    */
-  async update(
-    waterServiceCharges: WaterServiceCharges
-  ): Promise<WaterServiceCharges> {
+  async update(waterServiceCharges: WaterServiceCharges): Promise<WaterServiceCharges> {
     const updated = await this.prisma.waterServiceCharges.update({
       where: { id: waterServiceCharges.id },
       data: {
@@ -87,9 +78,7 @@ export class PrismaWaterServiceChargesRepository
    * @param prismaWaterServiceCharges - The Prisma WaterServiceCharges model
    * @returns The domain WaterServiceCharges entity
    */
-  private mapToDomain(
-    prismaWaterServiceCharges: PrismaWaterServiceCharges
-  ): WaterServiceCharges {
+  private mapToDomain(prismaWaterServiceCharges: PrismaWaterServiceCharges): WaterServiceCharges {
     return new WaterServiceCharges(
       prismaWaterServiceCharges.waterBillId,
       Number(prismaWaterServiceCharges.fixedCharge),

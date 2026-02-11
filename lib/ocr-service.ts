@@ -309,13 +309,13 @@ function convertPdfToImageUrl(fileUrl: string): string {
       // Check if URL has version (v1234567890)
       const versionMatch = fileUrl.match(/\/v(\d+)\//);
       const version = versionMatch ? versionMatch[1] : null;
-      
+
       // Build URL with transformation: convert PDF to PNG, first page
       // Format: https://res.cloudinary.com/{cloud_name}/image/upload/f_png,pg_1/{public_id}.png
       // Or with version: https://res.cloudinary.com/{cloud_name}/image/upload/v{version}/f_png,pg_1/{public_id}.png
       const baseUrl = `https://res.cloudinary.com/${cloudName}/image/upload`;
       const transformation = 'f_png,pg_1';
-      
+
       if (version) {
         return `${baseUrl}/v${version}/${transformation}/${publicId}.png`;
       } else {
@@ -654,9 +654,7 @@ If you cannot clearly read the bill, set confidence to a low value (below 50) an
  * @returns Water bill OCR result with WaterBill and WaterServiceCharges data
  * @throws Error if extraction fails after retries
  */
-export async function extractWaterBillInformation(
-  fileUrl: string
-): Promise<WaterBillOCRResult> {
+export async function extractWaterBillInformation(fileUrl: string): Promise<WaterBillOCRResult> {
   if (!OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');
   }

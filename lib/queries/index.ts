@@ -14,8 +14,16 @@ export {
   useInvalidateConsumption,
 } from './consumption';
 
+// Invoices Queries
+export { useInvoicesQuery } from './invoices';
+
 // Bills Queries
-export { useExtractBillDataMutation, useCreateElectricityBillWithChargesMutation } from './bills';
+export {
+  useExtractBillDataMutation,
+  useCreateElectricityBillWithChargesMutation,
+  useElectricityBillsQuery,
+  useWaterBillsQuery,
+} from './bills';
 
 // Re-export query types from centralized types
 export type { ConsumptionResponse } from '@/types';

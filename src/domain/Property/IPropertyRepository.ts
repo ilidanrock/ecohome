@@ -20,6 +20,13 @@ export interface IPropertyRepository {
   } | null>;
 
   /**
+   * Find all properties managed by a user (admin)
+   * @param userId - The user ID
+   * @returns Array of Property entities
+   */
+  findManagedByUserId(userId: string): Promise<Property[]>;
+
+  /**
    * Check if a user is an administrator of a property
    * @param propertyId - The property ID
    * @param userId - The user ID

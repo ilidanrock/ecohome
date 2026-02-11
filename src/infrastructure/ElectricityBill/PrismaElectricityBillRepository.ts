@@ -34,6 +34,15 @@ export class PrismaElectricityBillRepository implements IElectricityBillReposito
     return electricityBills.map((bill) => this.mapToDomain(bill));
   }
 
+  async findManyByPropertyIds(propertyIds: string[]): Promise<ElectricityBill[]> {
+    if (propertyIds.length === 0) return [];
+    const electricityBills = await this.prisma.electricityBill.findMany({
+      where: { propertyId: { in: propertyIds } },
+      orderBy: { periodStart: 'desc' },
+    });
+    return electricityBills.map((bill) => this.mapToDomain(bill));
+  }
+
   /**
    * Find electricity bill by property and period
    *

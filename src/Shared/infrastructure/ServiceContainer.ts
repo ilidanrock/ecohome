@@ -28,6 +28,9 @@ import { PrismaRentalRepository } from '@/src/infrastructure/Rental/PrismaRental
 import { PrismaInvoiceRepository } from '@/src/infrastructure/Invoice/PrismaInvoiceRepository';
 import { GetRentalById } from '@/src/application/Rental/GetRentalById';
 import { GetInvoiceById } from '@/src/application/Invoice/GetInvoiceById';
+import { GetUserInvoices } from '@/src/application/Invoice/GetUserInvoices';
+import { ListElectricityBillsForAdmin } from '@/src/application/ElectricityBill/ListElectricityBillsForAdmin';
+import { ListWaterBillsForAdmin } from '@/src/application/WaterBill/ListWaterBillsForAdmin';
 import { PrismaTransactionManager } from '@/src/infrastructure/Shared/PrismaTransactionManager';
 import { PrismaElectricityBillRepository } from '@/src/infrastructure/ElectricityBill/PrismaElectricityBillRepository';
 import { PrismaServiceChargesRepository } from '@/src/infrastructure/ServiceCharges/PrismaServiceChargesRepository';
@@ -101,6 +104,7 @@ export const serviceContainer = {
   },
   invoice: {
     getInvoiceById: new GetInvoiceById(invoiceRepository),
+    getUserInvoices: new GetUserInvoices(rentalRepository, invoiceRepository),
     createInvoicesForProperty: new CreateInvoicesForProperty(
       electricityBillRepository,
       serviceChargesRepository,
@@ -113,12 +117,14 @@ export const serviceContainer = {
   },
   electricityBill: {
     repository: electricityBillRepository,
+    listForAdmin: new ListElectricityBillsForAdmin(propertyRepository, electricityBillRepository),
   },
   serviceCharges: {
     repository: serviceChargesRepository,
   },
   waterBill: {
     repository: waterBillRepository,
+    listForAdmin: new ListWaterBillsForAdmin(propertyRepository, waterBillRepository),
   },
   waterServiceCharges: {
     repository: waterServiceChargesRepository,

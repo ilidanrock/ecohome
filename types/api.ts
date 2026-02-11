@@ -62,3 +62,51 @@ export interface PaymentResponse {
 }
 
 export type PaymentsResponse = PaymentResponse[];
+
+/**
+ * Invoice list item (for GET /api/invoices and dashboard)
+ */
+export interface InvoiceListItem {
+  id: string;
+  rentalId: string;
+  month: number;
+  year: number;
+  totalCost: number;
+  status: 'PAID' | 'UNPAID';
+}
+
+export interface InvoicesListResponse {
+  invoices: InvoiceListItem[];
+}
+
+/**
+ * Electricity bill list item (for GET /api/electricity-bills admin)
+ */
+export interface ElectricityBillListItem {
+  id: string;
+  propertyId: string;
+  periodStart: string; // ISO
+  periodEnd: string; // ISO
+  totalKWh: number;
+  totalCost: number;
+}
+
+export interface ElectricityBillsListResponse {
+  electricityBills: ElectricityBillListItem[];
+}
+
+/**
+ * Water bill list item (for GET /api/water-bills admin)
+ */
+export interface WaterBillListItem {
+  id: string;
+  propertyId: string;
+  periodStart: string; // ISO
+  periodEnd: string; // ISO
+  totalConsumption: number;
+  totalCost: number;
+}
+
+export interface WaterBillsListResponse {
+  waterBills: WaterBillListItem[];
+}

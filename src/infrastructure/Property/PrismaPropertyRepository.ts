@@ -45,6 +45,19 @@ export class PrismaPropertyRepository implements IPropertyRepository {
   }
 
   /**
+   * Find all properties managed by a user (admin)
+   *
+   * @param userId - The user ID
+   * @returns Array of Property entities
+   */
+  async findManagedByUserId(userId: string): Promise<Property[]> {
+    const properties = await this.prisma.property.findMany({
+      where: { administrators: { some: { id: userId } } },
+    });
+    return properties.map((p) => this.mapToDomain(p));
+  }
+
+  /**
    * Check if a user is an administrator of a property
    *
    * @param propertyId - The property ID

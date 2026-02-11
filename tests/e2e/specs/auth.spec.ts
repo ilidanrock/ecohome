@@ -23,7 +23,10 @@ test.describe('Autenticación', () => {
 
     try {
       // Intentar iniciar sesión
-      await auth.login('rluis747@yahoo.es', 'Test1234!');
+      await auth.login(
+        process.env.E2E_TEST_USER_EMAIL || 'rluis747@yahoo.es',
+        process.env.E2E_TEST_USER_PASSWORD || 'Test1234!'
+      );
 
       // Tomar captura de pantalla después del login
       await page.screenshot({ path: 'test-results/after-login.png' });

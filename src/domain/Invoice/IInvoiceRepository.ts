@@ -17,6 +17,17 @@ export interface IInvoiceRepository {
   findById(id: string, includeRental?: boolean): Promise<Invoice | null>;
 
   /**
+   * Find invoices by rental IDs, optionally filtered by status
+   * @param rentalIds - Array of rental IDs
+   * @param options - Optional filter by status
+   * @returns Array of Invoice entities
+   */
+  findManyByRentalIds(
+    rentalIds: string[],
+    options?: { status?: PaymentStatus }
+  ): Promise<Invoice[]>;
+
+  /**
    * Find invoice by rental, month and year
    * @param rentalId - The rental ID
    * @param month - The month (1-12)

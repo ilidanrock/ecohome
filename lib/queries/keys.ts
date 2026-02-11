@@ -58,3 +58,21 @@ export const notificationKeys = {
   list: (filters?: Record<string, unknown>) => [...notificationKeys.lists(), filters] as const,
   unread: () => [...notificationKeys.all, 'unread'] as const,
 };
+
+export const invoiceKeys = {
+  all: ['invoices'] as const,
+  lists: () => [...invoiceKeys.all, 'list'] as const,
+  list: (filters?: { status?: 'PAID' | 'UNPAID' }) => [...invoiceKeys.lists(), filters] as const,
+};
+
+export const electricityBillsKeys = {
+  all: ['electricityBills'] as const,
+  lists: () => [...electricityBillsKeys.all, 'list'] as const,
+  list: (propertyId?: string) => [...electricityBillsKeys.lists(), propertyId] as const,
+};
+
+export const waterBillsKeys = {
+  all: ['waterBills'] as const,
+  lists: () => [...waterBillsKeys.all, 'list'] as const,
+  list: (propertyId?: string) => [...waterBillsKeys.lists(), propertyId] as const,
+};

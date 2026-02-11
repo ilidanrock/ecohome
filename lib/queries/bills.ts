@@ -1,12 +1,13 @@
 /**
  * Bills Queries
  *
- * TanStack Query hooks for electricity bills and service charges.
+ * TanStack Query hooks for electricity bills, water bills, and service charges.
  */
 
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import type { BillOCRResult } from '@/lib/ocr-service';
-import { billKeys } from './keys';
+import type { ElectricityBillsListResponse, WaterBillsListResponse } from '@/types';
+import { billKeys, electricityBillsKeys, waterBillsKeys } from './keys';
 import type { ErrorResponse } from '@/lib/errors/types';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorCodeFromStatus, getErrorLevelFromStatus } from '@/lib/errors/error-level';
@@ -89,6 +90,60 @@ export class BillsServerError extends BillsApiError {
   }
 }
 
+async function fetchElectricityBills(propertyId?: string): Promise<ElectricityBillsListResponse> {
+  const url = propertyId
+    ? `/api/electricity-bills?propertyId=${encodeURIComponent(propertyId)}`
+    : '/api/electricity-bills';
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to fetch electricity bills (${response.status})`);
+  }
+  return response.json();
+}
+
+async function fetchWaterBills(propertyId?: string): Promise<WaterBillsListResponse> {
+  const url = propertyId
+    ? `/api/water-bills?propertyId=${encodeURIComponent(propertyId)}`
+    : '/api/water-bills';
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || `Failed to fetch water bills (${response.status})`);
+  }
+  return response.json();
+}
+
+/**
+ * Hook to fetch electricity bills (admin). Optional propertyId to filter.
+ */
+export function useElectricityBillsQuery(propertyId?: string) {
+  return useQuery({
+    queryKey: electricityBillsKeys.list(propertyId),
+    queryFn: () => fetchElectricityBills(propertyId),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+}
+
+/**
+ * Hook to fetch water bills (admin). Optional propertyId to filter.
+ */
+export function useWaterBillsQuery(propertyId?: string) {
+  return useQuery({
+    queryKey: waterBillsKeys.list(propertyId),
+    queryFn: () => fetchWaterBills(propertyId),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+}
+
 /**
  * Mutation to extract bill information using OCR
  */
@@ -146,8 +201,8 @@ export function useExtractBillDataMutation() {
         }
       },
       onSuccess: () => {
-        // Invalidate bills queries to refetch updated data
         queryClient.invalidateQueries({ queryKey: billKeys.all });
+        queryClient.invalidateQueries({ queryKey: electricityBillsKeys.all });
       },
     }
   );
@@ -302,8 +357,8 @@ export function useCreateElectricityBillWithChargesMutation() {
       }
     },
     onSuccess: () => {
-      // Invalidate bills queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: billKeys.all });
+      queryClient.invalidateQueries({ queryKey: electricityBillsKeys.all });
     },
   });
 }

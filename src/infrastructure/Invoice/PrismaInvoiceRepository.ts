@@ -28,6 +28,20 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     return invoice ? this.mapToDomain(invoice) : null;
   }
 
+  async findManyByRentalIds(
+    rentalIds: string[],
+    options?: { status?: PaymentStatus }
+  ): Promise<Invoice[]> {
+    if (rentalIds.length === 0) return [];
+    const where: Prisma.InvoiceWhereInput = { rentalId: { in: rentalIds } };
+    if (options?.status) where.status = options.status;
+    const invoices = await this.prisma.invoice.findMany({
+      where,
+      orderBy: [{ year: 'desc' }, { month: 'desc' }],
+    });
+    return invoices.map((inv) => this.mapToDomain(inv));
+  }
+
   async findByRentalMonthYear(
     rentalId: string,
     month: number,

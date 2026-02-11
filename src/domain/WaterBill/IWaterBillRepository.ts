@@ -16,6 +16,13 @@ export interface IWaterBillRepository {
   findByPropertyId(propertyId: string): Promise<WaterBill[]>;
 
   /**
+   * Find water bills by multiple property IDs (e.g. for admin dashboard)
+   * @param propertyIds - Array of property IDs
+   * @returns Array of WaterBill entities ordered by periodStart desc
+   */
+  findManyByPropertyIds(propertyIds: string[]): Promise<WaterBill[]>;
+
+  /**
    * Find water bill by property and period
    * @param propertyId - The property ID
    * @param periodStart - Start of the period

@@ -71,3 +71,15 @@ export class PropertyNoAdministratorsError extends DomainError {
     super('Property must have at least one administrator');
   }
 }
+
+/**
+ * Error thrown when user is not administrator of the property
+ */
+export class PropertyAccessDeniedError extends DomainError {
+  readonly code = 'PROPERTY_ACCESS_DENIED';
+  readonly statusCode = 403;
+
+  constructor(propertyId: string) {
+    super(`You do not have permission to access property ${propertyId}`);
+  }
+}

@@ -34,6 +34,15 @@ export class PrismaWaterBillRepository implements IWaterBillRepository {
     return waterBills.map((bill) => this.mapToDomain(bill));
   }
 
+  async findManyByPropertyIds(propertyIds: string[]): Promise<WaterBill[]> {
+    if (propertyIds.length === 0) return [];
+    const waterBills = await this.prisma.waterBill.findMany({
+      where: { propertyId: { in: propertyIds } },
+      orderBy: { periodStart: 'desc' },
+    });
+    return waterBills.map((bill) => this.mapToDomain(bill));
+  }
+
   /**
    * Find water bill by property and period
    *

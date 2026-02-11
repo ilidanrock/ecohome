@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { createElectricityBillSchema } from '@/zod/electricity-bill-schemas';
+import { listBillsQuerySchema } from '@/zod/bills-query-schemas';
 import { ElectricityBill } from '@/src/domain/ElectricityBill/ElectricityBill';
 import { ZodError } from 'zod';
 import { rateLimiters } from '@/lib/rate-limit';
@@ -9,6 +10,49 @@ import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
 import type { ErrorResponse } from '@/lib/errors/types';
+import type { ElectricityBillsListResponse } from '@/types';
+
+/**
+ * GET /api/electricity-bills
+ *
+ * Lists electricity bills for admin (all managed properties or filtered by propertyId).
+ * Query: ?propertyId=uuid (optional)
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user) {
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Authentication required',
+        level: getErrorLevelFromStatus(401),
+      };
+      return NextResponse.json(errorResponse, { status: 401 });
+    }
+    if (session.user.role !== 'ADMIN') {
+      const errorResponse: ErrorResponse = {
+        code: ErrorCode.FORBIDDEN,
+        message: 'Only administrators can list electricity bills',
+        level: getErrorLevelFromStatus(403),
+      };
+      return NextResponse.json(errorResponse, { status: 403 });
+    }
+    const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
+    const parsed = listBillsQuerySchema.safeParse(searchParams);
+    const propertyId = parsed.success ? parsed.data.propertyId : undefined;
+    const electricityBills = await serviceContainer.electricityBill.listForAdmin.execute(
+      session.user.id,
+      propertyId
+    );
+    const response: ElectricityBillsListResponse = { electricityBills };
+    return NextResponse.json(response);
+  } catch (error) {
+    return handleApiError(error, {
+      endpoint: '/api/electricity-bills',
+      method: 'GET',
+    });
+  }
+}
 
 /**
  * POST /api/electricity-bills

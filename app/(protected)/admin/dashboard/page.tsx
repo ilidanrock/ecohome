@@ -1,16 +1,22 @@
-import React from 'react';
 import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
+import { AdminDashboardContent } from '@/components/dashboard/AdminDashboardContent';
 
-async function pageAdmin() {
+export default async function AdminDashboardPage() {
   const session = await auth();
 
   if (!session) {
-    return <div>Not authenticated</div>;
+    redirect('/login');
+    return null;
   }
   if (session.user.role !== 'ADMIN') {
-    return <div>Not authorized</div>;
+    redirect('/dashboard');
+    return null;
   }
-  return <div></div>;
-}
 
-export default pageAdmin;
+  return (
+    <div className="container">
+      <AdminDashboardContent />
+    </div>
+  );
+}

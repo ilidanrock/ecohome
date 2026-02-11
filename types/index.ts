@@ -22,6 +22,12 @@ export type {
   CreatePaymentRequest,
   PaymentResponse,
   PaymentsResponse,
+  InvoiceListItem,
+  InvoicesListResponse,
+  ElectricityBillListItem,
+  ElectricityBillsListResponse,
+  WaterBillListItem,
+  WaterBillsListResponse,
 } from './api';
 
 // UI Types

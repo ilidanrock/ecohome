@@ -12,12 +12,16 @@
     "lint": "next lint --fix && pnpm format",
     "prepare": "husky",
     "test": "npx playwright test",
+    "test:unit": "vitest run",
     "code-review": "tsx scripts/code-review.ts",
     "code-review:file": "tsx scripts/code-review.ts --file",
     "code-review:md": "tsx scripts/code-review.ts --markdown",
     "code-review:md:save": "tsx scripts/code-review.ts --markdown --output code-review.md",
     "code-review:unpushed": "tsx scripts/code-review.ts --unpushed",
     "code-review:unpushed:md": "tsx scripts/code-review.ts --unpushed --markdown"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "~2.9.1",
@@ -83,6 +87,8 @@
     "prisma": "~6.10.1",
     "tailwindcss": "~3.4.1",
     "tsx": "^4.20.6",
-    "typescript": "~5"
+    "typescript": "~5",
+    "vite-tsconfig-paths": "^6.1.0",
+    "vitest": "^4.0.18"
   }
 }

@@ -16,6 +16,13 @@ export interface IElectricityBillRepository {
   findByPropertyId(propertyId: string): Promise<ElectricityBill[]>;
 
   /**
+   * Find electricity bills by multiple property IDs (e.g. for admin dashboard)
+   * @param propertyIds - Array of property IDs
+   * @returns Array of ElectricityBill entities ordered by periodStart desc
+   */
+  findManyByPropertyIds(propertyIds: string[]): Promise<ElectricityBill[]>;
+
+  /**
    * Find electricity bill by property and period
    * @param propertyId - The property ID
    * @param periodStart - Start of the period

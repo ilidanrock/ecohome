@@ -14,47 +14,43 @@ export class AdminDashboardPage {
   }
 
   async navigateToConsumptionManagement() {
-    // Navigate via sidebar - adjust selector based on actual admin sidebar
-    const consumptionLink = this.page.locator(
-      'a[href*="energy"], a:has-text("Consumo Energético"), a:has-text("Consumo")'
-    );
-    if (await consumptionLink.isVisible()) {
-      await consumptionLink.click();
-      await this.page.waitForLoadState('networkidle');
-    }
+    // Link in main only — avoids strict mode (sidebar + main can have same link)
+    const consumptionLink = this.page
+      .getByRole('main')
+      .getByRole('link', { name: /Consumo Energético/ });
+    await consumptionLink.click();
+    await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToBilling() {
-    const billingLink = this.page.locator(
-      'a[href*="billing"], a:has-text("Facturación"), a:has-text("Reportes")'
-    );
-    if (await billingLink.isVisible()) {
-      await billingLink.click();
-      await this.page.waitForLoadState('networkidle');
-    }
+    const billingLink = this.page
+      .getByRole('main')
+      .locator('a[href*="billing"], a:has-text("Facturación"), a:has-text("Reportes")');
+    await billingLink.click();
+    await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToPayments() {
-    const paymentsLink = this.page.locator('a[href*="payment"], a:has-text("Pagos")');
-    if (await paymentsLink.isVisible()) {
-      await paymentsLink.click();
-      await this.page.waitForLoadState('networkidle');
-    }
+    const paymentsLink = this.page
+      .getByRole('main')
+      .locator('a[href*="payment"], a:has-text("Pagos")');
+    await paymentsLink.click();
+    await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToProperties() {
-    const propertiesLink = this.page.locator('a[href*="properties"], a:has-text("Propiedades")');
-    if (await propertiesLink.isVisible()) {
-      await propertiesLink.click();
-      await this.page.waitForLoadState('networkidle');
-    }
+    const propertiesLink = this.page
+      .getByRole('main')
+      .locator('a[href*="properties"], a:has-text("Propiedades")');
+    await propertiesLink.click();
+    await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToUsers() {
-    const usersLink = this.page.locator('a[href*="users"], a:has-text("Usuarios")');
-    if (await usersLink.isVisible()) {
-      await usersLink.click();
-      await this.page.waitForLoadState('networkidle');
-    }
+    const usersLink = this.page
+      .getByRole('main')
+      .locator('a[href*="users"], a:has-text("Usuarios")');
+    await usersLink.click();
+    await this.page.waitForLoadState('networkidle');
   }
 }

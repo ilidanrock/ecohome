@@ -18,6 +18,9 @@ jobs:
   ci:
     name: Lint, test & build
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://localhost:5432/build
+      NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ci-placeholder
 
     steps:
       - name: Checkout

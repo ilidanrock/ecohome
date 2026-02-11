@@ -11,7 +11,7 @@
     "format:check": "prettier --check .",
     "lint": "next lint --fix && pnpm format",
     "prepare": "husky",
-    "test": "npx playwright test",
+    "test": "playwright test --config=tests/e2e/playwright.config.ts",
     "test:unit": "vitest run",
     "code-review": "tsx scripts/code-review.ts",
     "code-review:file": "tsx scripts/code-review.ts --file",

@@ -114,7 +114,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Run E2E tests
-        run: pnpm exec playwright test --project=chromium
+        run: pnpm exec playwright test --config=tests/e2e/playwright.config.ts --project=chromium
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ecohome_test
           CI: true

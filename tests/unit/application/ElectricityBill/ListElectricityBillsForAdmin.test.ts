@@ -16,6 +16,8 @@ describe('ListElectricityBillsForAdmin', () => {
       findByIdWithAdministrators: vi.fn(),
       findManagedByUserId: vi.fn(),
       isUserAdministrator: vi.fn(),
+      create: vi.fn(),
+      softDelete: vi.fn(),
     };
     electricityBillRepository = {
       findById: vi.fn(),

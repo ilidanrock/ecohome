@@ -33,4 +33,19 @@ export interface IPropertyRepository {
    * @returns True if the user is an administrator, false otherwise
    */
   isUserAdministrator(propertyId: string, userId: string): Promise<boolean>;
+
+  /**
+   * Create a new property and assign the user as administrator
+   * @param property - The property entity (id optional)
+   * @param administratorUserId - The user ID to assign as administrator
+   * @returns The created property entity with id and timestamps from DB
+   */
+  create(property: Property, administratorUserId: string): Promise<Property>;
+
+  /**
+   * Soft delete a property (set deletedAt and deletedById).
+   * @param id - The property ID
+   * @param userId - The user ID performing the delete
+   */
+  softDelete(id: string, userId: string): Promise<void>;
 }

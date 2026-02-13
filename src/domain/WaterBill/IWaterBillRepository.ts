@@ -38,20 +38,23 @@ export interface IWaterBillRepository {
   /**
    * Create new water bill
    * @param waterBill - The water bill entity to create
+   * @param userId - The user ID performing the create
    * @returns The created WaterBill entity
    */
-  create(waterBill: WaterBill): Promise<WaterBill>;
+  create(waterBill: WaterBill, userId: string): Promise<WaterBill>;
 
   /**
    * Update existing water bill
    * @param waterBill - The water bill entity to update
+   * @param userId - The user ID performing the update
    * @returns The updated WaterBill entity
    */
-  update(waterBill: WaterBill): Promise<WaterBill>;
+  update(waterBill: WaterBill, userId: string): Promise<WaterBill>;
 
   /**
-   * Delete water bill by ID
+   * Soft delete water bill (set deletedAt and deletedById).
    * @param id - The water bill ID
+   * @param userId - The user ID performing the delete
    */
-  delete(id: string): Promise<void>;
+  softDelete(id: string, userId: string): Promise<void>;
 }

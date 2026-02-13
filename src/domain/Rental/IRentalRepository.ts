@@ -22,4 +22,11 @@ export interface IRentalRepository {
    * @returns Array of active Rental entities
    */
   findActiveByPropertyId(propertyId: string, date: Date): Promise<Rental[]>;
+
+  /**
+   * Soft delete a rental (set deletedAt and deletedById).
+   * @param id - The rental ID
+   * @param userId - The user ID performing the delete
+   */
+  softDelete(id: string, userId: string): Promise<void>;
 }

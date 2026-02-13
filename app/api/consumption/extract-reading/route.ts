@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
     // Execute OCR extraction use case
     const updatedConsumption = await serviceContainer.consumption.extractMeterReading.execute(
       consumptionId,
-      imageUrl
+      imageUrl,
+      session.user.id
     );
 
     return NextResponse.json({

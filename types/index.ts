@@ -28,6 +28,8 @@ export type {
   ElectricityBillsListResponse,
   WaterBillListItem,
   WaterBillsListResponse,
+  PropertyListItem,
+  PropertiesListResponse,
 } from './api';
 
 // UI Types

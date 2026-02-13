@@ -17,6 +17,7 @@ export class CreateServicePayment {
     amount: number,
     paidAt: Date,
     paymentMethod: PaymentMethod,
+    userId: string,
     reference?: string | null,
     receiptUrl?: string | null
   ): Promise<Payment> {
@@ -45,7 +46,11 @@ export class CreateServicePayment {
         );
 
         // Create payment within transaction using repository
-        const createdPayment = await this.paymentRepository.createInTransaction(payment, tx);
+        const createdPayment = await this.paymentRepository.createInTransaction(
+          payment,
+          tx,
+          userId
+        );
 
         // Calculate total payments for this invoice within the transaction
         const allPayments = await this.paymentRepository.findByInvoiceIdInTransaction(
@@ -62,7 +67,8 @@ export class CreateServicePayment {
             invoiceId,
             'PAID' as PaymentStatus,
             paidAt,
-            tx
+            tx,
+            userId
           );
         }
 

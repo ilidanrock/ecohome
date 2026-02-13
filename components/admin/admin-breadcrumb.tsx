@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { ChevronRight, Home } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const routeNames: Record<string, string> = {
   '/admin': 'Dashboard',
@@ -11,6 +10,7 @@ const routeNames: Record<string, string> = {
   '/admin/analytics': 'Estadísticas',
   '/admin/users': 'Usuarios',
   '/admin/properties': 'Propiedades',
+  '/admin/properties/new': 'Nueva propiedad',
   '/admin/energy': 'Consumo Energético',
   '/admin/water': 'Gestión de Agua',
   '/admin/reports': 'Reportes',
@@ -38,27 +38,29 @@ export function AdminBreadcrumb() {
 
   return (
     <nav className="flex" aria-label="Breadcrumb">
-      <ol className="flex items-center space-x-2">
+      <ol className="flex flex-wrap items-center gap-y-1 gap-x-1 text-sm">
         <li>
           <Link
             href="/admin/dashboard"
-            className="text-[#343A40]/60 hover:text-blue-600 transition-colors"
+            className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors rounded p-0.5"
           >
-            <Home className="h-4 w-4" />
+            <Home className="h-4 w-4" aria-hidden />
           </Link>
         </li>
         {breadcrumbs.map((breadcrumb) => (
-          <li key={breadcrumb.path} className="flex items-center">
-            <ChevronRight className="h-4 w-4 text-[#343A40]/40 mx-2" />
+          <li key={breadcrumb.path} className="flex items-center gap-x-1 min-w-0">
+            <ChevronRight
+              className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500"
+              aria-hidden
+            />
             {breadcrumb.isLast ? (
-              <span className="text-sm font-medium text-gray-900">{breadcrumb.name}</span>
+              <span className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                {breadcrumb.name}
+              </span>
             ) : (
               <Link
                 href={breadcrumb.path}
-                className={cn(
-                  'text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors',
-                  breadcrumb.isLast && 'text-gray-900 cursor-default'
-                )}
+                className="font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors truncate"
               >
                 {breadcrumb.name}
               </Link>

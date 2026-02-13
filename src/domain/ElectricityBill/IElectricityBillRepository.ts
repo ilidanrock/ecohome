@@ -38,20 +38,23 @@ export interface IElectricityBillRepository {
   /**
    * Create new electricity bill
    * @param electricityBill - The electricity bill entity to create
+   * @param userId - The user ID performing the create
    * @returns The created ElectricityBill entity
    */
-  create(electricityBill: ElectricityBill): Promise<ElectricityBill>;
+  create(electricityBill: ElectricityBill, userId: string): Promise<ElectricityBill>;
 
   /**
    * Update existing electricity bill
    * @param electricityBill - The electricity bill entity to update
+   * @param userId - The user ID performing the update
    * @returns The updated ElectricityBill entity
    */
-  update(electricityBill: ElectricityBill): Promise<ElectricityBill>;
+  update(electricityBill: ElectricityBill, userId: string): Promise<ElectricityBill>;
 
   /**
-   * Delete electricity bill by ID
+   * Soft delete electricity bill (set deletedAt and deletedById).
    * @param id - The electricity bill ID
+   * @param userId - The user ID performing the delete
    */
-  delete(id: string): Promise<void>;
+  softDelete(id: string, userId: string): Promise<void>;
 }

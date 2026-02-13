@@ -134,7 +134,7 @@ src/
 - **Infrastructure** (`src/infrastructure/`) implements domain interfaces and maps between domain models and external systems (Prisma, APIs, etc.).
 - **Domain Layer** (`src/domain/`) contains pure business logic, entities, and interfaces. No dependencies on infrastructure.
 - **App Router** pages/components live under `app/`. Preserve existing route segment conventions (`(auth)`, `(protected)`).
-- **Shared Utilities**: Place reusable utilities in `stores/utils.ts` for store-related helpers. Use `lib/utils.ts` for general UI utilities.
+- **Shared Utilities**: Place reusable utilities in `stores/utils.ts` for store-related helpers. Use `lib/utils.ts` for general UI utilities. Use `lib/format.ts` for date/time display (`formatDate`, `formatDateTime` with locale es-PE) when showing audit or list dates.
 
 ### Example: Adding a New Feature
 
@@ -185,7 +185,7 @@ When adding a new feature (e.g., Payment, ElectricityBill, ServiceCharges):
 
 ## Authentication & Security
 - NextAuth is configured with credentials + Google. Extend providers through `auth.config.ts` and keep callbacks role-aware.
-- **Session Management**: Ensure `session.user.id` is correctly populated in NextAuth callbacks (`jwt` and `session` callbacks) for proper user identification in API routes.
+- **Session Management**: `session.user.id` must always be the **database user id** (primary key from `User` table), not the OAuth provider id. This is required so that admin property assignment, audit fields (`created_by`, `updated_by`), and relations work correctly. In the JWT callback, when the user signs in with OAuth (e.g. Google), resolve the user by email via `serviceContainer.user.userFind.execute(user.email)` and set `token.id = dbUser.id` and `token.role = dbUser.role`; with Credentials, the `user` returned from `authorize` already has the database id.
 - Middleware enforces RBAC (`USER`, `ADMIN`, `NULL`). Maintain role checks when adding protected routes.
 - Never hardcode secrets. Load email, OAuth, Cloudinary, and database credentials via environment variables.
 - When sending emails, use the transporter configured in `app/api/auth/send-email/route.ts` and rely on env vars (`EMAIL_FROM`, `SMTP_*`, `GOOGLE_APP_PASSWORD` fallback).
@@ -328,6 +328,7 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 
 ## Data & Persistence
 - Update Prisma schema via migrations. After schema edits, run `pnpm prisma migrate dev` and regenerate client.
+- **Audit fields**: Main entities (Property, Rental, Consumption, ElectricityBill, WaterBill, Invoice, Payment) have `deletedAt`, `createdById`, `updatedById`, `deletedById` (and relations to User). Use `DateTime` for timestamps (DB/UI compatible). On create set `createdById` and `updatedById` from the current user id; on update set `updatedById`; on soft delete set `deletedAt` and `deletedById`. All repository find* methods filter by `deletedAt: null` unless explicitly including deleted. Do not hard-delete these entities; use repository `softDelete(id, userId)`.
 - Domain models expect enums: `Role` (`USER` | `ADMIN` | `NULL`), `PaymentStatus` (`PAID` | `UNPAID`), and `PaymentMethod` (`YAPE` | `CASH` | `BANK_TRANSFER`). Keep new logic consistent with these values.
 - **Server Data**: Use TanStack Query for all server-side data fetching. Create API routes in `app/api/` or Server Actions in `actions/`.
 - **Client State**: Use Zustand stores only for client-side UI state and user preferences.
@@ -420,7 +421,9 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
     - **Error Handling**: Preserves specific OCR error types (`OCRApiError`, `OCRParsingError`, `OCRValidationError`) when retries fail, improving error categorization and debugging
 - **Error Handling**: ✅ Implemented `DomainError` base class and specific error types for better error management.
 - **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`, `zod/electricity-bill-schemas.ts`, `zod/service-charges-schemas.ts`, `zod/consumption-schemas.ts`, `zod/ocr-schemas.ts`).
-- **Authentication**: ✅ Fixed session.user.id population in NextAuth callbacks for proper user identification.
+- **Authentication**: ✅ Session always uses database user id: JWT callback resolves OAuth (Google) user by email and sets `token.id = dbUser.id` so admin property list/create and audit fields work; Credentials already return DB user.
+- **Admin Properties**: ✅ List (GET /api/properties), create (POST), soft delete (DELETE /api/properties/[id]); admin sees only properties where they are in `administrators` (N:M). Date display uses `lib/format.ts` (`formatDate`, `formatDateTime`) with locale es-PE.
+- **Audit & soft delete**: ✅ Property, Rental, Consumption, ElectricityBill, WaterBill, Invoice, Payment have `deletedAt`, `createdById`, `updatedById`, `deletedById`; repositories set *_by on create/update and implement `softDelete(id, userId)`; all reads filter `deletedAt: null`.
 - **CI/CD**: ✅ Migrated workflows from npm to pnpm for consistency with local development.
 - **Logging**: ✅ Improved error logging in client-side queries to ensure meaningful information is always displayed.
 - **ServiceCharges (Pluz Perú):** Documentadas correcciones manuales y magnitudes típicas de los 8 campos; revisión manual obligatoria tras OCR. Ver sección "Pluz Perú – ServiceCharges" en OCR System Guidelines.

@@ -10,6 +10,10 @@ export class WaterBill {
   fileUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
+  createdById: string | null;
+  updatedById: string | null;
+  deletedById: string | null;
 
   constructor(
     propertyId: string,
@@ -20,7 +24,11 @@ export class WaterBill {
     fileUrl: string | null,
     createdAt: Date,
     updatedAt: Date,
-    id?: string
+    id?: string,
+    deletedAt?: Date | null,
+    createdById?: string | null,
+    updatedById?: string | null,
+    deletedById?: string | null
   ) {
     // Validaciones básicas
     if (totalConsumption <= 0) {
@@ -42,6 +50,10 @@ export class WaterBill {
     this.fileUrl = fileUrl;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.deletedAt = deletedAt ?? null;
+    this.createdById = createdById ?? null;
+    this.updatedById = updatedById ?? null;
+    this.deletedById = deletedById ?? null;
   }
 
   /**

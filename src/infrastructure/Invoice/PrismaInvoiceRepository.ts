@@ -18,8 +18,8 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
    * @returns The invoice entity or null if not found
    */
   async findById(id: string, includeRental = false): Promise<Invoice | null> {
-    const invoice = await this.prisma.invoice.findUnique({
-      where: { id },
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { id, deletedAt: null },
       include: {
         rental: includeRental,
       },
@@ -33,7 +33,7 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     options?: { status?: PaymentStatus }
   ): Promise<Invoice[]> {
     if (rentalIds.length === 0) return [];
-    const where: Prisma.InvoiceWhereInput = { rentalId: { in: rentalIds } };
+    const where: Prisma.InvoiceWhereInput = { rentalId: { in: rentalIds }, deletedAt: null };
     if (options?.status) where.status = options.status;
     const invoices = await this.prisma.invoice.findMany({
       where,
@@ -47,14 +47,8 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     month: number,
     year: number
   ): Promise<Invoice | null> {
-    const invoice = await this.prisma.invoice.findUnique({
-      where: {
-        rentalId_month_year: {
-          rentalId,
-          month,
-          year,
-        },
-      },
+    const invoice = await this.prisma.invoice.findFirst({
+      where: { rentalId, month, year, deletedAt: null },
     });
 
     return invoice ? this.mapToDomain(invoice) : null;
@@ -67,20 +61,14 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
     tx: TransactionClient
   ): Promise<Invoice | null> {
     const transactionClient = tx as Prisma.TransactionClient;
-    const invoice = await transactionClient.invoice.findUnique({
-      where: {
-        rentalId_month_year: {
-          rentalId,
-          month,
-          year,
-        },
-      },
+    const invoice = await transactionClient.invoice.findFirst({
+      where: { rentalId, month, year, deletedAt: null },
     });
 
     return invoice ? this.mapToDomain(invoice) : null;
   }
 
-  async create(invoice: Invoice): Promise<Invoice> {
+  async create(invoice: Invoice, userId: string): Promise<Invoice> {
     const created = await this.prisma.invoice.create({
       data: {
         rentalId: invoice.getRentalId(),
@@ -93,20 +81,19 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
         paidAt: invoice.paidAt,
         receiptUrl: invoice.receiptUrl,
         invoiceUrl: invoice.invoiceUrl,
+        createdById: userId,
+        updatedById: userId,
       },
     });
 
     return this.mapToDomain(created);
   }
 
-  /**
-   * Create a new invoice within a transaction
-   *
-   * @param invoice - The invoice entity to create
-   * @param tx - The Prisma transaction client
-   * @returns The created invoice entity
-   */
-  async createInTransaction(invoice: Invoice, tx: TransactionClient): Promise<Invoice> {
+  async createInTransaction(
+    invoice: Invoice,
+    tx: TransactionClient,
+    userId: string
+  ): Promise<Invoice> {
     const transactionClient = tx as Prisma.TransactionClient;
     const created = await transactionClient.invoice.create({
       data: {
@@ -120,6 +107,8 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
         paidAt: invoice.paidAt,
         receiptUrl: invoice.receiptUrl,
         invoiceUrl: invoice.invoiceUrl,
+        createdById: userId,
+        updatedById: userId,
       },
     });
 
@@ -134,32 +123,30 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
    * @param paidAt - The date when the invoice was paid
    * @returns The updated invoice entity
    */
-  async updateStatus(id: string, status: DomainPaymentStatus, paidAt: Date): Promise<Invoice> {
+  async updateStatus(
+    id: string,
+    status: DomainPaymentStatus,
+    paidAt: Date,
+    userId: string
+  ): Promise<Invoice> {
     const updatedInvoice = await this.prisma.invoice.update({
       where: { id },
       data: {
         status: status as PaymentStatus,
         paidAt,
+        updatedById: userId,
       },
     });
 
     return this.mapToDomain(updatedInvoice);
   }
 
-  /**
-   * Update invoice status and paidAt date within a transaction
-   *
-   * @param id - The invoice ID
-   * @param status - The new payment status
-   * @param paidAt - The date when the invoice was paid
-   * @param tx - The Prisma transaction client
-   * @returns The updated invoice entity
-   */
   async updateStatusInTransaction(
     id: string,
     status: DomainPaymentStatus,
     paidAt: Date,
-    tx: TransactionClient
+    tx: TransactionClient,
+    userId: string
   ): Promise<Invoice> {
     const transactionClient = tx as Prisma.TransactionClient;
     const updatedInvoice = await transactionClient.invoice.update({
@@ -167,10 +154,18 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       data: {
         status: status as PaymentStatus,
         paidAt,
+        updatedById: userId,
       },
     });
 
     return this.mapToDomain(updatedInvoice);
+  }
+
+  async softDelete(id: string, userId: string): Promise<void> {
+    await this.prisma.invoice.update({
+      where: { id },
+      data: { deletedAt: new Date(), deletedById: userId },
+    });
   }
 
   /**
@@ -198,9 +193,9 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       prismaInvoice.rentalId,
       prismaInvoice.month,
       prismaInvoice.year,
-      Number(prismaInvoice.waterCost), // Convert Decimal to number
-      Number(prismaInvoice.energyCost), // Convert Decimal to number
-      Number(prismaInvoice.totalCost), // Convert Decimal to number
+      Number(prismaInvoice.waterCost),
+      Number(prismaInvoice.energyCost),
+      Number(prismaInvoice.totalCost),
       prismaInvoice.status,
       prismaInvoice.paidAt,
       prismaInvoice.receiptUrl,
@@ -208,7 +203,11 @@ export class PrismaInvoiceRepository implements IInvoiceRepository {
       prismaInvoice.createdAt,
       prismaInvoice.updatedAt,
       prismaInvoice.id,
-      rental
+      rental,
+      prismaInvoice.deletedAt ?? undefined,
+      prismaInvoice.createdById ?? undefined,
+      prismaInvoice.updatedById ?? undefined,
+      prismaInvoice.deletedById ?? undefined
     );
   }
 }

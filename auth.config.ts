@@ -86,16 +86,22 @@ const authConfig: NextAuthConfig = {
     },
     jwt: async ({ token, user, account, trigger, session }) => {
       if (user) {
-        // Store user ID in token (use user.id if available, otherwise use token.sub which is set by NextAuth)
-        token.id = user.id || token.sub;
-        token.role = user.role;
+        // With OAuth (e.g. Google), NextAuth passes the provider profile (user.id = profile.sub).
+        // We must store the database user id so that session.user.id matches User table and relations (e.g. administrators).
+        let userId = user.id || token.sub;
+        if (user.email && account?.provider && account.provider !== 'credentials') {
+          const dbUser = await serviceContainer.user.userFind.execute(user.email);
+          if (dbUser?.id) {
+            userId = dbUser.id;
+            token.role = dbUser.role;
+          }
+        } else if (user.role) {
+          token.role = user.role;
+        }
+        token.id = userId;
         token.email = user.email;
         token.name = user.name;
         token.picture = user.image;
-        // Asegurarnos de que el email esté en el token
-        if (user.email) {
-          token.email = user.email;
-        }
       }
       if (trigger === 'update') {
         token.role = session.user.role;

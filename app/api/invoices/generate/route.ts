@@ -99,7 +99,8 @@ export async function POST(request: NextRequest) {
       validatedData.electricityBillId,
       validatedData.month,
       validatedData.year,
-      validatedData.waterCost
+      validatedData.waterCost,
+      session.user.id
     );
 
     return NextResponse.json(

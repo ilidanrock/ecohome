@@ -19,9 +19,8 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
   async findByUserId(userId: string): Promise<Consumption[]> {
     const consumptions = await this.prisma.consumption.findMany({
       where: {
-        rental: {
-          userId,
-        },
+        deletedAt: null,
+        rental: { userId },
       },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
       take: 100, // Limit to prevent loading excessive data
@@ -41,9 +40,7 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
    */
   async findByRentalId(rentalId: string): Promise<Consumption[]> {
     const consumptions = await this.prisma.consumption.findMany({
-      where: {
-        rentalId,
-      },
+      where: { rentalId, deletedAt: null },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
       take: 100, // Limit to prevent loading excessive data
     });
@@ -56,13 +53,12 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
     month: number,
     year: number
   ): Promise<Consumption | null> {
-    const consumption = await this.prisma.consumption.findUnique({
+    const consumption = await this.prisma.consumption.findFirst({
       where: {
-        rentalId_month_year: {
-          rentalId,
-          month,
-          year,
-        },
+        rentalId,
+        month,
+        year,
+        deletedAt: null,
       },
     });
 
@@ -70,10 +66,8 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
   }
 
   async findById(id: string): Promise<Consumption | null> {
-    const consumption = await this.prisma.consumption.findUnique({
-      where: {
-        id,
-      },
+    const consumption = await this.prisma.consumption.findFirst({
+      where: { id, deletedAt: null },
     });
 
     return consumption ? this.mapToDomain(consumption) : null;
@@ -82,9 +76,8 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
   async findLatestByUserId(userId: string): Promise<Consumption | null> {
     const consumption = await this.prisma.consumption.findFirst({
       where: {
-        rental: {
-          userId,
-        },
+        deletedAt: null,
+        rental: { userId },
       },
       orderBy: [{ year: 'desc' }, { month: 'desc' }, { createdAt: 'desc' }],
     });
@@ -92,11 +85,9 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
     return consumption ? this.mapToDomain(consumption) : null;
   }
 
-  async update(consumption: Consumption): Promise<Consumption> {
+  async update(consumption: Consumption, userId: string): Promise<Consumption> {
     const updated = await this.prisma.consumption.update({
-      where: {
-        id: consumption.id,
-      },
+      where: { id: consumption.id },
       data: {
         energyReading: consumption.energyReading,
         previousReading: consumption.previousReading,
@@ -105,10 +96,18 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
         ocrConfidence: consumption.ocrConfidence,
         ocrRawText: consumption.ocrRawText,
         extractedAt: consumption.extractedAt,
+        updatedById: userId,
       },
     });
 
     return this.mapToDomain(updated);
+  }
+
+  async softDelete(id: string, userId: string): Promise<void> {
+    await this.prisma.consumption.update({
+      where: { id },
+      data: { deletedAt: new Date(), deletedById: userId },
+    });
   }
 
   private mapToDomain(prismaConsumption: PrismaConsumption): Consumption {
@@ -116,7 +115,7 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
       prismaConsumption.rentalId,
       prismaConsumption.month,
       prismaConsumption.year,
-      Number(prismaConsumption.energyReading), // Convert Decimal to number
+      Number(prismaConsumption.energyReading),
       prismaConsumption.meterImageUrl,
       prismaConsumption.extractedAt,
       prismaConsumption.createdAt,
@@ -125,7 +124,11 @@ export class PrismaConsumptionRepository implements IConsumptionRepository {
       prismaConsumption.previousReading ? Number(prismaConsumption.previousReading) : null,
       prismaConsumption.ocrExtracted,
       prismaConsumption.ocrConfidence ? Number(prismaConsumption.ocrConfidence) : null,
-      prismaConsumption.ocrRawText
+      prismaConsumption.ocrRawText,
+      prismaConsumption.deletedAt ?? undefined,
+      prismaConsumption.createdById ?? undefined,
+      prismaConsumption.updatedById ?? undefined,
+      prismaConsumption.deletedById ?? undefined
     );
   }
 }

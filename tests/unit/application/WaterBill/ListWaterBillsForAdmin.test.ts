@@ -24,7 +24,7 @@ describe('ListWaterBillsForAdmin', () => {
       findByPropertyAndPeriod: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
-      delete: vi.fn(),
+      softDelete: vi.fn(),
     };
   });
 

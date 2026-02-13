@@ -12,6 +12,10 @@ export class Consumption {
   extractedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
+  createdById: string | null;
+  updatedById: string | null;
+  deletedById: string | null;
 
   constructor(
     rentalId: string,
@@ -26,7 +30,11 @@ export class Consumption {
     previousReading?: number | null,
     ocrExtracted?: boolean,
     ocrConfidence?: number | null,
-    ocrRawText?: string | null
+    ocrRawText?: string | null,
+    deletedAt?: Date | null,
+    createdById?: string | null,
+    updatedById?: string | null,
+    deletedById?: string | null
   ) {
     this.id = id || '';
     this.rentalId = rentalId;
@@ -41,6 +49,10 @@ export class Consumption {
     this.extractedAt = extractedAt;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.deletedAt = deletedAt ?? null;
+    this.createdById = createdById ?? null;
+    this.updatedById = updatedById ?? null;
+    this.deletedById = deletedById ?? null;
   }
 
   public getEnergyReading(): number {

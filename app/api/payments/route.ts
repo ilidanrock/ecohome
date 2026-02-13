@@ -153,6 +153,7 @@ export async function POST(request: NextRequest) {
         amount,
         paidAtDate,
         paymentMethod as PaymentMethod,
+        session.user.id,
         reference || null,
         receiptUrl || null
       );
@@ -233,6 +234,7 @@ export async function POST(request: NextRequest) {
         amount,
         paidAtDate,
         paymentMethod as PaymentMethod,
+        session.user.id,
         reference || null,
         receiptUrl || null
       );

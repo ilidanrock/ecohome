@@ -13,8 +13,8 @@ export class PrismaPropertyRepository implements IPropertyRepository {
    * @returns The property entity or null if not found
    */
   async findById(id: string): Promise<Property | null> {
-    const property = await this.prisma.property.findUnique({
-      where: { id },
+    const property = await this.prisma.property.findFirst({
+      where: { id, deletedAt: null },
     });
 
     return property ? this.mapToDomain(property) : null;
@@ -29,8 +29,8 @@ export class PrismaPropertyRepository implements IPropertyRepository {
   async findByIdWithAdministrators(
     id: string
   ): Promise<{ property: Property; administrators: User[] } | null> {
-    const property = await this.prisma.property.findUnique({
-      where: { id },
+    const property = await this.prisma.property.findFirst({
+      where: { id, deletedAt: null },
       include: { administrators: true },
     });
 
@@ -52,7 +52,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
    */
   async findManagedByUserId(userId: string): Promise<Property[]> {
     const properties = await this.prisma.property.findMany({
-      where: { administrators: { some: { id: userId } } },
+      where: { administrators: { some: { id: userId } }, deletedAt: null },
     });
     return properties.map((p) => this.mapToDomain(p));
   }
@@ -65,8 +65,8 @@ export class PrismaPropertyRepository implements IPropertyRepository {
    * @returns True if the user is an administrator, false otherwise
    */
   async isUserAdministrator(propertyId: string, userId: string): Promise<boolean> {
-    const property = await this.prisma.property.findUnique({
-      where: { id: propertyId },
+    const property = await this.prisma.property.findFirst({
+      where: { id: propertyId, deletedAt: null },
       include: { administrators: true },
     });
 
@@ -75,6 +75,29 @@ export class PrismaPropertyRepository implements IPropertyRepository {
     }
 
     return property.administrators.some((admin) => admin.id === userId);
+  }
+
+  /**
+   * Create a new property and assign the user as administrator
+   */
+  async create(property: Property, administratorUserId: string): Promise<Property> {
+    const created = await this.prisma.property.create({
+      data: {
+        name: property.getName(),
+        address: property.getAddress(),
+        administrators: { connect: { id: administratorUserId } },
+        createdById: administratorUserId,
+        updatedById: administratorUserId,
+      },
+    });
+    return this.mapToDomain(created);
+  }
+
+  async softDelete(id: string, userId: string): Promise<void> {
+    await this.prisma.property.update({
+      where: { id },
+      data: { deletedAt: new Date(), deletedById: userId },
+    });
   }
 
   /**
@@ -89,7 +112,11 @@ export class PrismaPropertyRepository implements IPropertyRepository {
       prismaProperty.address,
       prismaProperty.createdAt,
       prismaProperty.updatedAt,
-      prismaProperty.id
+      prismaProperty.id,
+      prismaProperty.deletedAt ?? undefined,
+      prismaProperty.createdById ?? undefined,
+      prismaProperty.updatedById ?? undefined,
+      prismaProperty.deletedById ?? undefined
     );
   }
 

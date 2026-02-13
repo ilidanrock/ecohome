@@ -204,6 +204,7 @@ export async function PUT(
     const updatedConsumption = await serviceContainer.consumption.updateMeterReading.execute(
       consumptionId,
       energyReading,
+      session.user.id,
       previousReading ?? null
     );
 

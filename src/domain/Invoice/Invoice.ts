@@ -15,6 +15,10 @@ export class Invoice {
   invoiceUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
+  createdById: string | null;
+  updatedById: string | null;
+  deletedById: string | null;
   rental?: Rental; // Optional rental relation for authorization checks
 
   constructor(
@@ -31,7 +35,11 @@ export class Invoice {
     createdAt: Date,
     updatedAt: Date,
     id?: string,
-    rental?: Rental
+    rental?: Rental,
+    deletedAt?: Date | null,
+    createdById?: string | null,
+    updatedById?: string | null,
+    deletedById?: string | null
   ) {
     this.id = id || '';
     this.rentalId = rentalId;
@@ -46,6 +54,10 @@ export class Invoice {
     this.invoiceUrl = invoiceUrl;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.deletedAt = deletedAt ?? null;
+    this.createdById = createdById ?? null;
+    this.updatedById = updatedById ?? null;
+    this.deletedById = deletedById ?? null;
     this.rental = rental;
   }
 

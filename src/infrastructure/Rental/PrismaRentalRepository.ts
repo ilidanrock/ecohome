@@ -12,8 +12,8 @@ export class PrismaRentalRepository implements IRentalRepository {
    * @returns The rental entity or null if not found
    */
   async findById(id: string): Promise<Rental | null> {
-    const rental = await this.prisma.rental.findUnique({
-      where: { id },
+    const rental = await this.prisma.rental.findFirst({
+      where: { id, deletedAt: null },
     });
 
     return rental ? this.mapToDomain(rental) : null;
@@ -21,7 +21,7 @@ export class PrismaRentalRepository implements IRentalRepository {
 
   async findByUserId(userId: string): Promise<Rental[]> {
     const rentals = await this.prisma.rental.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       orderBy: { startDate: 'desc' },
     });
     return rentals.map((r) => this.mapToDomain(r));
@@ -31,9 +31,8 @@ export class PrismaRentalRepository implements IRentalRepository {
     const rentals = await this.prisma.rental.findMany({
       where: {
         propertyId,
-        startDate: {
-          lte: date,
-        },
+        deletedAt: null,
+        startDate: { lte: date },
         OR: [{ endDate: null }, { endDate: { gte: date } }],
       },
     });
@@ -41,11 +40,15 @@ export class PrismaRentalRepository implements IRentalRepository {
     return rentals.map((rental) => this.mapToDomain(rental));
   }
 
+  async softDelete(id: string, userId: string): Promise<void> {
+    await this.prisma.rental.update({
+      where: { id },
+      data: { deletedAt: new Date(), deletedById: userId },
+    });
+  }
+
   /**
    * Map Prisma Rental model to domain Rental entity
-   *
-   * @param prismaRental - The Prisma Rental model
-   * @returns The domain Rental entity
    */
   private mapToDomain(prismaRental: PrismaRental): Rental {
     return new Rental(
@@ -55,7 +58,11 @@ export class PrismaRentalRepository implements IRentalRepository {
       prismaRental.endDate,
       prismaRental.createdAt,
       prismaRental.updatedAt,
-      prismaRental.id
+      prismaRental.id,
+      prismaRental.deletedAt ?? undefined,
+      prismaRental.createdById ?? undefined,
+      prismaRental.updatedById ?? undefined,
+      prismaRental.deletedById ?? undefined
     );
   }
 }

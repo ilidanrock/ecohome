@@ -41,7 +41,15 @@ export interface IConsumptionRepository {
   /**
    * Update a consumption entity
    * @param consumption - The consumption entity to update
+   * @param userId - The user ID performing the update
    * @returns The updated consumption entity
    */
-  update(consumption: Consumption): Promise<Consumption>;
+  update(consumption: Consumption, userId: string): Promise<Consumption>;
+
+  /**
+   * Soft delete a consumption (set deletedAt and deletedById).
+   * @param id - The consumption ID
+   * @param userId - The user ID performing the delete
+   */
+  softDelete(id: string, userId: string): Promise<void>;
 }

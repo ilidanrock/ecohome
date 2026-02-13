@@ -152,7 +152,10 @@ export async function POST(request: NextRequest) {
     );
 
     // Save to database using repository
-    const created = await serviceContainer.electricityBill.repository.create(electricityBill);
+    const created = await serviceContainer.electricityBill.repository.create(
+      electricityBill,
+      session.user.id
+    );
 
     return NextResponse.json(
       {

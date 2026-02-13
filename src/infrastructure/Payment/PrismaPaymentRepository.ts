@@ -14,7 +14,7 @@ export class PrismaPaymentRepository implements IPaymentRepository {
    * @param payment - The payment entity to create
    * @returns The created payment entity
    */
-  async create(payment: Payment): Promise<Payment> {
+  async create(payment: Payment, userId: string): Promise<Payment> {
     const prismaPayment = await this.prisma.payment.create({
       data: {
         amount: payment.getAmount(),
@@ -24,41 +24,25 @@ export class PrismaPaymentRepository implements IPaymentRepository {
         invoiceId: payment.getInvoiceId() || undefined,
         reference: payment.getReference() || undefined,
         receiptUrl: payment.getReceiptUrl() || undefined,
+        createdById: userId,
+        updatedById: userId,
       },
     });
 
     return this.mapToDomain(prismaPayment);
   }
 
-  /**
-   * Find a payment by ID
-   *
-   * @param id - The payment ID
-   * @returns The payment entity or null if not found
-   */
   async findById(id: string): Promise<Payment | null> {
-    const prismaPayment = await this.prisma.payment.findUnique({
-      where: { id },
+    const prismaPayment = await this.prisma.payment.findFirst({
+      where: { id, deletedAt: null },
     });
 
     return prismaPayment ? this.mapToDomain(prismaPayment) : null;
   }
 
-  /**
-   * Find all payments for a specific rental
-   *
-   * Performance optimization: Limited to 100 most recent records to prevent
-   * loading excessive data. If pagination is needed in the future,
-   * consider adding skip/take parameters.
-   *
-   * @param rentalId - The rental ID
-   * @returns Array of Payment entities (max 100, most recent first)
-   */
   async findByRentalId(rentalId: string): Promise<Payment[]> {
     const payments = await this.prisma.payment.findMany({
-      where: {
-        rentalId,
-      },
+      where: { rentalId, deletedAt: null },
       orderBy: {
         paidAt: 'desc',
       },
@@ -79,9 +63,7 @@ export class PrismaPaymentRepository implements IPaymentRepository {
    */
   async findByInvoiceId(invoiceId: string): Promise<Payment[]> {
     const payments = await this.prisma.payment.findMany({
-      where: {
-        invoiceId,
-      },
+      where: { invoiceId, deletedAt: null },
       orderBy: {
         paidAt: 'desc',
       },
@@ -101,9 +83,7 @@ export class PrismaPaymentRepository implements IPaymentRepository {
   async findByInvoiceIdInTransaction(invoiceId: string, tx: TransactionClient): Promise<Payment[]> {
     const transactionClient = tx as Prisma.TransactionClient;
     const payments = await transactionClient.payment.findMany({
-      where: {
-        invoiceId,
-      },
+      where: { invoiceId, deletedAt: null },
       orderBy: {
         paidAt: 'desc',
       },
@@ -119,7 +99,11 @@ export class PrismaPaymentRepository implements IPaymentRepository {
    * @param tx - The Prisma transaction client
    * @returns The created payment entity
    */
-  async createInTransaction(payment: Payment, tx: TransactionClient): Promise<Payment> {
+  async createInTransaction(
+    payment: Payment,
+    tx: TransactionClient,
+    userId: string
+  ): Promise<Payment> {
     const transactionClient = tx as Prisma.TransactionClient;
     const prismaPayment = await transactionClient.payment.create({
       data: {
@@ -130,26 +114,22 @@ export class PrismaPaymentRepository implements IPaymentRepository {
         invoiceId: payment.getInvoiceId() || undefined,
         reference: payment.getReference() || undefined,
         receiptUrl: payment.getReceiptUrl() || undefined,
+        createdById: userId,
+        updatedById: userId,
       },
     });
 
     return this.mapToDomain(prismaPayment);
   }
 
-  /**
-   * Update an existing payment
-   *
-   * @param id - The payment ID
-   * @param payment - Partial payment data to update
-   * @returns The updated payment entity
-   */
-  async update(id: string, payment: Partial<Payment>): Promise<Payment> {
+  async update(id: string, payment: Partial<Payment>, userId: string): Promise<Payment> {
     const updateData: {
       amount?: number;
       paidAt?: Date;
       paymentMethod?: Payment['paymentMethod'];
       reference?: string | null;
       receiptUrl?: string | null;
+      updatedById?: string;
     } = {};
 
     if (payment.amount !== undefined) updateData.amount = payment.amount;
@@ -157,6 +137,7 @@ export class PrismaPaymentRepository implements IPaymentRepository {
     if (payment.paymentMethod !== undefined) updateData.paymentMethod = payment.paymentMethod;
     if (payment.reference !== undefined) updateData.reference = payment.reference;
     if (payment.receiptUrl !== undefined) updateData.receiptUrl = payment.receiptUrl;
+    updateData.updatedById = userId;
 
     const prismaPayment = await this.prisma.payment.update({
       where: { id },
@@ -166,15 +147,16 @@ export class PrismaPaymentRepository implements IPaymentRepository {
     return this.mapToDomain(prismaPayment);
   }
 
-  /**
-   * Map Prisma Payment model to domain Payment entity
-   *
-   * @param prismaPayment - The Prisma Payment model
-   * @returns The domain Payment entity
-   */
+  async softDelete(id: string, userId: string): Promise<void> {
+    await this.prisma.payment.update({
+      where: { id },
+      data: { deletedAt: new Date(), deletedById: userId },
+    });
+  }
+
   private mapToDomain(prismaPayment: PrismaPayment): Payment {
     return new Payment(
-      Number(prismaPayment.amount), // Convert Decimal to number
+      Number(prismaPayment.amount),
       prismaPayment.paidAt,
       prismaPayment.paymentMethod as Payment['paymentMethod'],
       prismaPayment.rentalId,
@@ -183,7 +165,11 @@ export class PrismaPaymentRepository implements IPaymentRepository {
       prismaPayment.receiptUrl,
       prismaPayment.createdAt,
       prismaPayment.updatedAt,
-      prismaPayment.id
+      prismaPayment.id,
+      prismaPayment.deletedAt ?? undefined,
+      prismaPayment.createdById ?? undefined,
+      prismaPayment.updatedById ?? undefined,
+      prismaPayment.deletedById ?? undefined
     );
   }
 }

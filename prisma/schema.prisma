@@ -42,6 +42,28 @@ model User {
   // --- Relaciones EcoHome ---
   rentals            Rental[]
   managedProperties  Property[] @relation("AdminProperties")
+  // Audit relations (created/updated/deleted by)
+  propertiesCreatedBy   Property[]   @relation("PropertyCreatedBy")
+  propertiesUpdatedBy   Property[]   @relation("PropertyUpdatedBy")
+  propertiesDeletedBy   Property[]   @relation("PropertyDeletedBy")
+  rentalsCreatedBy      Rental[]    @relation("RentalCreatedBy")
+  rentalsUpdatedBy      Rental[]    @relation("RentalUpdatedBy")
+  rentalsDeletedBy      Rental[]    @relation("RentalDeletedBy")
+  consumptionsCreatedBy Consumption[] @relation("ConsumptionCreatedBy")
+  consumptionsUpdatedBy Consumption[] @relation("ConsumptionUpdatedBy")
+  consumptionsDeletedBy Consumption[] @relation("ConsumptionDeletedBy")
+  electricityBillsCreatedBy ElectricityBill[] @relation("ElectricityBillCreatedBy")
+  electricityBillsUpdatedBy ElectricityBill[] @relation("ElectricityBillUpdatedBy")
+  electricityBillsDeletedBy ElectricityBill[] @relation("ElectricityBillDeletedBy")
+  waterBillsCreatedBy   WaterBill[] @relation("WaterBillCreatedBy")
+  waterBillsUpdatedBy   WaterBill[] @relation("WaterBillUpdatedBy")
+  waterBillsDeletedBy   WaterBill[] @relation("WaterBillDeletedBy")
+  invoicesCreatedBy    Invoice[]   @relation("InvoiceCreatedBy")
+  invoicesUpdatedBy    Invoice[]   @relation("InvoiceUpdatedBy")
+  invoicesDeletedBy    Invoice[]   @relation("InvoiceDeletedBy")
+  paymentsCreatedBy    Payment[]   @relation("PaymentCreatedBy")
+  paymentsUpdatedBy    Payment[]   @relation("PaymentUpdatedBy")
+  paymentsDeletedBy    Payment[]   @relation("PaymentDeletedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -89,6 +111,14 @@ model Property {
   electricityBills ElectricityBill[]
   waterBills      WaterBill[]
 
+  deletedAt   DateTime?
+  createdById String?
+  updatedById String?
+  deletedById String?
+  createdBy   User?     @relation("PropertyCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?     @relation("PropertyUpdatedBy", fields: [updatedById], references: [id])
+  deletedBy   User?     @relation("PropertyDeletedBy", fields: [deletedById], references: [id])
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -106,6 +136,14 @@ model Rental {
   consumptions Consumption[]
   invoices     Invoice[]
   payments      Payment[]
+
+  deletedAt   DateTime?
+  createdById String?
+  updatedById String?
+  deletedById String?
+  createdBy   User?    @relation("RentalCreatedBy", fields: [createdById], references: [id])
+  updatedBy   User?    @relation("RentalUpdatedBy", fields: [updatedById], references: [id])
+  deletedBy   User?    @relation("RentalDeletedBy", fields: [deletedById], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -131,6 +169,14 @@ model Consumption {
   ocrRawText      String?                       // Texto crudo extraído por OCR
   extractedAt     DateTime?                     // Fecha de extracción OCR
 
+  deletedAt     DateTime?
+  createdById   String?
+  updatedById   String?
+  deletedById   String?
+  createdBy     User?    @relation("ConsumptionCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?    @relation("ConsumptionUpdatedBy", fields: [updatedById], references: [id])
+  deletedBy     User?    @relation("ConsumptionDeletedBy", fields: [deletedById], references: [id])
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -150,6 +196,14 @@ model ElectricityBill {
   fileUrl      String?
 
   serviceCharges ServiceCharges?
+
+  deletedAt    DateTime?
+  createdById  String?
+  updatedById  String?
+  deletedById  String?
+  createdBy    User?    @relation("ElectricityBillCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?    @relation("ElectricityBillUpdatedBy", fields: [updatedById], references: [id])
+  deletedBy    User?    @relation("ElectricityBillDeletedBy", fields: [deletedById], references: [id])
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -189,6 +243,14 @@ model WaterBill {
 
   serviceCharges  WaterServiceCharges?
 
+  deletedAt       DateTime?
+  createdById     String?
+  updatedById     String?
+  deletedById     String?
+  createdBy       User?    @relation("WaterBillCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User?    @relation("WaterBillUpdatedBy", fields: [updatedById], references: [id])
+  deletedBy       User?    @relation("WaterBillDeletedBy", fields: [deletedById], references: [id])
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -226,6 +288,14 @@ model Invoice {
   invoiceUrl   String?
   payments     Payment[]
 
+  deletedAt    DateTime?
+  createdById  String?
+  updatedById  String?
+  deletedById  String?
+  createdBy    User?    @relation("InvoiceCreatedBy", fields: [createdById], references: [id])
+  updatedBy    User?    @relation("InvoiceUpdatedBy", fields: [updatedById], references: [id])
+  deletedBy    User?    @relation("InvoiceDeletedBy", fields: [deletedById], references: [id])
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -249,6 +319,14 @@ model Payment {
   paymentMethod PaymentMethod
   reference     String?        // Número de referencia/comprobante
   receiptUrl    String?        // URL del comprobante
+
+  deletedAt     DateTime?
+  createdById   String?
+  updatedById   String?
+  deletedById   String?
+  createdBy     User?    @relation("PaymentCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User?    @relation("PaymentUpdatedBy", fields: [updatedById], references: [id])
+  deletedBy     User?    @relation("PaymentDeletedBy", fields: [deletedById], references: [id])
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

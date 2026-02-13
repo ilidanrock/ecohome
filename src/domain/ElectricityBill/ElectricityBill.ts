@@ -28,6 +28,10 @@ export class ElectricityBill {
   fileUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
+  createdById: string | null;
+  updatedById: string | null;
+  deletedById: string | null;
 
   constructor(
     propertyId: string,
@@ -38,7 +42,11 @@ export class ElectricityBill {
     fileUrl: string | null,
     createdAt: Date,
     updatedAt: Date,
-    id?: string
+    id?: string,
+    deletedAt?: Date | null,
+    createdById?: string | null,
+    updatedById?: string | null,
+    deletedById?: string | null
   ) {
     // Validaciones básicas
     if (totalKWh <= 0) {
@@ -60,6 +68,10 @@ export class ElectricityBill {
     this.fileUrl = fileUrl;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.deletedAt = deletedAt ?? null;
+    this.createdById = createdById ?? null;
+    this.updatedById = updatedById ?? null;
+    this.deletedById = deletedById ?? null;
   }
 
   /**

@@ -10,10 +10,11 @@ export class ExtractMeterReading {
    * Extracts meter reading from an image using OCR and updates the consumption record
    * @param consumptionId - The consumption ID to update
    * @param imageUrl - URL of the meter image (Cloudinary URL)
+   * @param userId - The user ID performing the update
    * @returns Updated consumption entity with OCR data
    * @throws Error if consumption not found or OCR extraction fails
    */
-  async execute(consumptionId: string, imageUrl: string): Promise<Consumption> {
+  async execute(consumptionId: string, imageUrl: string, userId: string): Promise<Consumption> {
     // Find the consumption record
     const consumption = await this.consumptionRepository.findById(consumptionId);
 
@@ -42,6 +43,6 @@ export class ExtractMeterReading {
     );
 
     // Update in repository
-    return await this.consumptionRepository.update(updatedConsumption);
+    return await this.consumptionRepository.update(updatedConsumption, userId);
   }
 }

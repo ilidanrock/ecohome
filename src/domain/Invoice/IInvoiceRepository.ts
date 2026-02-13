@@ -54,26 +54,29 @@ export interface IInvoiceRepository {
   /**
    * Create a new invoice
    * @param invoice - The invoice entity to create
+   * @param userId - The user ID performing the create
    * @returns The created invoice entity
    */
-  create(invoice: Invoice): Promise<Invoice>;
+  create(invoice: Invoice, userId: string): Promise<Invoice>;
 
   /**
    * Create a new invoice within a transaction
    * @param invoice - The invoice entity to create
    * @param tx - The transaction client
+   * @param userId - The user ID performing the create
    * @returns The created invoice entity
    */
-  createInTransaction(invoice: Invoice, tx: TransactionClient): Promise<Invoice>;
+  createInTransaction(invoice: Invoice, tx: TransactionClient, userId: string): Promise<Invoice>;
 
   /**
    * Update invoice status and paidAt date
    * @param id - The invoice ID
    * @param status - The new payment status
    * @param paidAt - The date when the invoice was paid
+   * @param userId - The user ID performing the update
    * @returns The updated invoice entity
    */
-  updateStatus(id: string, status: PaymentStatus, paidAt: Date): Promise<Invoice>;
+  updateStatus(id: string, status: PaymentStatus, paidAt: Date, userId: string): Promise<Invoice>;
 
   /**
    * Update invoice status and paidAt date within a transaction
@@ -81,12 +84,21 @@ export interface IInvoiceRepository {
    * @param status - The new payment status
    * @param paidAt - The date when the invoice was paid
    * @param tx - The transaction client
+   * @param userId - The user ID performing the update
    * @returns The updated invoice entity
    */
   updateStatusInTransaction(
     id: string,
     status: PaymentStatus,
     paidAt: Date,
-    tx: TransactionClient
+    tx: TransactionClient,
+    userId: string
   ): Promise<Invoice>;
+
+  /**
+   * Soft delete an invoice (set deletedAt and deletedById).
+   * @param id - The invoice ID
+   * @param userId - The user ID performing the delete
+   */
+  softDelete(id: string, userId: string): Promise<void>;
 }

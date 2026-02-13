@@ -61,7 +61,9 @@
   - Fetch wrapper con manejo automático de errores
   - Extensión de DomainError (`toErrorResponse()`) para mapeo de códigos
 - ✅ **Validation**: Validación con Zod integrada en API routes (payment, electricity-bill, service-charges, consumption, ocr schemas)
-- ✅ **Authentication**: Mejoras en autenticación (session.user.id correctamente poblado)
+- ✅ **Authentication**: Session uses database user id; with OAuth (Google) the JWT callback resolves user by email and sets `token.id = dbUser.id` so admin property assignment and audit fields work correctly
+- ✅ **Admin Properties**: List/create/soft delete; GET/POST /api/properties, DELETE /api/properties/[id]; ListPropertiesForAdmin, CreateProperty, DeleteProperty; UI at /admin/properties (responsive list + form at /admin/properties/new)
+- ✅ **Audit fields & soft delete**: Property, Rental, Consumption, ElectricityBill, WaterBill, Invoice, Payment have deletedAt, createdById, updatedById, deletedById; repositories set *_by on create/update, implement softDelete(id, userId), and filter deletedAt: null on all reads
 - ✅ **CI/CD**: Migrado a pnpm en workflows de GitHub Actions
 
 ## 🔍 Análisis Detallado
@@ -273,8 +275,8 @@ app/layout.tsx
 
 **TanStack Query (Servidor - Datos):**
 - `useConsumptionQuery` - Datos de consumo del servidor
-- `useBillsQuery` - Facturas del servidor (futuro)
-- `usePropertiesQuery` - Propiedades del servidor (futuro)
+- `useBillsQuery` - Facturas del servidor
+- `usePropertiesQuery` - Propiedades del admin (GET /api/properties); mutations: create property, delete (soft) via API
 
 **DDD Architecture (Servidor - Lógica de Negocio):**
 - `src/domain/` - Modelos de dominio y reglas de negocio
@@ -296,7 +298,7 @@ app/layout.tsx
   - `Consumption/` - PrismaConsumptionRepository (con soporte para previousReading)
   - `ElectricityBill/` - PrismaElectricityBillRepository
   - `ServiceCharges/` - PrismaServiceChargesRepository
-  - `Property/` - PrismaPropertyRepository para gestión de propiedades y administradores
+  - `Property/` - PrismaPropertyRepository (list by admin, create with administrators connect, soft delete); audit fields on all main entities
   - `Shared/` - PrismaTransactionManager para transacciones con nivel de aislamiento configurable
 - `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias centralizada
 - `zod/` - Schemas de validación para API routes (payment, electricity-bill, service-charges)

@@ -32,7 +32,8 @@ export class CreateInvoicesForProperty {
     electricityBillId: string,
     month: number,
     year: number,
-    waterCost: number
+    waterCost: number,
+    userId: string
   ): Promise<Invoice[]> {
     // 1. Obtener datos base
     const electricityBill = await this.electricityBillRepository.findById(electricityBillId);
@@ -151,7 +152,7 @@ export class CreateInvoicesForProperty {
           );
 
           // Crear invoice dentro de la transacción
-          const created = await this.invoiceRepository.createInTransaction(invoice, tx);
+          const created = await this.invoiceRepository.createInTransaction(invoice, tx, userId);
           createdInvoices.push(created);
         }
 
@@ -201,7 +202,7 @@ export class CreateInvoicesForProperty {
               now
             );
 
-            const created = await this.invoiceRepository.createInTransaction(invoice, tx);
+            const created = await this.invoiceRepository.createInTransaction(invoice, tx, userId);
             createdInvoices.push(created);
           } else {
             // Si el admin no tiene rental, necesitamos crear uno o manejar de otra manera

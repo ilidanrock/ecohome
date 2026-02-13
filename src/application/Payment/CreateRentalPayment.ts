@@ -14,6 +14,7 @@ export class CreateRentalPayment {
     amount: number,
     paidAt: Date,
     paymentMethod: PaymentMethod,
+    userId: string,
     reference?: string | null,
     receiptUrl?: string | null
   ): Promise<Payment> {
@@ -39,6 +40,6 @@ export class CreateRentalPayment {
     );
 
     // Save payment using repository
-    return await this.paymentRepository.create(payment);
+    return await this.paymentRepository.create(payment, userId);
   }
 }

@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Save to database using repository
-    const created = await serviceContainer.waterBill.repository.create(waterBill);
+    const created = await serviceContainer.waterBill.repository.create(waterBill, session.user.id);
 
     return NextResponse.json(
       {

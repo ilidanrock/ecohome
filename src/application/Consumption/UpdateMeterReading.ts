@@ -15,6 +15,7 @@ export class UpdateMeterReading {
    * Clears OCR fields when manually edited
    * @param consumptionId - The consumption ID to update
    * @param energyReading - The new energy reading value
+   * @param userId - The user ID performing the update
    * @param previousReading - Optional previous reading value
    * @returns Updated consumption entity
    * @throws Error if consumption not found or validation fails
@@ -22,6 +23,7 @@ export class UpdateMeterReading {
   async execute(
     consumptionId: string,
     energyReading: number,
+    userId: string,
     previousReading?: number | null
   ): Promise<Consumption> {
     // Find the consumption record
@@ -81,6 +83,6 @@ export class UpdateMeterReading {
     );
 
     // Update in repository
-    return await this.consumptionRepository.update(updatedConsumption);
+    return await this.consumptionRepository.update(updatedConsumption, userId);
   }
 }

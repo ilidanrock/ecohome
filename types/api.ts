@@ -110,3 +110,20 @@ export interface WaterBillListItem {
 export interface WaterBillsListResponse {
   waterBills: WaterBillListItem[];
 }
+
+/**
+ * Property list item (for GET /api/properties admin)
+ */
+export interface PropertyListItem {
+  id: string;
+  name: string;
+  address: string;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+  createdById?: string | null;
+  updatedById?: string | null;
+}
+
+export interface PropertiesListResponse {
+  properties: PropertyListItem[];
+}

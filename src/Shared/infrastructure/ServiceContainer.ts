@@ -37,6 +37,9 @@ import { PrismaServiceChargesRepository } from '@/src/infrastructure/ServiceChar
 import { PrismaWaterBillRepository } from '@/src/infrastructure/WaterBill/PrismaWaterBillRepository';
 import { PrismaWaterServiceChargesRepository } from '@/src/infrastructure/WaterServiceCharges/PrismaWaterServiceChargesRepository';
 import { PrismaPropertyRepository } from '@/src/infrastructure/Property/PrismaPropertyRepository';
+import { ListPropertiesForAdmin } from '@/src/application/Property/ListPropertiesForAdmin';
+import { CreateProperty } from '@/src/application/Property/CreateProperty';
+import { DeleteProperty } from '@/src/application/Property/DeleteProperty';
 import { CreateInvoicesForProperty } from '@/src/application/Invoice/CreateInvoicesForProperty';
 import { prisma } from '@/prisma';
 import { validateEnv } from '@/lib/env-validation';
@@ -131,6 +134,9 @@ export const serviceContainer = {
   },
   property: {
     repository: propertyRepository,
+    listForAdmin: new ListPropertiesForAdmin(propertyRepository),
+    create: new CreateProperty(propertyRepository),
+    delete: new DeleteProperty(propertyRepository),
   },
   transactionManager,
   payment: {

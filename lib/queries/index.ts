@@ -25,5 +25,8 @@ export {
   useWaterBillsQuery,
 } from './bills';
 
+// Properties Queries
+export { usePropertiesQuery, useCreatePropertyMutation } from './properties';
+
 // Re-export query types from centralized types
 export type { ConsumptionResponse } from '@/types';

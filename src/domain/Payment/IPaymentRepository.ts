@@ -10,17 +10,19 @@ export interface IPaymentRepository {
   /**
    * Create a new payment
    * @param payment - The payment entity to create
+   * @param userId - The user ID performing the create
    * @returns The created payment entity
    */
-  create(payment: Payment): Promise<Payment>;
+  create(payment: Payment, userId: string): Promise<Payment>;
 
   /**
    * Create a new payment within a transaction
    * @param payment - The payment entity to create
    * @param tx - The transaction client
+   * @param userId - The user ID performing the create
    * @returns The created payment entity
    */
-  createInTransaction(payment: Payment, tx: TransactionClient): Promise<Payment>;
+  createInTransaction(payment: Payment, tx: TransactionClient, userId: string): Promise<Payment>;
 
   /**
    * Find a payment by ID
@@ -55,7 +57,15 @@ export interface IPaymentRepository {
    * Update an existing payment
    * @param id - The payment ID
    * @param payment - Partial payment data to update
+   * @param userId - The user ID performing the update
    * @returns The updated payment entity
    */
-  update(id: string, payment: Partial<Payment>): Promise<Payment>;
+  update(id: string, payment: Partial<Payment>, userId: string): Promise<Payment>;
+
+  /**
+   * Soft delete a payment (set deletedAt and deletedById).
+   * @param id - The payment ID
+   * @param userId - The user ID performing the delete
+   */
+  softDelete(id: string, userId: string): Promise<void>;
 }

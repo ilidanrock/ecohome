@@ -36,6 +36,7 @@ The administrator is responsible for managing tenant consumption and overseeing 
 - View payment status in the **billing history** and include this data in the **PDF reports**.
 - **Automatic invoice status updates** when payments cover the total invoice amount.
 - **Upload electricity bills** and automatically generate invoices for all active tenants.
+- **Manage properties**: List, create, and soft-delete properties; admin sees only properties they manage (N:M administrators). API: GET/POST `/api/properties`, DELETE `/api/properties/[id]`.
 - **Track meter readings** with previous reading support for accurate consumption calculation.
 - **OCR-powered meter reading extraction**: Automatically extract meter readings from photos using OpenAI Vision (GPT-4o-mini):
   - Upload photos of electricity meters taken on the 6th of each month
@@ -356,9 +357,9 @@ El code review con OpenAI analiza:
 
 ## **🔐 Security**  
 To guarantee privacy and data security, EcoHome implements:  
-- **Authentication with NextAuth.js**, allowing access only to **authorized users**.  
+- **Authentication with NextAuth.js**, allowing access only to **authorized users**. The session always stores the **database user id** (resolved from the DB when using OAuth/Google), so admin property assignment and audit fields (`created_by`, `updated_by`) work correctly.  
 - **Role-based access control (RBAC)** to restrict functionalities according to user type (**Administrator or Tenant**).  
-- **Secure cloud storage** with Amazon S3 to protect documents and sensitive data.  
+- **Secure cloud storage** with Cloudinary (and S3 where configured) to protect documents and sensitive data.  
 - **Data encryption** and **HTTPS usage** to prevent information leaks.  
 
 ---

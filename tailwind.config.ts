@@ -26,7 +26,7 @@ const config = {
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
-        ecoblue: '#007BFF',
+        ecoblue: 'hsl(var(--ecoblue))',
         ecogreen: '#28A745',
         'light-gray': '#F8F9FA',
         darkgray: '#343A40',

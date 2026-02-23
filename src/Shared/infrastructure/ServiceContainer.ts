@@ -12,6 +12,7 @@ import {
 } from '@/src/application/VerifyToken/VerifyTokenDelete';
 import { UserLogin } from '@/src/application/User/UserLogin';
 import { UserFind } from '@/src/application/User/UserFind';
+import { SearchUsersForAdmin } from '@/src/application/User/SearchUsersForAdmin';
 import { AccountOAuthSignIn } from '@/src/application/Account/AccountOAuthSignIn';
 import { PrismaAccountsRepository } from '@/src/infrastructure/Accounts/PrismaAccountsRepository';
 import { GetConsumptionData } from '@/src/application/Consumption/GetConsumptionData';
@@ -27,6 +28,10 @@ import { PrismaPaymentRepository } from '@/src/infrastructure/Payment/PrismaPaym
 import { PrismaRentalRepository } from '@/src/infrastructure/Rental/PrismaRentalRepository';
 import { PrismaInvoiceRepository } from '@/src/infrastructure/Invoice/PrismaInvoiceRepository';
 import { GetRentalById } from '@/src/application/Rental/GetRentalById';
+import { CreateRental } from '@/src/application/Rental/CreateRental';
+import { UpdateRental } from '@/src/application/Rental/UpdateRental';
+import { DeleteRental } from '@/src/application/Rental/DeleteRental';
+import { ListRentalsByPropertyId } from '@/src/application/Rental/ListRentalsByPropertyId';
 import { GetInvoiceById } from '@/src/application/Invoice/GetInvoiceById';
 import { GetUserInvoices } from '@/src/application/Invoice/GetUserInvoices';
 import { ListElectricityBillsForAdmin } from '@/src/application/ElectricityBill/ListElectricityBillsForAdmin';
@@ -90,6 +95,7 @@ export const serviceContainer = {
     createUser: new UserCreate(userRepository, hasherRepository, verifyTokenCreate),
     userLogin: new UserLogin(userRepository, hasherRepository, emailRepository),
     userFind: new UserFind(userRepository),
+    searchForAdmin: new SearchUsersForAdmin(userRepository),
   },
   verifyToken: {
     createVerifyToken: verifyTokenCreate,
@@ -107,6 +113,10 @@ export const serviceContainer = {
   },
   rental: {
     getRentalById: new GetRentalById(rentalRepository),
+    create: new CreateRental(propertyRepository, rentalRepository),
+    update: new UpdateRental(propertyRepository, rentalRepository),
+    delete: new DeleteRental(propertyRepository, rentalRepository),
+    listByPropertyId: new ListRentalsByPropertyId(rentalRepository, userRepository),
   },
   invoice: {
     getInvoiceById: new GetInvoiceById(invoiceRepository),

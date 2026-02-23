@@ -1,6 +1,6 @@
-import { PrismaClient, User as PrismaUser } from '@prisma/client';
+import { PrismaClient, User as PrismaUser, Role as PrismaRole } from '@prisma/client';
 
-import { IUserRepository } from '@/src/domain/User/UserRepository';
+import type { IUserRepository, UserSearchFilters } from '@/src/domain/User/UserRepository';
 import { User } from '@/src/domain/User/User';
 
 export class PrismaUserRepository implements IUserRepository {
@@ -59,6 +59,32 @@ export class PrismaUserRepository implements IUserRepository {
   async findAllUsers(): Promise<User[]> {
     const users = await this.prisma.user.findMany();
     return users.map((user) => this.mapToDomain(user));
+  }
+
+  async findManyForAdmin(filters: UserSearchFilters): Promise<User[]> {
+    const where: {
+      role?: PrismaRole;
+      OR?: Array<{ name?: { contains: string; mode: 'insensitive' }; email?: { contains: string; mode: 'insensitive' } }>;
+    } = {};
+    if (filters.role) where.role = filters.role as PrismaRole;
+    if (filters.search && filters.search.trim()) {
+      const term = filters.search.trim();
+      where.OR = [
+        { name: { contains: term, mode: 'insensitive' } },
+        { email: { contains: term, mode: 'insensitive' } },
+      ];
+    }
+    const users = await this.prisma.user.findMany({
+      where,
+      take: Math.min(filters.limit ?? 20, 50),
+      select: { id: true, name: true, surname: true, email: true, role: true, createdAt: true, updatedAt: true, emailVerified: true, image: true },
+    });
+    return users.map((u) =>
+      this.mapToDomain({
+        ...u,
+        password: null,
+      } as PrismaUser)
+    );
   }
 
   private mapToDomain(prismaUser: PrismaUser): User {

@@ -219,6 +219,7 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --ecoblue: 211 100% 50%;
   }
 
   .dark {
@@ -250,6 +251,7 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --ecoblue: 214 100% 58%;
   }
 }
 
@@ -298,14 +300,4 @@
     @apply border-[#F8F9FA] dark:border-[#374151];
   }
 
-  /* Update header and footer for dark mode */
-  .dark header,
-  .dark footer {
-    @apply bg-gray-900 border-gray-800;
-  }
-
-  /* Update card styles for dark mode */
-  .dark .bg-white {
-    @apply bg-gray-800;
-  }
 }

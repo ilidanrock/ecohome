@@ -2,7 +2,6 @@
 
 import type React from 'react';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 
 import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminBreadcrumb } from '@/components/admin/admin-breadcrumb';
@@ -16,15 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div
-      className={cn(
-        'min-h-screen w-full transition-colors duration-200',
-        // Light mode
-        'bg-slate-50',
-        // Dark mode
-        'dark:bg-slate-950'
-      )}
-    >
+    <div className="min-h-screen w-full bg-background transition-colors duration-200">
       <AdminSidebar
         sidebarOpen={sidebarOpen}
         onSidebarOpenChange={setSidebarOpen}

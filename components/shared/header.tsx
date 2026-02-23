@@ -39,13 +39,7 @@ export function Header({
   return (
     <header
       className={cn(
-        'sticky top-0 z-40 flex h-16 shrink-0 items-center border-b shadow-sm backdrop-blur-xl transition-all duration-200',
-        // Light mode colors - más distinguibles
-        'bg-white/95 border-ecoblue/20',
-        // Dark mode colors - mejor contraste
-        'dark:bg-slate-900/95 dark:border-ecoblue/30',
-        // Responsive padding
-        'px-3 sm:px-4 md:px-6 lg:px-8'
+        'sticky top-0 z-40 flex h-16 shrink-0 items-center border-b border-border bg-card/95 shadow-sm backdrop-blur-xl transition-all duration-200 px-3 sm:px-4 md:px-6 lg:px-8'
       )}
       role="banner"
       aria-label="Navegación principal"
@@ -57,13 +51,10 @@ export function Header({
             type="button"
             className={cn(
               'flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-200 lg:hidden',
-              'bg-slate-100/80 dark:bg-slate-800/80',
-              'text-slate-700 dark:text-slate-300',
-              'border border-slate-200/60 dark:border-slate-700/60',
-              'hover:bg-slate-200/80 dark:hover:bg-slate-700/80',
-              'hover:text-slate-900 dark:hover:text-slate-200',
+              'bg-muted text-foreground border border-border',
+              'hover:bg-accent hover:text-accent-foreground',
               'active:scale-95',
-              'focus:outline-none focus:ring-2 focus:ring-ecoblue/50 focus:ring-offset-2',
+              'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background',
               'shadow-sm'
             )}
             onClick={onOpenSidebar}
@@ -100,13 +91,13 @@ export function Header({
                     'p-1 rounded-lg',
                     stat.type === 'energy'
                       ? 'bg-amber-100 dark:bg-amber-900/40'
-                      : 'bg-ecoblue/20 dark:bg-ecoblue/30'
+                      : 'bg-primary/20'
                   )}
                 >
                   {stat.type === 'energy' ? (
                     <Zap className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                   ) : (
-                    <Droplets className="h-3.5 w-3.5 text-ecoblue dark:text-blue-400" />
+                    <Droplets className="h-3.5 w-3.5 text-primary" />
                   )}
                 </div>
                 <span className="font-semibold">

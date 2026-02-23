@@ -24,7 +24,7 @@ export function AdminHeader({ onOpenSidebar }: AdminHeaderProps) {
       <DropdownMenuSeparator />
       <DropdownMenuItem
         onClick={() => signOut({ callbackUrl: '/' })}
-        className="text-red-600 dark:text-red-400"
+        className="text-destructive focus:text-destructive"
       >
         <LogOut className="mr-2 h-4 w-4" />
         Cerrar Sesión

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ToastService } from '@/lib/errors/toast-service';
 import { useCreatePropertyMutation } from '@/lib/queries';
 import { createPropertySchema, type CreatePropertyInput } from '@/zod/property-schemas';
 
@@ -25,24 +26,30 @@ export function NewPropertyForm() {
 
   const onSubmit = (data: CreatePropertyInput) => {
     createMutation.mutate(data, {
-      onSuccess: () => router.push('/admin/properties'),
+      onSuccess: () => {
+        ToastService.success('Propiedad creada');
+        router.push('/admin/properties');
+      },
+      onError: (err) => {
+        ToastService.error(err instanceof Error ? err.message : 'Error al crear la propiedad');
+      },
     });
   };
 
   return (
-    <Card className="min-w-0 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+    <Card className="min-w-0">
       <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
-        <CardTitle className="text-lg text-slate-900 dark:text-slate-100 sm:text-xl">
+        <CardTitle className="text-lg text-foreground sm:text-xl">
           Nueva propiedad
         </CardTitle>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           Completa los datos de la propiedad
         </p>
       </CardHeader>
       <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-slate-700 dark:text-slate-300">
+            <Label htmlFor="name" className="text-foreground">
               Nombre
             </Label>
             <Input
@@ -54,13 +61,13 @@ export function NewPropertyForm() {
               aria-invalid={!!errors.name}
             />
             {errors.name && (
-              <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+              <p className="text-sm text-destructive" role="alert">
                 {errors.name.message}
               </p>
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="address" className="text-slate-700 dark:text-slate-300">
+            <Label htmlFor="address" className="text-foreground">
               Dirección
             </Label>
             <Input
@@ -72,7 +79,7 @@ export function NewPropertyForm() {
               aria-invalid={!!errors.address}
             />
             {errors.address && (
-              <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+              <p className="text-sm text-destructive" role="alert">
                 {errors.address.message}
               </p>
             )}

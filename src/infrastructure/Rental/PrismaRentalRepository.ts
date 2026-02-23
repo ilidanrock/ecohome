@@ -40,6 +40,76 @@ export class PrismaRentalRepository implements IRentalRepository {
     return rentals.map((rental) => this.mapToDomain(rental));
   }
 
+  async findByUserIdAndPropertyId(userId: string, propertyId: string): Promise<Rental | null> {
+    const rental = await this.prisma.rental.findFirst({
+      where: { userId, propertyId, deletedAt: null },
+    });
+    return rental ? this.mapToDomain(rental) : null;
+  }
+
+  async findByUserIdAndPropertyIdIncludingDeleted(
+    userId: string,
+    propertyId: string
+  ): Promise<Rental | null> {
+    const rental = await this.prisma.rental.findFirst({
+      where: { userId, propertyId },
+    });
+    return rental ? this.mapToDomain(rental) : null;
+  }
+
+  async restore(
+    id: string,
+    data: { startDate: Date; endDate?: Date | null; updatedById: string }
+  ): Promise<Rental> {
+    const updated = await this.prisma.rental.update({
+      where: { id },
+      data: {
+        startDate: data.startDate,
+        endDate: data.endDate ?? null,
+        updatedById: data.updatedById,
+        deletedAt: null,
+        deletedById: null,
+      },
+    });
+    return this.mapToDomain(updated);
+  }
+
+  async findNonDeletedByPropertyId(propertyId: string): Promise<Rental[]> {
+    const rentals = await this.prisma.rental.findMany({
+      where: { propertyId, deletedAt: null },
+      orderBy: { startDate: 'desc' },
+    });
+    return rentals.map((r) => this.mapToDomain(r));
+  }
+
+  async create(rental: Rental): Promise<Rental> {
+    const created = await this.prisma.rental.create({
+      data: {
+        userId: rental.userId,
+        propertyId: rental.propertyId,
+        startDate: rental.startDate,
+        endDate: rental.endDate,
+        createdById: rental.createdById ?? undefined,
+      },
+    });
+    return this.mapToDomain(created);
+  }
+
+  async update(
+    id: string,
+    data: { startDate?: Date; endDate?: Date | null; updatedById: string }
+  ): Promise<Rental> {
+    const updated = await this.prisma.rental.update({
+      where: { id },
+      data: {
+        ...(data.startDate !== undefined && { startDate: data.startDate }),
+        ...(data.endDate !== undefined && { endDate: data.endDate }),
+        updatedById: data.updatedById,
+      },
+    });
+    return this.mapToDomain(updated);
+  }
+
   async softDelete(id: string, userId: string): Promise<void> {
     await this.prisma.rental.update({
       where: { id },

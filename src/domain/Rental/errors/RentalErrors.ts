@@ -23,3 +23,15 @@ export class RentalAccessDeniedError extends DomainError {
     super(message);
   }
 }
+
+/**
+ * Error thrown when tenant is already assigned to the property
+ */
+export class RentalAlreadyExistsError extends DomainError {
+  readonly code = 'RENTAL_ALREADY_EXISTS';
+  readonly statusCode = 409;
+
+  constructor(message: string = 'This tenant is already assigned to this property') {
+    super(message);
+  }
+}

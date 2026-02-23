@@ -21,7 +21,7 @@ export default async function AdminPropertyDetailPage({
   const { id } = await params;
 
   return (
-    <div className="w-full min-w-0 max-w-2xl mx-auto">
+    <div className="w-full min-w-0 max-w-5xl mx-auto">
       <AdminPropertyDetail propertyId={id} />
     </div>
   );

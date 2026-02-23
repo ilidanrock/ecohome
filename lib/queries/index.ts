@@ -34,5 +34,18 @@ export {
   useDeletePropertyMutation,
 } from './properties';
 
+// Users (admin search)
+export { useSearchUsersQuery } from './users';
+export type { UserSearchResult } from './users';
+
+// Rentals (property tenants)
+export {
+  usePropertyRentalsQuery,
+  useCreateRentalMutation,
+  useUpdateRentalMutation,
+  useDeleteRentalMutation,
+} from './rentals';
+export type { PropertyRentalItem } from './rentals';
+
 // Re-export query types from centralized types
 export type { ConsumptionResponse } from '@/types';

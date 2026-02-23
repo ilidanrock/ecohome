@@ -131,7 +131,7 @@ export function AdminSidebar({
         {/* Overlay with fade animation */}
         <div
           className={cn(
-            'fixed inset-0 bg-slate-900/80 dark:bg-slate-950/80 backdrop-blur-sm transition-all duration-300 ease-in-out',
+            'fixed inset-0 bg-foreground/50 backdrop-blur-sm transition-all duration-300 ease-in-out',
             sidebarOpen ? 'opacity-100' : 'opacity-0'
           )}
           onClick={handleCloseSidebar}
@@ -151,12 +151,10 @@ export function AdminSidebar({
                 type="button"
                 className={cn(
                   'absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-200 lg:hidden',
-                  'bg-slate-100/80 dark:bg-slate-800/80',
-                  'text-slate-600 dark:text-slate-400',
-                  'hover:bg-slate-200/80 dark:hover:bg-slate-700/80',
-                  'hover:text-slate-900 dark:hover:text-slate-200',
+                  'bg-muted text-muted-foreground',
+                  'hover:bg-accent hover:text-accent-foreground',
                   'active:scale-95',
-                  'focus:outline-none focus:ring-2 focus:ring-ecoblue/50',
+                  'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background',
                   'shadow-sm backdrop-blur-sm'
                 )}
                 onClick={handleCloseSidebar}
@@ -190,33 +188,17 @@ interface SidebarContentProps {
 
 function SidebarContent({ pathname, session }: SidebarContentProps) {
   return (
-    <div
-      className={cn(
-        'flex h-full flex-col border-r shadow-sm backdrop-blur-xl transition-all duration-200',
-        // Light mode colors - consistentes con header
-        'bg-white/95 border-ecoblue/20',
-        // Dark mode colors - mejor contraste
-        'dark:bg-slate-900/95 dark:border-ecoblue/30'
-      )}
-    >
-      <div
-        className={cn(
-          'border-b px-4 backdrop-blur-sm',
-          // Light mode
-          'bg-gradient-to-r from-ecoblue/10 to-ecogreen/10 border-ecoblue/20',
-          // Dark mode
-          'dark:from-ecoblue/20 dark:to-ecogreen/20 dark:border-ecoblue/30'
-        )}
-      >
+    <div className="flex h-full flex-col border-r border-sidebar-border bg-sidebar shadow-sm backdrop-blur-xl transition-all duration-200">
+      <div className="border-b border-sidebar-border bg-muted/30 px-4 backdrop-blur-sm">
         {/* Logo */}
         <div className="flex h-16 items-center">
           <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-ecoblue to-ecogreen shadow-md ring-2 ring-ecoblue/20 dark:ring-ecoblue/30">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-ecoblue to-ecogreen shadow-md ring-2 ring-ecoblue/20">
               <Leaf className="h-6 w-6 text-white" />
             </div>
             <div>
-              <span className="text-xl font-bold text-ecoblue dark:text-blue-400">EcoHome</span>
-              <div className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              <span className="text-xl font-bold text-primary">EcoHome</span>
+              <div className="text-xs font-medium text-muted-foreground">
                 Admin Panel
               </div>
             </div>
@@ -224,25 +206,9 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
         </div>
 
         {/* User Info */}
-        <div
-          className={cn(
-            'mx-4 mb-4 rounded-xl border p-4 shadow-sm backdrop-blur-sm transition-all duration-200',
-            // Light mode
-            'bg-gradient-to-r from-slate-50/80 to-slate-100/60 border-slate-200/40',
-            // Dark mode
-            'dark:from-slate-800/90 dark:to-slate-700/80 dark:border-slate-600/40'
-          )}
-        >
+        <div className="mx-4 mb-4 rounded-xl border border-border bg-muted/50 p-4 shadow-sm backdrop-blur-sm transition-all duration-200">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                'flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl ring-2 shadow-sm',
-                // Light mode
-                'bg-gradient-to-br from-ecoblue/20 to-ecogreen/20 ring-ecoblue/20',
-                // Dark mode
-                'dark:from-ecoblue/30 dark:to-ecogreen/30 dark:ring-ecoblue/30'
-              )}
-            >
+            <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-primary/10 ring-2 ring-primary/20 shadow-sm">
               {session?.user?.image ? (
                 <Image
                   src={session.user.image}
@@ -252,19 +218,14 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
                   className="rounded-xl object-cover"
                 />
               ) : (
-                <User className="h-6 w-6 text-ecoblue dark:text-blue-400" />
+                <User className="h-6 w-6 text-primary" />
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <p
-                className={cn(
-                  'truncate text-sm font-semibold',
-                  'text-slate-900 dark:text-slate-100'
-                )}
-              >
+              <p className="truncate text-sm font-semibold text-foreground">
                 {session?.user?.name || 'Administrador'}
               </p>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Administrador</p>
+              <p className="text-xs text-muted-foreground">Administrador</p>
             </div>
           </div>
         </div>
@@ -278,18 +239,14 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
               className={cn(
                 'group flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-200',
                 pathname === item.href
-                  ? // Active state
-                    'bg-gradient-to-r from-ecoblue/10 to-ecogreen/10 text-ecoblue dark:text-blue-400 font-semibold shadow-sm border-l-2 border-ecoblue dark:border-blue-400'
-                  : // Inactive state
-                    'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-ecoblue dark:hover:text-blue-400'
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-l-2 border-primary'
+                  : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
               )}
             >
               <item.icon
                 className={cn(
                   'mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200',
-                  pathname === item.href
-                    ? 'text-ecoblue dark:text-blue-400'
-                    : 'text-slate-500 dark:text-slate-400 group-hover:text-ecoblue dark:group-hover:text-blue-400'
+                  pathname === item.href ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
                 )}
                 aria-hidden="true"
               />
@@ -298,13 +255,8 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
           ))}
         </nav>
 
-        <div className={cn('border-t px-2 py-4', 'border-slate-200/60 dark:border-slate-700/60')}>
-          <div
-            className={cn(
-              'text-xs font-semibold uppercase tracking-wider px-4 mb-2',
-              'text-slate-500 dark:text-slate-400'
-            )}
-          >
+        <div className="border-t border-sidebar-border px-2 py-4">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-4 mb-2">
             Configuración
           </div>
           <nav className="space-y-1">
@@ -315,18 +267,14 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
                 className={cn(
                   'group flex items-center px-4 py-2.5 text-sm rounded-xl transition-all duration-200',
                   pathname === item.href
-                    ? // Active state
-                      'bg-gradient-to-r from-ecoblue/10 to-ecogreen/10 text-ecoblue dark:text-blue-400 font-semibold shadow-sm border-l-2 border-ecoblue dark:border-blue-400'
-                    : // Inactive state
-                      'text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 hover:text-ecoblue dark:hover:text-blue-400'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-sm border-l-2 border-primary'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 )}
               >
                 <item.icon
                   className={cn(
                     'mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200',
-                    pathname === item.href
-                      ? 'text-ecoblue dark:text-blue-400'
-                      : 'text-slate-500 dark:text-slate-400 group-hover:text-ecoblue dark:group-hover:text-blue-400'
+                    pathname === item.href ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
                   )}
                   aria-hidden="true"
                 />
@@ -337,24 +285,13 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
         </div>
       </div>
 
-      <div className={cn('p-4 border-t', 'border-slate-200/60 dark:border-slate-700/60')}>
+      <div className="border-t border-sidebar-border p-4">
         <Button
           variant="ghost"
-          className={cn(
-            'w-full justify-start transition-all duration-200',
-            'text-slate-700 dark:text-slate-300',
-            'hover:bg-red-50/80 dark:hover:bg-red-900/20',
-            'hover:text-red-600 dark:hover:text-red-400'
-          )}
+          className="w-full justify-start text-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200"
           onClick={() => signOut({ callbackUrl: '/' })}
         >
-          <LogOut
-            className={cn(
-              'mr-3 h-5 w-5 transition-colors duration-200',
-              'text-slate-500 dark:text-slate-400',
-              'group-hover:text-red-600 dark:group-hover:text-red-400'
-            )}
-          />
+          <LogOut className="mr-3 h-5 w-5 text-muted-foreground" />
           Cerrar Sesión
         </Button>
       </div>

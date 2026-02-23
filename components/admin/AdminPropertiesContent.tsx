@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Building2, Pencil, Plus, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatDate } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,15 +15,34 @@ import type { PropertyListItem } from '@/types';
 const PAGE_SIZE = 10;
 
 function PropertyCard({ p }: { p: PropertyListItem }) {
+  const router = useRouter();
   return (
-    <Card className="min-w-0 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+    <Card
+      role="button"
+      tabIndex={0}
+      className="min-w-0 cursor-pointer border-slate-200 bg-white transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800/50"
+      onClick={() => router.push(`/admin/properties/${p.id}`)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(`/admin/properties/${p.id}`);
+        }
+      }}
+    >
       <CardHeader className="pb-2 px-4 pt-4 sm:px-6 sm:pt-6">
         <CardTitle className="flex items-start justify-between gap-2 text-base text-slate-900 dark:text-slate-100">
           <span className="flex min-w-0 items-center gap-2">
             <Building2 className="h-5 w-5 shrink-0 text-ecoblue" />
             <span className="truncate">{p.name}</span>
           </span>
-          <Button asChild variant="ghost" size="sm" className="h-9 min-h-9 w-9 shrink-0 p-0 sm:h-auto sm:min-h-0 sm:w-auto sm:p-2" aria-label={`Editar ${p.name}`}>
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="h-9 min-h-9 w-9 shrink-0 p-0 sm:h-auto sm:min-h-0 sm:w-auto sm:p-2"
+            aria-label={`Editar ${p.name}`}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          >
             <Link href={`/admin/properties/${p.id}/edit`}>
               <Pencil className="h-4 w-4" />
             </Link>
@@ -40,9 +60,11 @@ function PropertyCard({ p }: { p: PropertyListItem }) {
 }
 
 function PropertyRow({ p }: { p: PropertyListItem }) {
+  const router = useRouter();
   const deleteMutation = useDeletePropertyMutation(p.id);
 
-  const handleDelete = () => {
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (window.confirm(`¿Eliminar la propiedad "${p.name}"? Esta acción no se puede deshacer.`)) {
       deleteMutation.mutate(undefined, {
         onError: (err) => {
@@ -52,22 +74,37 @@ function PropertyRow({ p }: { p: PropertyListItem }) {
     }
   };
 
+  const handleRowClick = () => router.push(`/admin/properties/${p.id}`);
+  const stopProp = (e: React.MouseEvent) => e.stopPropagation();
+
   return (
-    <tr className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+    <tr
+      role="button"
+      tabIndex={0}
+      className="cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50 last:border-0"
+      onClick={handleRowClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleRowClick();
+        }
+      }}
+    >
       <td className="min-w-[120px] px-3 py-3 font-medium text-slate-900 dark:text-slate-100 lg:px-4">
-        <span className="block truncate max-w-[180px]" title={p.name}>{p.name}</span>
+        <span className="block truncate max-w-[180px]" title={p.name}>
+          {p.name}
+        </span>
       </td>
       <td className="min-w-[140px] px-3 py-3 text-slate-600 dark:text-slate-400 lg:px-4">
-        <span className="block truncate max-w-[220px]" title={p.address}>{p.address}</span>
+        <span className="block truncate max-w-[220px]" title={p.address}>
+          {p.address}
+        </span>
       </td>
       <td className="whitespace-nowrap px-3 py-3 text-sm text-slate-500 dark:text-slate-500 lg:px-4">
         {formatDate(p.createdAt)}
       </td>
-      <td className="whitespace-nowrap px-3 py-3 lg:px-4">
+      <td className="whitespace-nowrap px-3 py-3 lg:px-4" onClick={stopProp}>
         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-          <Button asChild variant="ghost" size="sm" className="h-8 min-w-0 px-2 text-xs sm:text-sm">
-            <Link href={`/admin/properties/${p.id}/edit`}>Editar</Link>
-          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -106,10 +143,7 @@ function TableSkeleton({ rows = 5 }: { rows?: number }) {
           </thead>
           <tbody>
             {Array.from({ length: rows }).map((_, i) => (
-              <tr
-                key={i}
-                className="border-b border-slate-100 dark:border-slate-800 last:border-0"
-              >
+              <tr key={i} className="border-b border-slate-100 dark:border-slate-800 last:border-0">
                 <td className="px-3 py-3 lg:px-4">
                   <Skeleton className="h-5 w-32" />
                 </td>
@@ -201,7 +235,7 @@ export function AdminPropertiesContent() {
       {isLoading && (
         <>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:hidden">
-            {Array.from({ length: 5 }).map((i) => (
+            {Array.from({ length: 5 }, (_, i) => (
               <Skeleton key={i} className="h-28 rounded-xl sm:h-32" />
             ))}
           </div>
@@ -224,7 +258,9 @@ export function AdminPropertiesContent() {
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Building2 className="h-12 w-12 text-slate-400 dark:text-slate-500 mb-4" />
             <p className="text-slate-600 dark:text-slate-400">
-              {searchApplied ? 'No hay resultados para tu búsqueda.' : 'No hay propiedades. Crea la primera.'}
+              {searchApplied
+                ? 'No hay resultados para tu búsqueda.'
+                : 'No hay propiedades. Crea la primera.'}
             </p>
             <Button asChild className="mt-4">
               <Link href="/admin/properties/new">

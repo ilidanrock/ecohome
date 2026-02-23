@@ -17,7 +17,11 @@ export type UpdatePropertyInput = z.infer<typeof updatePropertySchema>;
 export const propertiesListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(50).default(10),
-  search: z.string().trim().optional().transform((s) => (s === '' ? undefined : s)),
+  search: z
+    .string()
+    .trim()
+    .optional()
+    .transform((s) => (s === '' ? undefined : s)),
 });
 
 export type PropertiesListQueryInput = z.infer<typeof propertiesListQuerySchema>;

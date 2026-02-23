@@ -14,7 +14,9 @@ export type PropertiesListFilters = {
   search?: string;
 };
 
-async function fetchProperties(filters: PropertiesListFilters = {}): Promise<PropertiesListResponse> {
+async function fetchProperties(
+  filters: PropertiesListFilters = {}
+): Promise<PropertiesListResponse> {
   const params = new URLSearchParams();
   if (filters.page != null) params.set('page', String(filters.page));
   if (filters.limit != null) params.set('limit', String(filters.limit));

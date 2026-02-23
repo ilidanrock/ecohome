@@ -7,9 +7,7 @@ import { User } from '@/src/domain/User/User';
 /** Extracts the type expected by Property.where.administrators.some from the generated client */
 type PropertyAdministratorsSomeWhere = NonNullable<
   NonNullable<
-    NonNullable<
-      Parameters<PrismaClient['property']['findMany']>[0]
-    >['where']
+    NonNullable<Parameters<PrismaClient['property']['findMany']>[0]>['where']
   >['administrators']
 >['some'];
 

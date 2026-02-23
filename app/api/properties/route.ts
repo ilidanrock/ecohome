@@ -60,7 +60,9 @@ export async function GET(request: NextRequest) {
       limit: searchParams.get('limit') ?? undefined,
       search: searchParams.get('search') ?? undefined,
     });
-    const { page, limit, search } = parsed.success ? parsed.data : { page: 1, limit: 10, search: undefined };
+    const { page, limit, search } = parsed.success
+      ? parsed.data
+      : { page: 1, limit: 10, search: undefined };
 
     const { properties, total } = await serviceContainer.property.listForAdminPaginated.execute(
       session.user.id,

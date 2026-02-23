@@ -126,4 +126,7 @@ export interface PropertyListItem {
 
 export interface PropertiesListResponse {
   properties: PropertyListItem[];
+  total?: number;
+  page?: number;
+  limit?: number;
 }

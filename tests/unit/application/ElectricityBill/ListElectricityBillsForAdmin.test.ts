@@ -15,6 +15,7 @@ describe('ListElectricityBillsForAdmin', () => {
       findById: vi.fn(),
       findByIdWithAdministrators: vi.fn(),
       findManagedByUserId: vi.fn(),
+      findManagedByUserIdPaginated: vi.fn(),
       isUserAdministrator: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),

@@ -60,10 +60,7 @@ async function requirePropertyAdmin(
  *
  * Returns a single property if the current user is an administrator of it.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -105,10 +102,7 @@ export async function GET(
  * Updates a property's name and address. Requires ADMIN and user must be an administrator of the property.
  * Body: { name: string, address: string }
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {

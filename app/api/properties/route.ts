@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
-import { createPropertySchema } from '@/zod/property-schemas';
+import { createPropertySchema, propertiesListQuerySchema } from '@/zod/property-schemas';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
@@ -32,8 +32,9 @@ function toPropertyListItem(p: {
  * GET /api/properties
  *
  * Lists properties managed by the authenticated admin.
+ * Query: page (default 1), limit (default 10, max 50), search (optional, filters by name or address).
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -53,9 +54,24 @@ export async function GET() {
       return NextResponse.json(errorResponse, { status: 403 });
     }
 
-    const properties = await serviceContainer.property.listForAdmin.execute(session.user.id);
+    const { searchParams } = new URL(request.url);
+    const parsed = propertiesListQuerySchema.safeParse({
+      page: searchParams.get('page') ?? undefined,
+      limit: searchParams.get('limit') ?? undefined,
+      search: searchParams.get('search') ?? undefined,
+    });
+    const { page, limit, search } = parsed.success ? parsed.data : { page: 1, limit: 10, search: undefined };
+
+    const { properties, total } = await serviceContainer.property.listForAdminPaginated.execute(
+      session.user.id,
+      { page, limit, search }
+    );
+
     const response: PropertiesListResponse = {
       properties: properties.map(toPropertyListItem),
+      total,
+      page,
+      limit,
     };
     return NextResponse.json(response);
   } catch (error) {

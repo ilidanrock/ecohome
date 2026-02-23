@@ -38,6 +38,7 @@ import { PrismaWaterBillRepository } from '@/src/infrastructure/WaterBill/Prisma
 import { PrismaWaterServiceChargesRepository } from '@/src/infrastructure/WaterServiceCharges/PrismaWaterServiceChargesRepository';
 import { PrismaPropertyRepository } from '@/src/infrastructure/Property/PrismaPropertyRepository';
 import { ListPropertiesForAdmin } from '@/src/application/Property/ListPropertiesForAdmin';
+import { ListPropertiesForAdminPaginated } from '@/src/application/Property/ListPropertiesForAdminPaginated';
 import { CreateProperty } from '@/src/application/Property/CreateProperty';
 import { GetPropertyById } from '@/src/application/Property/GetPropertyById';
 import { UpdateProperty } from '@/src/application/Property/UpdateProperty';
@@ -137,6 +138,7 @@ export const serviceContainer = {
   property: {
     repository: propertyRepository,
     listForAdmin: new ListPropertiesForAdmin(propertyRepository),
+    listForAdminPaginated: new ListPropertiesForAdminPaginated(propertyRepository),
     create: new CreateProperty(propertyRepository),
     getById: new GetPropertyById(propertyRepository),
     update: new UpdateProperty(propertyRepository),

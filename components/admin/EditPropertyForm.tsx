@@ -23,9 +23,7 @@ export function EditPropertyForm({ propertyId }: { propertyId: string }) {
     formState: { errors },
   } = useForm<UpdatePropertyInput>({
     resolver: zodResolver(updatePropertySchema),
-    values: property
-      ? { name: property.name, address: property.address }
-      : undefined,
+    values: property ? { name: property.name, address: property.address } : undefined,
     defaultValues: { name: '', address: '' },
   });
 
@@ -37,17 +35,17 @@ export function EditPropertyForm({ propertyId }: { propertyId: string }) {
 
   if (isLoading || !property) {
     return (
-      <Card className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-        <CardHeader>
+      <Card className="min-w-0 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+        <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
           <Skeleton className="h-7 w-48" />
-          <Skeleton className="h-4 w-64 mt-2" />
+          <Skeleton className="mt-2 h-4 w-64" />
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 pb-4 sm:px-6 sm:pb-6">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />
-          <div className="flex gap-2 pt-2">
-            <Skeleton className="h-10 w-24" />
-            <Skeleton className="h-10 w-32" />
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Skeleton className="h-10 w-24 flex-1 sm:flex-none" />
+            <Skeleton className="h-10 w-32 flex-1 sm:flex-none" />
           </div>
         </CardContent>
       </Card>
@@ -56,12 +54,12 @@ export function EditPropertyForm({ propertyId }: { propertyId: string }) {
 
   if (isError) {
     return (
-      <Card className="border-amber-200 dark:border-amber-800">
-        <CardContent className="py-6">
+      <Card className="min-w-0 border-amber-200 dark:border-amber-800">
+        <CardContent className="px-4 py-6 sm:px-6">
           <p className="text-amber-700 dark:text-amber-400">
             No se pudo cargar la propiedad o no tienes permiso para editarla.
           </p>
-          <Button asChild variant="outline" className="mt-4">
+          <Button asChild variant="outline" className="mt-4 w-full sm:w-auto">
             <Link href="/admin/properties">Volver a propiedades</Link>
           </Button>
         </CardContent>
@@ -70,16 +68,16 @@ export function EditPropertyForm({ propertyId }: { propertyId: string }) {
   }
 
   return (
-    <Card className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-      <CardHeader>
-        <CardTitle className="text-slate-900 dark:text-slate-100">
+    <Card className="min-w-0 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+      <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
+        <CardTitle className="text-lg text-slate-900 dark:text-slate-100 sm:text-xl">
           Editar propiedad
         </CardTitle>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
           Modifica el nombre o la dirección
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-slate-700 dark:text-slate-300">

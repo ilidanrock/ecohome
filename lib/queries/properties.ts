@@ -8,8 +8,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { PropertyListItem, PropertiesListResponse } from '@/types';
 import { propertyKeys } from './keys';
 
-async function fetchProperties(): Promise<PropertiesListResponse> {
-  const response = await fetch('/api/properties', {
+export type PropertiesListFilters = {
+  page?: number;
+  limit?: number;
+  search?: string;
+};
+
+async function fetchProperties(filters: PropertiesListFilters = {}): Promise<PropertiesListResponse> {
+  const params = new URLSearchParams();
+  if (filters.page != null) params.set('page', String(filters.page));
+  if (filters.limit != null) params.set('limit', String(filters.limit));
+  if (filters.search != null && filters.search !== '') params.set('search', filters.search);
+  const url = `/api/properties${params.toString() ? `?${params.toString()}` : ''}`;
+  const response = await fetch(url, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -23,13 +34,15 @@ async function fetchProperties(): Promise<PropertiesListResponse> {
 }
 
 /**
- * Hook to fetch properties managed by the current admin.
+ * Hook to fetch properties managed by the current admin with pagination and search.
  */
-export function usePropertiesQuery() {
+export function usePropertiesQuery(filters: PropertiesListFilters = {}) {
+  const { page = 1, limit = 10, search } = filters;
+  const normalized = { page, limit, search };
   return useQuery({
-    queryKey: propertyKeys.list(),
-    queryFn: fetchProperties,
-    staleTime: 2 * 60 * 1000,
+    queryKey: propertyKeys.list(normalized),
+    queryFn: () => fetchProperties(normalized),
+    staleTime: 1 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });
 }

@@ -27,6 +27,17 @@ export interface IPropertyRepository {
   findManagedByUserId(userId: string): Promise<Property[]>;
 
   /**
+   * Find properties managed by a user with pagination and optional search (name or address).
+   * @param userId - The user ID
+   * @param options - { page (1-based), limit, search (optional string) }
+   * @returns { properties, total }
+   */
+  findManagedByUserIdPaginated(
+    userId: string,
+    options: { page: number; limit: number; search?: string }
+  ): Promise<{ properties: Property[]; total: number }>;
+
+  /**
    * Check if a user is an administrator of a property
    * @param propertyId - The property ID
    * @param userId - The user ID

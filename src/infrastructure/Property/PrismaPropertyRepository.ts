@@ -1,7 +1,43 @@
 import { PrismaClient, Property as PrismaProperty } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { IPropertyRepository } from '@/src/domain/Property/IPropertyRepository';
 import { Property } from '@/src/domain/Property/Property';
 import { User } from '@/src/domain/User/User';
+
+/** Extracts the type expected by Property.where.administrators.some from the generated client */
+type PropertyAdministratorsSomeWhere = NonNullable<
+  NonNullable<
+    NonNullable<
+      Parameters<PrismaClient['property']['findMany']>[0]
+    >['where']
+  >['administrators']
+>['some'];
+
+/** Extracts the type expected by Property.create.data.administrators from the generated client */
+type PropertyAdministratorsCreateNested = NonNullable<
+  NonNullable<
+    NonNullable<Parameters<PrismaClient['property']['create']>[0]>['data']
+  >['administrators']
+>;
+
+/** Shape expected from Prisma when including administrators.user (workaround for generated include typings) */
+type PropertyWithAdminUsers = PrismaProperty & {
+  administrators: Array<{
+    userId: string;
+    user: {
+      id: string;
+      name: string | null;
+      surname: string | null;
+      email: string;
+      role: string;
+      emailVerified: Date | null;
+      image: string | null;
+      password: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+    };
+  }>;
+};
 
 export class PrismaPropertyRepository implements IPropertyRepository {
   constructor(private prisma: PrismaClient) {}
@@ -29,15 +65,20 @@ export class PrismaPropertyRepository implements IPropertyRepository {
   async findByIdWithAdministrators(
     id: string
   ): Promise<{ property: Property; administrators: User[] } | null> {
-    const property = await this.prisma.property.findFirst({
+    const row = await this.prisma.property.findFirst({
       where: { id, deletedAt: null },
-      include: { administrators: { include: { user: true } } },
+      include: {
+        administrators: {
+          include: { user: true },
+        } as unknown as Prisma.Property$administratorsArgs,
+      },
     });
 
-    if (!property) {
+    if (!row) {
       return null;
     }
 
+    const property = row as unknown as PropertyWithAdminUsers;
     return {
       property: this.mapToDomain(property),
       administrators: property.administrators.map((pa) => this.mapUserToDomain(pa.user)),
@@ -52,9 +93,55 @@ export class PrismaPropertyRepository implements IPropertyRepository {
    */
   async findManagedByUserId(userId: string): Promise<Property[]> {
     const properties = await this.prisma.property.findMany({
-      where: { administrators: { some: { userId } }, deletedAt: null },
+      where: {
+        administrators: {
+          some: { userId } as PropertyAdministratorsSomeWhere,
+        },
+        deletedAt: null,
+      },
     });
     return properties.map((p) => this.mapToDomain(p));
+  }
+
+  async findManagedByUserIdPaginated(
+    userId: string,
+    options: { page: number; limit: number; search?: string }
+  ): Promise<{ properties: Property[]; total: number }> {
+    const { page, limit, search } = options;
+    const baseWhere = {
+      administrators: {
+        some: { userId } as PropertyAdministratorsSomeWhere,
+      },
+      deletedAt: null,
+    };
+    const where = search?.trim()
+      ? {
+          AND: [
+            baseWhere,
+            {
+              OR: [
+                { name: { contains: search.trim(), mode: 'insensitive' as const } },
+                { address: { contains: search.trim(), mode: 'insensitive' as const } },
+              ],
+            },
+          ],
+        }
+      : baseWhere;
+
+    const [properties, total] = await Promise.all([
+      this.prisma.property.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.property.count({ where }),
+    ]);
+
+    return {
+      properties: properties.map((p) => this.mapToDomain(p)),
+      total,
+    };
   }
 
   /**
@@ -65,16 +152,21 @@ export class PrismaPropertyRepository implements IPropertyRepository {
    * @returns True if the user is an administrator, false otherwise
    */
   async isUserAdministrator(propertyId: string, userId: string): Promise<boolean> {
-    const property = await this.prisma.property.findFirst({
+    const row = await this.prisma.property.findFirst({
       where: { id: propertyId, deletedAt: null },
-      include: { administrators: { include: { user: true } } },
+      include: {
+        administrators: {
+          include: { user: true },
+        } as unknown as Prisma.Property$administratorsArgs,
+      },
     });
 
-    if (!property) {
+    if (!row) {
       return false;
     }
 
-    return property.administrators.some((pa) => pa.userId === userId);
+    const admins = (row as unknown as PropertyWithAdminUsers).administrators;
+    return admins.some((pa) => pa.userId === userId);
   }
 
   /**
@@ -85,7 +177,9 @@ export class PrismaPropertyRepository implements IPropertyRepository {
       data: {
         name: property.getName(),
         address: property.getAddress(),
-        administrators: { create: [{ userId: administratorUserId }] },
+        administrators: {
+          create: [{ userId: administratorUserId }],
+        } as unknown as PropertyAdministratorsCreateNested,
         createdById: administratorUserId,
         updatedById: administratorUserId,
       },

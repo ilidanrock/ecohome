@@ -93,6 +93,23 @@ export class PrismaPropertyRepository implements IPropertyRepository {
     return this.mapToDomain(created);
   }
 
+  async update(
+    id: string,
+    name: string,
+    address: string,
+    userId: string
+  ): Promise<Property | null> {
+    const existing = await this.prisma.property.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!existing) return null;
+    const updated = await this.prisma.property.update({
+      where: { id },
+      data: { name, address, updatedById: userId },
+    });
+    return this.mapToDomain(updated);
+  }
+
   async softDelete(id: string, userId: string): Promise<void> {
     await this.prisma.property.update({
       where: { id },

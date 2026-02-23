@@ -1,21 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { Building2, Plus } from 'lucide-react';
+import { Building2, Pencil, Plus } from 'lucide-react';
 import { formatDate } from '@/lib/format';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { usePropertiesQuery } from '@/lib/queries';
+import { usePropertiesQuery, useDeletePropertyMutation } from '@/lib/queries';
 import type { PropertyListItem } from '@/types';
 
 function PropertyCard({ p }: { p: PropertyListItem }) {
   return (
     <Card className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-base text-slate-900 dark:text-slate-100">
-          <Building2 className="h-5 w-5 text-ecoblue" />
-          {p.name}
+        <CardTitle className="flex items-center justify-between gap-2 text-base text-slate-900 dark:text-slate-100">
+          <span className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-ecoblue" />
+            {p.name}
+          </span>
+          <Button asChild variant="ghost" size="sm" className="shrink-0">
+            <Link href={`/admin/properties/${p.id}/edit`} aria-label={`Editar ${p.name}`}>
+              <Pencil className="h-4 w-4" />
+            </Link>
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-1 text-sm text-slate-600 dark:text-slate-400">
@@ -25,6 +32,44 @@ function PropertyCard({ p }: { p: PropertyListItem }) {
         </p>
       </CardContent>
     </Card>
+  );
+}
+
+function PropertyRow({ p }: { p: PropertyListItem }) {
+  const deleteMutation = useDeletePropertyMutation(p.id);
+
+  const handleDelete = () => {
+    if (window.confirm(`¿Eliminar la propiedad "${p.name}"? Esta acción no se puede deshacer.`)) {
+      deleteMutation.mutate(undefined, {
+        onError: (err) => {
+          alert(err instanceof Error ? err.message : 'Error al eliminar');
+        },
+      });
+    }
+  };
+
+  return (
+    <tr className="border-b border-slate-100 dark:border-slate-800 last:border-0">
+      <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{p.name}</td>
+      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.address}</td>
+      <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-500">
+        {formatDate(p.createdAt)}
+      </td>
+      <td className="px-4 py-3 flex items-center gap-2">
+        <Button asChild variant="ghost" size="sm">
+          <Link href={`/admin/properties/${p.id}/edit`}>Editar</Link>
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+          onClick={handleDelete}
+          disabled={deleteMutation.isPending}
+        >
+          {deleteMutation.isPending ? 'Eliminando…' : 'Eliminar'}
+        </Button>
+      </td>
+    </tr>
   );
 }
 
@@ -108,22 +153,14 @@ export function AdminPropertiesContent() {
                     <th className="px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400">
                       Fecha creación
                     </th>
+                    <th className="px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-400 w-20">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {properties.map((p) => (
-                    <tr
-                      key={p.id}
-                      className="border-b border-slate-100 dark:border-slate-800 last:border-0"
-                    >
-                      <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
-                        {p.name}
-                      </td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.address}</td>
-                      <td className="px-4 py-3 text-sm text-slate-500 dark:text-slate-500">
-                        {formatDate(p.createdAt)}
-                      </td>
-                    </tr>
+                    <PropertyRow key={p.id} p={p} />
                   ))}
                 </tbody>
               </table>

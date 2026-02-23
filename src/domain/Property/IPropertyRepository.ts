@@ -43,6 +43,16 @@ export interface IPropertyRepository {
   create(property: Property, administratorUserId: string): Promise<Property>;
 
   /**
+   * Update a property's name and address.
+   * @param id - The property ID
+   * @param name - New name
+   * @param address - New address
+   * @param userId - The user ID performing the update (for updatedById)
+   * @returns The updated property or null if not found
+   */
+  update(id: string, name: string, address: string, userId: string): Promise<Property | null>;
+
+  /**
    * Soft delete a property (set deletedAt and deletedById).
    * @param id - The property ID
    * @param userId - The user ID performing the delete

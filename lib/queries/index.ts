@@ -26,7 +26,13 @@ export {
 } from './bills';
 
 // Properties Queries
-export { usePropertiesQuery, useCreatePropertyMutation } from './properties';
+export {
+  usePropertiesQuery,
+  useCreatePropertyMutation,
+  usePropertyQuery,
+  useUpdatePropertyMutation,
+  useDeletePropertyMutation,
+} from './properties';
 
 // Re-export query types from centralized types
 export type { ConsumptionResponse } from '@/types';

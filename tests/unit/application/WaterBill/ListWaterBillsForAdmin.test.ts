@@ -17,6 +17,7 @@ describe('ListWaterBillsForAdmin', () => {
       findManagedByUserId: vi.fn(),
       isUserAdministrator: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
       softDelete: vi.fn(),
     };
     waterBillRepository = {

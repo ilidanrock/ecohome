@@ -26,7 +26,9 @@ export function AdminBreadcrumb() {
 
   const breadcrumbs = pathSegments.map((segment, index) => {
     const path = '/' + pathSegments.slice(0, index + 1).join('/');
-    const name = routeNames[path] || segment.charAt(0).toUpperCase() + segment.slice(1);
+    const name =
+      routeNames[path] ||
+      (segment === 'edit' ? 'Editar propiedad' : segment.charAt(0).toUpperCase() + segment.slice(1));
     const isLast = index === pathSegments.length - 1;
 
     return {

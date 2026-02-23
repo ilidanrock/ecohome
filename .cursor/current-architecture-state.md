@@ -298,7 +298,7 @@ app/layout.tsx
   - `Consumption/` - PrismaConsumptionRepository (con soporte para previousReading)
   - `ElectricityBill/` - PrismaElectricityBillRepository
   - `ServiceCharges/` - PrismaServiceChargesRepository
-  - `Property/` - PrismaPropertyRepository (list by admin, create with administrators connect, soft delete); audit fields on all main entities
+  - `Property/` - PrismaPropertyRepository (list by admin, create with administrators via explicit join, soft delete); admin–property N:M uses explicit **PropertyAdministrator** (propertyId, userId) instead of implicit join; audit fields on all main entities
   - `Shared/` - PrismaTransactionManager para transacciones con nivel de aislamiento configurable
 - `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias centralizada
 - `zod/` - Schemas de validación para API routes (payment, electricity-bill, service-charges)

@@ -31,7 +31,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
   ): Promise<{ property: Property; administrators: User[] } | null> {
     const property = await this.prisma.property.findFirst({
       where: { id, deletedAt: null },
-      include: { administrators: true },
+      include: { administrators: { include: { user: true } } },
     });
 
     if (!property) {
@@ -40,7 +40,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
 
     return {
       property: this.mapToDomain(property),
-      administrators: property.administrators.map((admin) => this.mapUserToDomain(admin)),
+      administrators: property.administrators.map((pa) => this.mapUserToDomain(pa.user)),
     };
   }
 
@@ -52,7 +52,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
    */
   async findManagedByUserId(userId: string): Promise<Property[]> {
     const properties = await this.prisma.property.findMany({
-      where: { administrators: { some: { id: userId } }, deletedAt: null },
+      where: { administrators: { some: { userId } }, deletedAt: null },
     });
     return properties.map((p) => this.mapToDomain(p));
   }
@@ -67,14 +67,14 @@ export class PrismaPropertyRepository implements IPropertyRepository {
   async isUserAdministrator(propertyId: string, userId: string): Promise<boolean> {
     const property = await this.prisma.property.findFirst({
       where: { id: propertyId, deletedAt: null },
-      include: { administrators: true },
+      include: { administrators: { include: { user: true } } },
     });
 
     if (!property) {
       return false;
     }
 
-    return property.administrators.some((admin) => admin.id === userId);
+    return property.administrators.some((pa) => pa.userId === userId);
   }
 
   /**
@@ -85,7 +85,7 @@ export class PrismaPropertyRepository implements IPropertyRepository {
       data: {
         name: property.getName(),
         address: property.getAddress(),
-        administrators: { connect: { id: administratorUserId } },
+        administrators: { create: [{ userId: administratorUserId }] },
         createdById: administratorUserId,
         updatedById: administratorUserId,
       },

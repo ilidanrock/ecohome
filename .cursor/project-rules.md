@@ -422,7 +422,7 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 - **Error Handling**: ✅ Implemented `DomainError` base class and specific error types for better error management.
 - **Validation**: ✅ Integrated Zod schemas for API input validation (`zod/payment-schemas.ts`, `zod/electricity-bill-schemas.ts`, `zod/service-charges-schemas.ts`, `zod/consumption-schemas.ts`, `zod/ocr-schemas.ts`).
 - **Authentication**: ✅ Session always uses database user id: JWT callback resolves OAuth (Google) user by email and sets `token.id = dbUser.id` so admin property list/create and audit fields work; Credentials already return DB user.
-- **Admin Properties**: ✅ List (GET /api/properties), create (POST), soft delete (DELETE /api/properties/[id]); admin sees only properties where they are in `administrators` (N:M). Date display uses `lib/format.ts` (`formatDate`, `formatDateTime`) with locale es-PE.
+- **Admin Properties**: ✅ List (GET /api/properties), create (POST), soft delete (DELETE /api/properties/[id]); admin sees only properties where they are in `administrators` (N:M via explicit **PropertyAdministrator** table with `propertyId`/`userId`). Date display uses `lib/format.ts` (`formatDate`, `formatDateTime`) with locale es-PE.
 - **Audit & soft delete**: ✅ Property, Rental, Consumption, ElectricityBill, WaterBill, Invoice, Payment have `deletedAt`, `createdById`, `updatedById`, `deletedById`; repositories set *_by on create/update and implement `softDelete(id, userId)`; all reads filter `deletedAt: null`.
 - **CI/CD**: ✅ Migrated workflows from npm to pnpm for consistency with local development.
 - **Logging**: ✅ Improved error logging in client-side queries to ensure meaningful information is always displayed.

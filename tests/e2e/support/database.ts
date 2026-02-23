@@ -32,12 +32,16 @@ export class DatabaseHelper {
               payments: true,
             },
           },
-          managedProperties: {
+          propertyAdministrations: {
             include: {
-              rentals: true,
-              electricityBills: {
+              property: {
                 include: {
-                  serviceCharges: true,
+                  rentals: true,
+                  electricityBills: {
+                    include: {
+                      serviceCharges: true,
+                    },
+                  },
                 },
               },
             },
@@ -79,7 +83,8 @@ export class DatabaseHelper {
       });
 
       // Delete properties managed by user
-      for (const property of user.managedProperties) {
+      for (const pa of user.propertyAdministrations) {
+        const property = pa.property;
         // Delete electricity bills and service charges
         for (const bill of property.electricityBills) {
           await this.prisma.serviceCharges.deleteMany({
@@ -100,7 +105,7 @@ export class DatabaseHelper {
         where: {
           administrators: {
             some: {
-              id: userId,
+              userId,
             },
           },
         },
@@ -166,7 +171,7 @@ export class DatabaseHelper {
       where: { email },
       include: {
         rentals: true,
-        managedProperties: true,
+        propertyAdministrations: { include: { property: true } },
       },
     });
   }
@@ -178,7 +183,7 @@ export class DatabaseHelper {
     return this.prisma.property.findUnique({
       where: { id },
       include: {
-        administrators: true,
+        administrators: { include: { user: true } },
         rentals: true,
         electricityBills: true,
       },

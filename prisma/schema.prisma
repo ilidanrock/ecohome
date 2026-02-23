@@ -41,7 +41,7 @@ model User {
   accounts      Account[]
   // --- Relaciones EcoHome ---
   rentals            Rental[]
-  managedProperties  Property[] @relation("AdminProperties")
+  propertyAdministrations PropertyAdministrator[]
   // Audit relations (created/updated/deleted by)
   propertiesCreatedBy   Property[]   @relation("PropertyCreatedBy")
   propertiesUpdatedBy   Property[]   @relation("PropertyUpdatedBy")
@@ -99,14 +99,22 @@ model VerificationToken {
 }
 
 // ---------- Modelos EcoHome ----------
+model PropertyAdministrator {
+  id         String   @id @default(uuid())
+  propertyId String
+  userId     String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, userId])
+}
+
 model Property {
   id          String    @id @default(uuid())
   name        String
   address     String
 
-  // admins N : M
-  administrators  User[]        @relation("AdminProperties")
-  // contratos / lecturas / facturas
+  administrators  PropertyAdministrator[]
   rentals         Rental[]
   electricityBills ElectricityBill[]
   waterBills      WaterBill[]

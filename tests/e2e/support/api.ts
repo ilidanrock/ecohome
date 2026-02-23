@@ -122,9 +122,13 @@ export class ApiHelper {
               payments: true,
             },
           },
-          managedProperties: {
+          propertyAdministrations: {
             include: {
-              electricityBills: { include: { serviceCharges: true } },
+              property: {
+                include: {
+                  electricityBills: { include: { serviceCharges: true } },
+                },
+              },
             },
           },
         },
@@ -143,7 +147,8 @@ export class ApiHelper {
         }
         await prisma.rental.deleteMany({ where: { userId: existingUser.id } });
 
-        for (const property of existingUser.managedProperties) {
+        for (const pa of existingUser.propertyAdministrations) {
+          const property = pa.property;
           const billIds = property.electricityBills.map((b) => b.id);
           if (billIds.length > 0) {
             await prisma.serviceCharges.deleteMany({
@@ -154,7 +159,7 @@ export class ApiHelper {
           await prisma.rental.deleteMany({ where: { propertyId: property.id } });
         }
         await prisma.property.deleteMany({
-          where: { administrators: { some: { id: existingUser.id } } },
+          where: { administrators: { some: { userId: existingUser.id } } },
         });
         await prisma.account.deleteMany({ where: { userId: existingUser.id } });
         await prisma.verificationToken.deleteMany({ where: { identifier: userData.email } });

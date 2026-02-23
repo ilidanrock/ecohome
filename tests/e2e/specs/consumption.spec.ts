@@ -84,7 +84,7 @@ test.describe('Consumption Management', () => {
         name: 'Test Property',
         address: '123 Test Street',
         administrators: {
-          connect: { id: adminUserId },
+          create: [{ userId: adminUserId }],
         },
       },
     });

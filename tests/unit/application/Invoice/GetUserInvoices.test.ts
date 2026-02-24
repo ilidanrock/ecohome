@@ -15,6 +15,10 @@ describe('GetUserInvoices', () => {
       findById: vi.fn(),
       findActiveByPropertyId: vi.fn(),
       findByUserIdAndPropertyId: vi.fn(),
+      findByUserIdAndPropertyIdIncludingDeleted: vi.fn(),
+      restore: vi.fn(),
+      findNonDeletedByPropertyId: vi.fn(),
+      update: vi.fn(),
       create: vi.fn(),
       softDelete: vi.fn(),
     };

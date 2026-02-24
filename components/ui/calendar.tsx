@@ -2,7 +2,12 @@
 
 import * as React from 'react';
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
-import { DayPicker, getDefaultClassNames } from 'react-day-picker';
+import {
+  DayPicker,
+  getDefaultClassNames,
+  type DropdownOption,
+  type DropdownProps,
+} from 'react-day-picker';
 
 import { cn } from '@/lib/utils';
 
@@ -14,16 +19,14 @@ const selectBase =
   'h-9 w-full min-h-9 rounded-lg border border-input bg-background pl-3 pr-8 text-sm text-foreground shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 appearance-none cursor-pointer [&>option]:bg-background';
 
 /** Dropdown que solo renderiza un <select> limpio (sin overlay de texto duplicado). */
-function CalendarDropdown(
-  props: React.ComponentProps<React.ComponentProps<typeof DayPicker>['components']['Dropdown']>
-) {
+function CalendarDropdown(props: DropdownProps) {
   const { options, className, classNames, ...selectProps } = props;
   return (
     <span className={cn('relative flex min-w-0 flex-1 items-center', classNames?.dropdown_root)}>
       <select className={cn(selectBase, classNames?.dropdown, className)} {...selectProps}>
-        {options?.map(({ value, label, disabled }) => (
-          <option key={value} value={value} disabled={disabled}>
-            {label}
+        {options?.map((opt: DropdownOption) => (
+          <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+            {opt.label}
           </option>
         ))}
       </select>

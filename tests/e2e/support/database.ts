@@ -177,6 +177,80 @@ export class DatabaseHelper {
   }
 
   /**
+   * Delete a test property and its dependents (rentals, bills, administrators).
+   * Use in afterAll to avoid leaving test data in the DB.
+   */
+  async deleteTestPropertyById(propertyId: string): Promise<void> {
+    try {
+      const property = await this.prisma.property.findUnique({
+        where: { id: propertyId },
+        include: {
+          electricityBills: { include: { serviceCharges: true } },
+          waterBills: { include: { serviceCharges: true } },
+          rentals: {
+            include: {
+              invoices: { include: { payments: true } },
+              consumptions: true,
+              payments: true,
+            },
+          },
+        },
+      });
+      if (!property) return;
+
+      for (const rental of property.rentals) {
+        for (const invoice of rental.invoices) {
+          await this.prisma.payment.deleteMany({ where: { invoiceId: invoice.id } });
+        }
+        await this.prisma.payment.deleteMany({ where: { rentalId: rental.id } });
+        await this.prisma.invoice.deleteMany({ where: { rentalId: rental.id } });
+        await this.prisma.consumption.deleteMany({ where: { rentalId: rental.id } });
+      }
+      await this.prisma.rental.deleteMany({ where: { propertyId } });
+
+      for (const bill of property.electricityBills) {
+        await this.prisma.serviceCharges.deleteMany({
+          where: { electricityBillId: bill.id },
+        });
+      }
+      await this.prisma.electricityBill.deleteMany({ where: { propertyId } });
+
+      for (const bill of property.waterBills) {
+        await this.prisma.waterServiceCharges.deleteMany({
+          where: { waterBillId: bill.id },
+        });
+      }
+      await this.prisma.waterBill.deleteMany({ where: { propertyId } });
+
+      await this.prisma.propertyAdministrator.deleteMany({ where: { propertyId } });
+      await this.prisma.property.delete({ where: { id: propertyId } });
+    } catch (error) {
+      console.error(`Error deleting test property ${propertyId}:`, error);
+      // Don't throw so afterAll can continue with user cleanup
+    }
+  }
+
+  /**
+   * Delete test properties by name for an admin user (e.g. "E2E Edificio Sur").
+   * Use in afterAll to clean up properties created during UI tests.
+   */
+  async deleteTestPropertiesByAdminAndName(adminUserId: string, name: string): Promise<void> {
+    try {
+      const properties = await this.prisma.property.findMany({
+        where: {
+          name,
+          administrators: { some: { userId: adminUserId } },
+        },
+      });
+      for (const p of properties) {
+        await this.deleteTestPropertyById(p.id);
+      }
+    } catch (error) {
+      console.error(`Error deleting test properties by name ${name}:`, error);
+    }
+  }
+
+  /**
    * Get property by ID
    */
   async getPropertyById(id: string) {

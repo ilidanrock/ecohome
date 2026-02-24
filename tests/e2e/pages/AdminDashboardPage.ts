@@ -14,42 +14,33 @@ export class AdminDashboardPage {
   }
 
   async navigateToConsumptionManagement() {
-    // Link in main only — avoids strict mode (sidebar + main can have same link)
-    const consumptionLink = this.page
-      .getByRole('main')
-      .getByRole('link', { name: /Consumo Energético/ });
+    // Sidebar link (dashboard main does not contain this link on all pages)
+    const consumptionLink = this.page.getByRole('link', { name: 'Consumo Energético' });
     await consumptionLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToBilling() {
-    const billingLink = this.page
-      .getByRole('main')
-      .locator('a[href*="billing"], a:has-text("Facturación"), a:has-text("Reportes")');
+    const billingLink = this.page.getByRole('link', { name: 'Reportes' });
     await billingLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToPayments() {
-    const paymentsLink = this.page
-      .getByRole('main')
-      .locator('a[href*="payment"], a:has-text("Pagos")');
+    const paymentsLink = this.page.getByRole('link', { name: 'Pagos' });
     await paymentsLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToProperties() {
-    const propertiesLink = this.page
-      .getByRole('main')
-      .locator('a[href*="properties"], a:has-text("Propiedades")');
+    // Sidebar link (not inside main on dashboard)
+    const propertiesLink = this.page.getByRole('link', { name: 'Propiedades' });
     await propertiesLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToUsers() {
-    const usersLink = this.page
-      .getByRole('main')
-      .locator('a[href*="users"], a:has-text("Usuarios")');
+    const usersLink = this.page.getByRole('link', { name: 'Usuarios' });
     await usersLink.click();
     await this.page.waitForLoadState('networkidle');
   }

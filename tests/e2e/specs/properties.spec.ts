@@ -65,6 +65,10 @@ test.describe('Property Management', () => {
   });
 
   test.afterAll(async () => {
+    // Borrar propiedades de prueba para no dejar basura en la DB
+    await databaseHelper.deleteTestPropertyById(propertyId);
+    await databaseHelper.deleteTestPropertiesByAdminAndName(adminUserId, 'E2E Edificio Sur');
+
     await cleanupTestUser(testUsers.admin.email, databaseHelper);
     await cleanupTestUser(testUsers.user.email, databaseHelper);
     await cleanupTestUser(testUsers.user2.email, databaseHelper);
@@ -94,9 +98,9 @@ test.describe('Property Management', () => {
     await page.goto('/admin/properties/new');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.getByRole('heading', { name: /Nueva propiedad/ })).toBeVisible({
-      timeout: 5000,
-    });
+    // CardTitle may not render as heading; wait for form and title text
+    await expect(page.getByText('Nueva propiedad').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#name')).toBeVisible({ timeout: 5000 });
     await page.locator('#name').fill('E2E Edificio Sur');
     await page.locator('#address').fill('Calle E2E 456');
     await page.getByRole('button', { name: /Crear propiedad/ }).click();
@@ -112,7 +116,13 @@ test.describe('Property Management', () => {
     await page.goto('/admin/properties');
     await page.waitForLoadState('networkidle');
 
-    await page.getByText('Test Property').first().click();
+    // Wait for list to load; click the row (desktop) or card (mobile) containing the property name
+    await expect(page.getByText('Test Property').first()).toBeVisible({ timeout: 10000 });
+    const propertyRowOrCard = page
+      .getByRole('row')
+      .filter({ hasText: 'Test Property' })
+      .or(page.getByRole('button').filter({ hasText: 'Test Property' }));
+    await propertyRowOrCard.first().click();
     await expect(page).toHaveURL(new RegExp(`/admin/properties/${propertyId}`), { timeout: 10000 });
     await expect(page.getByText('Detalle de la propiedad')).toBeVisible({ timeout: 5000 });
     await expect(page.locator('#detail-name')).toHaveValue('Test Property');
@@ -142,6 +152,11 @@ test.describe('Property Management', () => {
     await page.goto(`/admin/properties/${propertyId}`);
     await page.waitForLoadState('networkidle');
 
+    // Wait for detail page and tenant section to be ready
+    await expect(page.getByText('Detalle de la propiedad')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByPlaceholder(/Buscar por nombre o email/)).toBeVisible({
+      timeout: 10000,
+    });
     await page.getByPlaceholder(/Buscar por nombre o email/).click();
     await page.getByPlaceholder(/Buscar por nombre o email/).fill('user2@test.com');
     await page.waitForTimeout(500);
@@ -177,6 +192,8 @@ test.describe('Property Management', () => {
     await page.goto('/admin/properties');
     await page.waitForLoadState('networkidle');
 
+    // Wait for list and the property row/card created in a previous test
+    await expect(page.getByText('E2E Edificio Sur').first()).toBeVisible({ timeout: 10000 });
     const row = page.getByRole('row').filter({ hasText: 'E2E Edificio Sur' });
     await row.getByRole('button', { name: /Eliminar/ }).click();
     await expect(page.getByText(/Eliminar la propiedad/)).toBeVisible({ timeout: 3000 });

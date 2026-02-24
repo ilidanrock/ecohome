@@ -36,7 +36,7 @@ The administrator is responsible for managing tenant consumption and overseeing 
 - View payment status in the **billing history** and include this data in the **PDF reports**.
 - **Automatic invoice status updates** when payments cover the total invoice amount.
 - **Upload electricity bills** and automatically generate invoices for all active tenants.
-- **Manage properties**: List, create, and soft-delete properties; admin sees only properties they manage (N:M administrators). API: GET/POST `/api/properties`, DELETE `/api/properties/[id]`.
+- **Manage properties**: List, create, and soft-delete properties; admin sees only properties they manage (N:M administrators). API: GET/POST `/api/properties`, DELETE `/api/properties/[id]`. From property detail, edit name/address and **assign or remove tenants** (rentals) in a single form; date pickers use Shadcn Calendar (Spanish locale). Duplicate tenant assignment returns a clear 409 message; re-assigning a previously removed tenant restores the rental.
 - **Track meter readings** with previous reading support for accurate consumption calculation.
 - **OCR-powered meter reading extraction**: Automatically extract meter readings from photos using OpenAI Vision (GPT-4o-mini):
   - Upload photos of electricity meters taken on the 6th of each month
@@ -271,8 +271,11 @@ Crea un archivo `.env.local` en la raíz del proyecto. Ejemplos típicos (ajusta
 **Nota sobre manejo de errores:** El sistema incluye un manejo global de errores que:
 - Captura automáticamente todos los errores del backend y frontend
 - Categoriza errores en tres niveles: success, error, advisory
-- Muestra toasts automáticamente con códigos de error estandarizados
+- Muestra toasts automáticamente con códigos de error estandarizados (ToastService)
+- Usa diálogos de confirmación reutilizables (ConfirmDialog) en lugar de `window.confirm` para acciones destructivas
 - Proporciona feedback consistente al usuario en todas las acciones
+
+**Auditoría y seguridad:** Las mutaciones (propiedades, rentals) registran éxito en logs estructurados y aplican rate limiting (p. ej. 60 req/min en mutaciones). Un modelo de auditoría (AuditLog) registra acciones sobre entidades (crear, actualizar, eliminar) para trazabilidad.
 
 > Tras configurar `DATABASE_URL`, ejecuta la app con `pnpm dev`. `prisma generate` se ejecuta automáticamente en `postinstall`.
 

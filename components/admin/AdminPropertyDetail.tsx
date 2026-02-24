@@ -216,7 +216,8 @@ export function AdminPropertyDetail({ propertyId }: { propertyId: string }) {
               Detalle de la propiedad
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">
-              Edita nombre y dirección aquí. Para añadir o editar inquilinos, usa la sección más abajo.
+              Edita nombre y dirección aquí. Para añadir o editar inquilinos, usa la sección más
+              abajo.
             </p>
           </CardHeader>
           <CardContent className="space-y-6 px-4 pb-4 sm:px-6 sm:pb-6">
@@ -308,10 +309,7 @@ export function AdminPropertyDetail({ propertyId }: { propertyId: string }) {
                           (isEditing && updateRentalMutation.isPending) ||
                           deleteRentalMutation.isPending;
                         return (
-                          <tr
-                            key={r.id}
-                            className="border-b border-border last:border-0"
-                          >
+                          <tr key={r.id} className="border-b border-border last:border-0">
                             <td className="px-2 py-2 text-foreground sm:px-3">
                               <span className="block truncate" title={r.userName}>
                                 {r.userName}
@@ -422,7 +420,8 @@ export function AdminPropertyDetail({ propertyId }: { propertyId: string }) {
               )}
               {!rentalsLoading && rentals.length === 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Aún no hay inquilinos asignados. Usa el bloque «Nueva asignación» de abajo para añadir uno.
+                  Aún no hay inquilinos asignados. Usa el bloque «Nueva asignación» de abajo para
+                  añadir uno.
                 </p>
               )}
             </div>
@@ -431,7 +430,8 @@ export function AdminPropertyDetail({ propertyId }: { propertyId: string }) {
               <div>
                 <Label className="text-base font-medium text-foreground">Nueva asignación</Label>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Añade un inquilino a esta propiedad: elige el usuario, la fecha de inicio y, si quieres, la de fin. Solo aparecen usuarios que aún no están asignados.
+                  Añade un inquilino a esta propiedad: elige el usuario, la fecha de inicio y, si
+                  quieres, la de fin. Solo aparecen usuarios que aún no están asignados.
                 </p>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_auto_auto_auto] sm:items-end">
@@ -452,9 +452,7 @@ export function AdminPropertyDetail({ propertyId }: { propertyId: string }) {
                   <DatePickerField
                     id="rental-start"
                     value={startDate ? new Date(startDate) : null}
-                    onChange={(d) =>
-                      setStartDate(d ? d.toISOString().slice(0, 10) : '')
-                    }
+                    onChange={(d) => setStartDate(d ? d.toISOString().slice(0, 10) : '')}
                     disabled={updateMutation.isPending || createRentalMutation.isPending}
                     placeholder="Elegir fecha"
                   />
@@ -466,9 +464,7 @@ export function AdminPropertyDetail({ propertyId }: { propertyId: string }) {
                   <DatePickerField
                     id="rental-end"
                     value={endDate ? new Date(endDate) : null}
-                    onChange={(d) =>
-                      setEndDate(d ? d.toISOString().slice(0, 10) : '')
-                    }
+                    onChange={(d) => setEndDate(d ? d.toISOString().slice(0, 10) : '')}
                     disabled={updateMutation.isPending || createRentalMutation.isPending}
                     placeholder="Opcional"
                   />

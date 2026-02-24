@@ -41,10 +41,7 @@ async function requirePropertyAdmin(
  * GET /api/properties/[id]/rentals
  * List active rentals (tenants) for the property. Admin must be administrator of the property.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {

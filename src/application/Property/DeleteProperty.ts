@@ -1,7 +1,11 @@
-import { IPropertyRepository } from '@/src/domain/Property/IPropertyRepository';
+import type { IPropertyRepository } from '@/src/domain/Property/IPropertyRepository';
+import type { IAuditLogRepository } from '@/src/domain/Shared/IAuditLogRepository';
 
 export class DeleteProperty {
-  constructor(private propertyRepository: IPropertyRepository) {}
+  constructor(
+    private propertyRepository: IPropertyRepository,
+    private auditLog: IAuditLogRepository
+  ) {}
 
   /**
    * Soft delete a property (sets deletedAt and deletedById).
@@ -9,5 +13,11 @@ export class DeleteProperty {
    */
   async execute(propertyId: string, userId: string): Promise<void> {
     await this.propertyRepository.softDelete(propertyId, userId);
+    await this.auditLog.record({
+      entityType: 'Property',
+      entityId: propertyId,
+      action: 'deleted',
+      performedById: userId,
+    });
   }
 }

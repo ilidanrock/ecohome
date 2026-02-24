@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
-export const createElectricityBillSchema = z.object({
+/** Base object schema; use createElectricityBillSchema for API validation (includes periodEnd >= periodStart). */
+export const createElectricityBillSchemaBase = z.object({
   propertyId: z.string().uuid('Property ID must be a valid UUID'),
   periodStart: z.coerce.date({
     required_error: 'Period start is required',
@@ -24,6 +25,14 @@ export const createElectricityBillSchema = z.object({
     .positive('Total cost must be greater than zero'),
   fileUrl: z.string().url('File URL must be a valid URL').optional().nullable(),
 });
+
+export const createElectricityBillSchema = createElectricityBillSchemaBase.refine(
+  (data) => data.periodEnd >= data.periodStart,
+  {
+    message: 'Period end must be equal to or after period start',
+    path: ['periodEnd'],
+  }
+);
 
 export const generateInvoicesSchema = z.object({
   propertyId: z.string().uuid('Property ID must be a valid UUID'),

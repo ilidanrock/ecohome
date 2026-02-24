@@ -3,6 +3,8 @@ import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { updatePropertySchema } from '@/zod/property-schemas';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { logMutationSuccess } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rate-limit';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
 import type { ErrorResponse } from '@/lib/errors/types';
@@ -116,6 +118,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const { id: propertyId } = await params;
 
+    const rateLimitResult = await rateLimiters.mutations(request, session.user.id);
+    if (!rateLimitResult.success) return rateLimitResult.response;
+
     const authResult = await requirePropertyAdmin(propertyId, session);
     if (authResult.response) return authResult.response;
 
@@ -155,6 +160,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return NextResponse.json(errorResponse, { status: 404 });
     }
 
+    logMutationSuccess({
+      action: 'property_updated',
+      entityType: 'Property',
+      entityId: propertyId,
+      performedById: session.user.id,
+      endpoint: '/api/properties/[id]',
+      method: 'PATCH',
+    });
     return NextResponse.json(toPropertyListItem(updated));
   } catch (error) {
     return handleApiError(error, {
@@ -187,6 +200,9 @@ export async function DELETE(
 
     const { id: propertyId } = await params;
 
+    const rateLimitResult = await rateLimiters.mutations(_request, session.user.id);
+    if (!rateLimitResult.success) return rateLimitResult.response;
+
     const authResult = await requirePropertyAdmin(propertyId, session);
     if (authResult.response) return authResult.response;
 
@@ -202,6 +218,14 @@ export async function DELETE(
 
     await serviceContainer.property.delete.execute(propertyId, session.user.id);
 
+    logMutationSuccess({
+      action: 'property_deleted',
+      entityType: 'Property',
+      entityId: propertyId,
+      performedById: session.user.id,
+      endpoint: '/api/properties/[id]',
+      method: 'DELETE',
+    });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     return handleApiError(error, {

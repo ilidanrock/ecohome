@@ -89,9 +89,7 @@ export function Header({
                 <div
                   className={cn(
                     'p-1 rounded-lg',
-                    stat.type === 'energy'
-                      ? 'bg-amber-100 dark:bg-amber-900/40'
-                      : 'bg-primary/20'
+                    stat.type === 'energy' ? 'bg-amber-100 dark:bg-amber-900/40' : 'bg-primary/20'
                   )}
                 >
                   {stat.type === 'energy' ? (

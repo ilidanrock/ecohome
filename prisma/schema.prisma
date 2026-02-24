@@ -64,6 +64,7 @@ model User {
   paymentsCreatedBy    Payment[]   @relation("PaymentCreatedBy")
   paymentsUpdatedBy    Payment[]   @relation("PaymentUpdatedBy")
   paymentsDeletedBy    Payment[]   @relation("PaymentDeletedBy")
+  auditLogsPerformed   AuditLog[]  @relation("AuditLogPerformedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -342,4 +343,19 @@ model Payment {
   @@index([rentalId])
   @@index([invoiceId])
   @@index([paidAt])
+}
+
+// ---------- Audit Log ----------
+model AuditLog {
+  id            String   @id @default(cuid())
+  entityType    String   // e.g. Rental, Property, Invoice
+  entityId      String
+  action        String   // created | updated | deleted | restored
+  performedById String
+  performedBy   User     @relation("AuditLogPerformedBy", fields: [performedById], references: [id], onDelete: Cascade)
+  performedAt   DateTime @default(now())
+  metadata      Json?    // optional extra context
+
+  @@index([entityType, entityId])
+  @@index([performedById, performedAt])
 }

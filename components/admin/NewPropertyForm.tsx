@@ -39,12 +39,8 @@ export function NewPropertyForm() {
   return (
     <Card className="min-w-0">
       <CardHeader className="px-4 pt-4 sm:px-6 sm:pt-6">
-        <CardTitle className="text-lg text-foreground sm:text-xl">
-          Nueva propiedad
-        </CardTitle>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Completa los datos de la propiedad
-        </p>
+        <CardTitle className="text-lg text-foreground sm:text-xl">Nueva propiedad</CardTitle>
+        <p className="mt-1 text-sm text-muted-foreground">Completa los datos de la propiedad</p>
       </CardHeader>
       <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

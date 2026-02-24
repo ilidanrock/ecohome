@@ -42,6 +42,7 @@ import { PrismaServiceChargesRepository } from '@/src/infrastructure/ServiceChar
 import { PrismaWaterBillRepository } from '@/src/infrastructure/WaterBill/PrismaWaterBillRepository';
 import { PrismaWaterServiceChargesRepository } from '@/src/infrastructure/WaterServiceCharges/PrismaWaterServiceChargesRepository';
 import { PrismaPropertyRepository } from '@/src/infrastructure/Property/PrismaPropertyRepository';
+import { PrismaAuditLogRepository } from '@/src/infrastructure/AuditLog/PrismaAuditLogRepository';
 import { ListPropertiesForAdmin } from '@/src/application/Property/ListPropertiesForAdmin';
 import { ListPropertiesForAdminPaginated } from '@/src/application/Property/ListPropertiesForAdminPaginated';
 import { CreateProperty } from '@/src/application/Property/CreateProperty';
@@ -83,6 +84,7 @@ const serviceChargesRepository = new PrismaServiceChargesRepository(prisma);
 const waterBillRepository = new PrismaWaterBillRepository(prisma);
 const waterServiceChargesRepository = new PrismaWaterServiceChargesRepository(prisma);
 const propertyRepository = new PrismaPropertyRepository(prisma);
+const auditLogRepository = new PrismaAuditLogRepository(prisma);
 
 const verifyTokenCreate = new VerifyTokenCreate(
   verifyTokenRepository,
@@ -113,9 +115,9 @@ export const serviceContainer = {
   },
   rental: {
     getRentalById: new GetRentalById(rentalRepository),
-    create: new CreateRental(propertyRepository, rentalRepository),
-    update: new UpdateRental(propertyRepository, rentalRepository),
-    delete: new DeleteRental(propertyRepository, rentalRepository),
+    create: new CreateRental(propertyRepository, rentalRepository, auditLogRepository),
+    update: new UpdateRental(propertyRepository, rentalRepository, auditLogRepository),
+    delete: new DeleteRental(propertyRepository, rentalRepository, auditLogRepository),
     listByPropertyId: new ListRentalsByPropertyId(rentalRepository, userRepository),
   },
   invoice: {
@@ -149,10 +151,10 @@ export const serviceContainer = {
     repository: propertyRepository,
     listForAdmin: new ListPropertiesForAdmin(propertyRepository),
     listForAdminPaginated: new ListPropertiesForAdminPaginated(propertyRepository),
-    create: new CreateProperty(propertyRepository),
+    create: new CreateProperty(propertyRepository, auditLogRepository),
     getById: new GetPropertyById(propertyRepository),
-    update: new UpdateProperty(propertyRepository),
-    delete: new DeleteProperty(propertyRepository),
+    update: new UpdateProperty(propertyRepository, auditLogRepository),
+    delete: new DeleteProperty(propertyRepository, auditLogRepository),
   },
   transactionManager,
   payment: {

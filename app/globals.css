@@ -299,5 +299,41 @@
   .border-light-gray {
     @apply border-[#F8F9FA] dark:border-[#374151];
   }
+}
 
+/* Oculta la barra de scroll manteniendo el scroll */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
+  html::-webkit-scrollbar {
+    display: none;
+  }
+  html {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  /* Sidebar admin: área de scroll sin barra visible (selector por markup para evitar hydration) */
+  .bg-sidebar > [class*='overflow-y-auto'] {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .bg-sidebar > [class*='overflow-y-auto']::-webkit-scrollbar {
+    display: none;
+  }
+  /* Tenant layout: main de contenido sin barra visible */
+  main.bg-background > main[class*='overflow-auto'] {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  main.bg-background > main[class*='overflow-auto']::-webkit-scrollbar {
+    display: none;
+  }
 }

@@ -64,7 +64,10 @@ export class PrismaUserRepository implements IUserRepository {
   async findManyForAdmin(filters: UserSearchFilters): Promise<User[]> {
     const where: {
       role?: PrismaRole;
-      OR?: Array<{ name?: { contains: string; mode: 'insensitive' }; email?: { contains: string; mode: 'insensitive' } }>;
+      OR?: Array<{
+        name?: { contains: string; mode: 'insensitive' };
+        email?: { contains: string; mode: 'insensitive' };
+      }>;
     } = {};
     if (filters.role) where.role = filters.role as PrismaRole;
     if (filters.search && filters.search.trim()) {
@@ -77,7 +80,17 @@ export class PrismaUserRepository implements IUserRepository {
     const users = await this.prisma.user.findMany({
       where,
       take: Math.min(filters.limit ?? 20, 50),
-      select: { id: true, name: true, surname: true, email: true, role: true, createdAt: true, updatedAt: true, emailVerified: true, image: true },
+      select: {
+        id: true,
+        name: true,
+        surname: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+        emailVerified: true,
+        image: true,
+      },
     });
     return users.map((u) =>
       this.mapToDomain({

@@ -169,8 +169,9 @@ When adding a new feature (e.g., Payment, ElectricityBill, ServiceCharges):
 6. **API Route** (`app/api/feature-name/route.ts`):
    - Use Zod schemas for input validation
    - Use `serviceContainer` to access use cases
-   - Handle domain errors and return appropriate HTTP status codes
-   - Apply rate limiting and payload size validation
+   - Handle domain errors and return appropriate HTTP status codes (e.g. 409 CONFLICT for duplicate rental assignment with clear message)
+   - Apply rate limiting for mutations (see `lib/rate-limit.ts`: `rateLimiters.mutations` 60 req/min) and payload size validation
+   - Call `logMutationSuccess()` from `lib/logger.ts` after successful POST/PATCH/DELETE for audit trail
    - Use centralized error handler (`handleApiError`)
    - Never call Prisma directly
 
@@ -324,11 +325,15 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 - **Responsive Design**: Use responsive breakpoints (`sm:`, `md:`, `lg:`) consistently. Header components should adapt gracefully on mobile.
 - Reuse shared components (headers, sidebars, auth forms). Prefer composition over duplicating styles.
 - For theming, use `ThemeProvider`/`ThemeToggle` from `components/theme`.
+- **Date pickers**: Use Shadcn-style Calendar (`components/ui/calendar.tsx`, `react-day-picker`) with `DatePickerField` (Popover + Calendar) for rental dates; locale Spanish (`date-fns/locale/es`). Prefer theme tokens (`text-foreground`, `bg-accent`, `border-border`) for light/dark consistency.
+- **Confirmations**: Use the reusable `ConfirmDialog` component (`components/ui/confirm-dialog.tsx`) instead of `window.confirm` for destructive or important actions (e.g. dar de baja inquilino).
+- **Toasts**: Use `ToastService` from `lib/errors/toast-service.ts` for success/error feedback; avoid inline “Cambios guardados” messages. Interceptors already show API errors as toasts.
 - Landing and dashboards rely on Tailwind classes already defined in `globals.css`; align new sections with existing spacing and animation patterns.
 
 ## Data & Persistence
 - Update Prisma schema via migrations. After schema edits, run `pnpm prisma migrate dev` and regenerate client.
 - **Audit fields**: Main entities (Property, Rental, Consumption, ElectricityBill, WaterBill, Invoice, Payment) have `deletedAt`, `createdById`, `updatedById`, `deletedById` (and relations to User). Use `DateTime` for timestamps (DB/UI compatible). On create set `createdById` and `updatedById` from the current user id; on update set `updatedById`; on soft delete set `deletedAt` and `deletedById`. All repository find* methods filter by `deletedAt: null` unless explicitly including deleted. Do not hard-delete these entities; use repository `softDelete(id, userId)`.
+- **Audit log**: Persistent audit trail via `AuditLog` model (entityType, entityId, action, performedById, performedAt, metadata). Use `IAuditLogRepository.record()` in use cases after successful mutations (CreateRental, UpdateRental, DeleteRental, CreateProperty, UpdateProperty, DeleteProperty). Implementations (e.g. `PrismaAuditLogRepository`) should log failures without rethrowing.
 - Domain models expect enums: `Role` (`USER` | `ADMIN` | `NULL`), `PaymentStatus` (`PAID` | `UNPAID`), and `PaymentMethod` (`YAPE` | `CASH` | `BANK_TRANSFER`). Keep new logic consistent with these values.
 - **Server Data**: Use TanStack Query for all server-side data fetching. Create API routes in `app/api/` or Server Actions in `actions/`.
 - **Client State**: Use Zustand stores only for client-side UI state and user preferences.
@@ -373,6 +378,14 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 - **Import Pattern**: Always import types from `@/types`: `import type { User, Role, Notification } from '@/types'`
 - **Legacy Files**: `types/user.ts` and `types/https.ts` are deprecated but maintained for backward compatibility.
 - **Domain Interfaces**: Repository interfaces remain in `src/domain/*/` as they are part of the domain layer.
+
+## Recent Improvements (2025)
+- **Rentals CRUD from property detail**: Assign tenant from admin property detail via combobox with server-side user search; single form for property data and tenant assignments (no separate “edit property” page). “Guardar cambios” only for property name/address changes; “Añadir inquilino” creates/restores rental separately. API returns 409 with message “Este inquilino ya está asignado a esta propiedad.” when duplicate (userId + propertyId); client shows that message via toast (not INTERNAL_ERROR). Reassigning a previously soft-deleted rental restores the rental (clear deletedAt/deletedById, update dates) instead of returning conflict.
+- **Toasts & confirmations**: Global toasts via `ToastService`; confirmations via reusable `ConfirmDialog` (no `window.confirm`).
+- **Audit log**: `AuditLog` model, `IAuditLogRepository` + `PrismaAuditLogRepository`, recording in Rental and Property use cases after mutations. Registered in ServiceContainer.
+- **Validations**: Zod schemas for rentals enforce `endDate >= startDate`; electricity/water bill schemas enforce `periodEnd >= periodStart`. Bill form schemas reuse base schemas with same refinements.
+- **Logging & rate limiting**: `logMutationSuccess()` in `lib/logger.ts` used in properties and rentals API routes; `rateLimiters.mutations` (60/min) applied to POST/PATCH/DELETE for properties, rentals (and users where applicable).
+- **Calendar (Shadcn)**: Calendar and DatePickerField use Shadcn-style components (`react-day-picker`), theme tokens, Spanish locale, and improved contrast for nav/selected/today in light and dark mode.
 
 ## Recent Improvements (2024)
 - **Header Refactoring**: Extracted modular components (`HeaderSearch`, `HeaderNotifications`, `HeaderUserMenu`) for better reusability.

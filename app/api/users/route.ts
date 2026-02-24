@@ -41,10 +41,7 @@ export async function GET(request: NextRequest) {
     if (!parsed.success) {
       const flat = parsed.error.flatten();
       const message = Object.values(flat.fieldErrors).flat().join(' ') || 'Validation failed';
-      return NextResponse.json(
-        { code: ErrorCode.VALIDATION_ERROR, message },
-        { status: 400 }
-      );
+      return NextResponse.json({ code: ErrorCode.VALIDATION_ERROR, message }, { status: 400 });
     }
 
     const dtos = await serviceContainer.user.searchForAdmin.execute(parsed.data);

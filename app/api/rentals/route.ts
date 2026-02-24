@@ -3,6 +3,8 @@ import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { createRentalBodySchema } from '@/zod/rental-schemas';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { logMutationSuccess } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rate-limit';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
 import type { ErrorResponse } from '@/lib/errors/types';
@@ -58,6 +60,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const rateLimitResult = await rateLimiters.mutations(request, session.user.id);
+    if (!rateLimitResult.success) return rateLimitResult.response;
+
     const sizeError = validatePayloadSize(request);
     if (sizeError) return sizeError;
 
@@ -66,10 +71,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       const flat = parsed.error.flatten();
       const message = Object.values(flat.fieldErrors).flat().join(' ') || 'Validation failed';
-      return NextResponse.json(
-        { code: ErrorCode.VALIDATION_ERROR, message },
-        { status: 400 }
-      );
+      return NextResponse.json({ code: ErrorCode.VALIDATION_ERROR, message }, { status: 400 });
     }
 
     const authError = await requirePropertyAdmin(parsed.data.propertyId, session);
@@ -83,6 +85,14 @@ export async function POST(request: NextRequest) {
       createdById: session.user.id,
     });
 
+    logMutationSuccess({
+      action: 'rental_created',
+      entityType: 'Rental',
+      entityId: rental.id,
+      performedById: session.user.id,
+      endpoint: '/api/rentals',
+      method: 'POST',
+    });
     return NextResponse.json(
       {
         id: rental.id,

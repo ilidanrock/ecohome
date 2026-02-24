@@ -26,8 +26,7 @@ export function AdminBreadcrumb() {
 
   const breadcrumbs = pathSegments.map((segment, index) => {
     const path = '/' + pathSegments.slice(0, index + 1).join('/');
-    const isPropertyId =
-      pathSegments[index - 1] === 'properties' && segment !== 'new';
+    const isPropertyId = pathSegments[index - 1] === 'properties' && segment !== 'new';
     const name =
       routeNames[path] ||
       (isPropertyId ? 'Detalle' : segment.charAt(0).toUpperCase() + segment.slice(1));
@@ -53,14 +52,9 @@ export function AdminBreadcrumb() {
         </li>
         {breadcrumbs.map((breadcrumb) => (
           <li key={breadcrumb.path} className="flex items-center gap-x-1 min-w-0">
-            <ChevronRight
-              className="h-4 w-4 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
+            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
             {breadcrumb.isLast ? (
-              <span className="font-medium text-foreground truncate">
-                {breadcrumb.name}
-              </span>
+              <span className="font-medium text-foreground truncate">{breadcrumb.name}</span>
             ) : (
               <Link
                 href={breadcrumb.path}

@@ -1,29 +1,34 @@
 import { z } from 'zod';
 
-export const createWaterBillSchema = z.object({
-  propertyId: z.string().uuid('Property ID must be a valid UUID'),
-  periodStart: z.coerce.date({
-    required_error: 'Period start is required',
-    invalid_type_error: 'Period start must be a valid date',
-  }),
-  periodEnd: z.coerce.date({
-    required_error: 'Period end is required',
-    invalid_type_error: 'Period end must be a valid date',
-  }),
-  totalConsumption: z
-    .number({
-      required_error: 'Total consumption is required',
-      invalid_type_error: 'Total consumption must be a number',
-    })
-    .positive('Total consumption must be greater than zero'),
-  totalCost: z
-    .number({
-      required_error: 'Total cost is required',
-      invalid_type_error: 'Total cost must be a number',
-    })
-    .positive('Total cost must be greater than zero'),
-  fileUrl: z.string().url('File URL must be a valid URL').optional().nullable(),
-});
+export const createWaterBillSchema = z
+  .object({
+    propertyId: z.string().uuid('Property ID must be a valid UUID'),
+    periodStart: z.coerce.date({
+      required_error: 'Period start is required',
+      invalid_type_error: 'Period start must be a valid date',
+    }),
+    periodEnd: z.coerce.date({
+      required_error: 'Period end is required',
+      invalid_type_error: 'Period end must be a valid date',
+    }),
+    totalConsumption: z
+      .number({
+        required_error: 'Total consumption is required',
+        invalid_type_error: 'Total consumption must be a number',
+      })
+      .positive('Total consumption must be greater than zero'),
+    totalCost: z
+      .number({
+        required_error: 'Total cost is required',
+        invalid_type_error: 'Total cost must be a number',
+      })
+      .positive('Total cost must be greater than zero'),
+    fileUrl: z.string().url('File URL must be a valid URL').optional().nullable(),
+  })
+  .refine((data) => data.periodEnd >= data.periodStart, {
+    message: 'Period end must be equal to or after period start',
+    path: ['periodEnd'],
+  });
 
 export const createWaterServiceChargesSchema = z.object({
   waterBillId: z.string().uuid('Water bill ID must be a valid UUID'),

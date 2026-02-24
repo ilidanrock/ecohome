@@ -12,7 +12,11 @@ export type UserSearchResult = {
   email: string;
 };
 
-async function fetchUsers(params: { role?: string; search?: string; limit?: number }): Promise<UserSearchResult[]> {
+async function fetchUsers(params: {
+  role?: string;
+  search?: string;
+  limit?: number;
+}): Promise<UserSearchResult[]> {
   const sp = new URLSearchParams();
   if (params.role) sp.set('role', params.role);
   if (params.search && params.search.trim()) sp.set('search', params.search.trim());
@@ -21,7 +25,9 @@ async function fetchUsers(params: { role?: string; search?: string; limit?: numb
   const res = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as { message?: string }).message || `Failed to fetch users (${res.status})`);
+    throw new Error(
+      (err as { message?: string }).message || `Failed to fetch users (${res.status})`
+    );
   }
   return res.json();
 }

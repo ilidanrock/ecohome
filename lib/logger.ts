@@ -69,3 +69,26 @@ export const logger = {
     }
   },
 };
+
+export type MutationLogParams = {
+  action: string;
+  entityType: string;
+  entityId: string;
+  performedById: string;
+  endpoint?: string;
+  method?: string;
+};
+
+/**
+ * Log a successful mutation for audit/search (action, entity, who, where).
+ */
+export function logMutationSuccess(params: MutationLogParams): void {
+  logger.info('mutation_success', {
+    action: params.action,
+    entityType: params.entityType,
+    entityId: params.entityId,
+    performedById: params.performedById,
+    ...(params.endpoint != null && { endpoint: params.endpoint }),
+    ...(params.method != null && { method: params.method }),
+  });
+}

@@ -198,9 +198,7 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
             </div>
             <div>
               <span className="text-xl font-bold text-primary">EcoHome</span>
-              <div className="text-xs font-medium text-muted-foreground">
-                Admin Panel
-              </div>
+              <div className="text-xs font-medium text-muted-foreground">Admin Panel</div>
             </div>
           </div>
         </div>
@@ -246,7 +244,9 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
               <item.icon
                 className={cn(
                   'mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200',
-                  pathname === item.href ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
+                  pathname === item.href
+                    ? 'text-primary'
+                    : 'text-muted-foreground group-hover:text-primary'
                 )}
                 aria-hidden="true"
               />
@@ -274,7 +274,9 @@ function SidebarContent({ pathname, session }: SidebarContentProps) {
                 <item.icon
                   className={cn(
                     'mr-3 h-5 w-5 flex-shrink-0 transition-colors duration-200',
-                    pathname === item.href ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'
+                    pathname === item.href
+                      ? 'text-primary'
+                      : 'text-muted-foreground group-hover:text-primary'
                   )}
                   aria-hidden="true"
                 />

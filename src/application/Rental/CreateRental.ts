@@ -1,5 +1,6 @@
 import type { IRentalRepository } from '@/src/domain/Rental/IRentalRepository';
 import type { IPropertyRepository } from '@/src/domain/Property/IPropertyRepository';
+import type { IAuditLogRepository } from '@/src/domain/Shared/IAuditLogRepository';
 import { Rental } from '@/src/domain/Rental/Rental';
 import { RentalAlreadyExistsError } from '@/src/domain/Rental/errors/RentalErrors';
 
@@ -14,7 +15,8 @@ export type CreateRentalInput = {
 export class CreateRental {
   constructor(
     private propertyRepository: IPropertyRepository,
-    private rentalRepository: IRentalRepository
+    private rentalRepository: IRentalRepository,
+    private auditLog: IAuditLogRepository
   ) {}
 
   async execute(input: CreateRentalInput): Promise<Rental> {
@@ -39,11 +41,18 @@ export class CreateRental {
 
     if (existingIncludingDeleted) {
       if (existingIncludingDeleted.deletedAt != null) {
-        return this.rentalRepository.restore(existingIncludingDeleted.id!, {
+        const restored = await this.rentalRepository.restore(existingIncludingDeleted.id!, {
           startDate: input.startDate,
           endDate: input.endDate ?? null,
           updatedById: input.createdById,
         });
+        await this.auditLog.record({
+          entityType: 'Rental',
+          entityId: restored.id,
+          action: 'restored',
+          performedById: input.createdById,
+        });
+        return restored;
       }
       throw new RentalAlreadyExistsError('This tenant is already assigned to this property');
     }
@@ -63,6 +72,13 @@ export class CreateRental {
       null
     );
 
-    return this.rentalRepository.create(rental);
+    const created = await this.rentalRepository.create(rental);
+    await this.auditLog.record({
+      entityType: 'Rental',
+      entityId: created.id,
+      action: 'created',
+      performedById: input.createdById,
+    });
+    return created;
   }
 }

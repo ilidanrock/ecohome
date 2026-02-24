@@ -3,6 +3,8 @@ import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { updateRentalBodySchema } from '@/zod/rental-schemas';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { logMutationSuccess } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rate-limit';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
 import type { ErrorResponse } from '@/lib/errors/types';
@@ -42,10 +44,7 @@ async function requirePropertyAdmin(
  * PATCH /api/rentals/[id]
  * Update a rental (dates). Admin must be administrator of the property.
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth();
     if (!session?.user) {
@@ -60,6 +59,10 @@ export async function PATCH(
     }
 
     const { id: rentalId } = await params;
+
+    const rateLimitResult = await rateLimiters.mutations(request, session.user.id);
+    if (!rateLimitResult.success) return rateLimitResult.response;
+
     const rental = await serviceContainer.rental.getRentalById.execute(rentalId);
     if (!rental) {
       return NextResponse.json(
@@ -83,10 +86,7 @@ export async function PATCH(
     if (!parsed.success) {
       const flat = parsed.error.flatten();
       const message = Object.values(flat.fieldErrors).flat().join(' ') || 'Validation failed';
-      return NextResponse.json(
-        { code: ErrorCode.VALIDATION_ERROR, message },
-        { status: 400 }
-      );
+      return NextResponse.json({ code: ErrorCode.VALIDATION_ERROR, message }, { status: 400 });
     }
 
     const updated = await serviceContainer.rental.update.execute({
@@ -96,6 +96,14 @@ export async function PATCH(
       updatedById: session.user.id,
     });
 
+    logMutationSuccess({
+      action: 'rental_updated',
+      entityType: 'Rental',
+      entityId: rentalId,
+      performedById: session.user.id,
+      endpoint: '/api/rentals/[id]',
+      method: 'PATCH',
+    });
     return NextResponse.json({
       id: updated.id,
       userId: updated.getUserId(),
@@ -130,6 +138,10 @@ export async function DELETE(
     }
 
     const { id: rentalId } = await params;
+
+    const rateLimitResult = await rateLimiters.mutations(_request, session.user.id);
+    if (!rateLimitResult.success) return rateLimitResult.response;
+
     const rental = await serviceContainer.rental.getRentalById.execute(rentalId);
     if (!rental) {
       return NextResponse.json(
@@ -150,6 +162,14 @@ export async function DELETE(
       deletedById: session.user.id,
     });
 
+    logMutationSuccess({
+      action: 'rental_deleted',
+      entityType: 'Rental',
+      entityId: rentalId,
+      performedById: session.user.id,
+      endpoint: '/api/rentals/[id]',
+      method: 'DELETE',
+    });
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     return handleApiError(error, { endpoint: '/api/rentals/[id]', method: 'DELETE' });

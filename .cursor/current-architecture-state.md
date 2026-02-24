@@ -63,6 +63,11 @@
 - ✅ **Validation**: Validación con Zod integrada en API routes (payment, electricity-bill, service-charges, consumption, ocr schemas)
 - ✅ **Authentication**: Session uses database user id; with OAuth (Google) the JWT callback resolves user by email and sets `token.id = dbUser.id` so admin property assignment and audit fields work correctly
 - ✅ **Admin Properties**: List/create/soft delete; GET/POST /api/properties, DELETE /api/properties/[id]; ListPropertiesForAdmin, CreateProperty, DeleteProperty; UI at /admin/properties (responsive list + form at /admin/properties/new)
+- ✅ **Rentals CRUD from property detail**: Assign tenant from admin property detail (TenantCombobox, server-side user search); single form for property + tenant assignments; POST /api/rentals returns 409 with clear message on duplicate (userId+propertyId); reassigning after soft delete restores rental; ConfirmDialog for “dar de baja”; toasts via ToastService
+- ✅ **Audit log**: AuditLog model (entityType, entityId, action, performedById, performedAt, metadata); IAuditLogRepository + PrismaAuditLogRepository; recording in CreateRental, UpdateRental, DeleteRental, CreateProperty, UpdateProperty, DeleteProperty; registered in ServiceContainer
+- ✅ **Validations**: Rental Zod schemas (endDate >= startDate); electricity/water bill schemas (periodEnd >= periodStart); bill form schemas reuse base schemas
+- ✅ **Logging & rate limiting**: logMutationSuccess() in properties and rentals API routes; rateLimiters.mutations (60/min) on POST/PATCH/DELETE for properties, rentals
+- ✅ **UI**: Calendar/DatePicker Shadcn-style (react-day-picker), Spanish locale, theme tokens; ConfirmDialog reusable; global toasts (ToastService)
 - ✅ **Audit fields & soft delete**: Property, Rental, Consumption, ElectricityBill, WaterBill, Invoice, Payment have deletedAt, createdById, updatedById, deletedById; repositories set *_by on create/update, implement softDelete(id, userId), and filter deletedAt: null on all reads
 - ✅ **CI/CD**: Migrado a pnpm en workflows de GitHub Actions
 
@@ -289,16 +294,18 @@ app/layout.tsx
   - `errors/` - Clase base DomainError para errores de dominio con método `toErrorResponse()`
 - `src/application/` - Casos de uso y orquestación
   - `Payment/` - CreateRentalPayment, CreateServicePayment
-  - `Rental/` - GetRentalById con validación de permisos
+  - `Rental/` - CreateRental (with restore when reassigning after soft delete), UpdateRental, DeleteRental, GetRentalById; all record to IAuditLogRepository after success
+  - `Property/` - CreateProperty, UpdateProperty, DeleteProperty record to IAuditLogRepository after success
   - `Invoice/` - GetInvoiceById, CreateInvoicesForProperty (generación automática con cálculo de split y transacciones atómicas)
 - `src/infrastructure/` - Implementaciones concretas (Prisma)
   - `Payment/` - PrismaPaymentRepository
-  - `Rental/` - PrismaRentalRepository
   - `Invoice/` - PrismaInvoiceRepository con métodos de transacción (`findByRentalMonthYearInTransaction`, `createInTransaction`, `updateStatusInTransaction`)
   - `Consumption/` - PrismaConsumptionRepository (con soporte para previousReading)
   - `ElectricityBill/` - PrismaElectricityBillRepository
   - `ServiceCharges/` - PrismaServiceChargesRepository
   - `Property/` - PrismaPropertyRepository (list by admin, create with administrators via explicit join, soft delete); admin–property N:M uses explicit **PropertyAdministrator** (propertyId, userId) instead of implicit join; audit fields on all main entities
+  - `Rental/` - PrismaRentalRepository (findByUserIdAndPropertyIdIncludingDeleted, restore for re-assignment after soft delete)
+  - `AuditLog/` - PrismaAuditLogRepository (record for entityType, entityId, action, performedById, metadata)
   - `Shared/` - PrismaTransactionManager para transacciones con nivel de aislamiento configurable
 - `src/Shared/infrastructure/ServiceContainer` - Inyección de dependencias centralizada
 - `zod/` - Schemas de validación para API routes (payment, electricity-bill, service-charges)

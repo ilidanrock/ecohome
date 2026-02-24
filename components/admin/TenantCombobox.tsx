@@ -89,18 +89,13 @@ export function TenantCombobox({
             onValueChange={setSearchInput}
           />
           <CommandList>
-            <CommandEmpty>
-              {isLoading ? 'Buscando...' : 'Sin resultados.'}
-            </CommandEmpty>
+            <CommandEmpty>{isLoading ? 'Buscando...' : 'Sin resultados.'}</CommandEmpty>
             <CommandGroup>
               {filtered.map((user) => {
-                const label = [user.name, user.surname].filter(Boolean).join(' ').trim() || user.email;
+                const label =
+                  [user.name, user.surname].filter(Boolean).join(' ').trim() || user.email;
                 return (
-                  <CommandItem
-                    key={user.id}
-                    value={user.id}
-                    onSelect={() => handleSelect(user)}
-                  >
+                  <CommandItem key={user.id} value={user.id} onSelect={() => handleSelect(user)}>
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',

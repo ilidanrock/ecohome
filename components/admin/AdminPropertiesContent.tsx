@@ -41,9 +41,7 @@ function PropertyCard({ p }: { p: PropertyListItem }) {
       </CardHeader>
       <CardContent className="space-y-1 px-4 pb-4 text-sm text-muted-foreground sm:px-6 sm:pb-6">
         <p className="line-clamp-2 break-words">{p.address}</p>
-        <p className="text-xs text-muted-foreground">
-          Creado: {formatDate(p.createdAt)}
-        </p>
+        <p className="text-xs text-muted-foreground">Creado: {formatDate(p.createdAt)}</p>
       </CardContent>
     </Card>
   );
@@ -115,12 +113,8 @@ function TableSkeleton({ rows = 5 }: { rows?: number }) {
         <table className="w-full min-w-0 text-left">
           <thead>
             <tr className="border-b border-border bg-muted/50">
-              <th className="px-3 py-3 text-sm font-semibold text-foreground lg:px-4">
-                Nombre
-              </th>
-              <th className="px-3 py-3 text-sm font-semibold text-foreground lg:px-4">
-                Dirección
-              </th>
+              <th className="px-3 py-3 text-sm font-semibold text-foreground lg:px-4">Nombre</th>
+              <th className="px-3 py-3 text-sm font-semibold text-foreground lg:px-4">Dirección</th>
               <th className="px-3 py-3 text-sm font-semibold text-muted-foreground lg:px-4">
                 Fecha creación
               </th>
@@ -200,9 +194,7 @@ export function AdminPropertiesContent() {
     <div className="min-w-0 space-y-6">
       <section className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <h1 className="truncate text-xl font-bold text-foreground sm:text-2xl">
-            Propiedades
-          </h1>
+          <h1 className="truncate text-xl font-bold text-foreground sm:text-2xl">Propiedades</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Gestiona las propiedades que administras
           </p>
@@ -306,11 +298,7 @@ export function AdminPropertiesContent() {
                 </thead>
                 <tbody>
                   {properties.map((p) => (
-                    <PropertyRow
-                      key={p.id}
-                      p={p}
-                      onRequestDelete={setPropertyToDelete}
-                    />
+                    <PropertyRow key={p.id} p={p} onRequestDelete={setPropertyToDelete} />
                   ))}
                 </tbody>
               </table>

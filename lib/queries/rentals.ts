@@ -21,7 +21,9 @@ async function fetchPropertyRentals(propertyId: string): Promise<PropertyRentalI
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error((err as { message?: string }).message || `Failed to fetch rentals (${res.status})`);
+    throw new Error(
+      (err as { message?: string }).message || `Failed to fetch rentals (${res.status})`
+    );
   }
   return res.json();
 }
@@ -81,7 +83,9 @@ export function useCreateRentalMutation(propertyId: string) {
       createRental({ ...params, propertyId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: rentalKeys.all });
-      queryClient.invalidateQueries({ queryKey: [...rentalKeys.lists(), 'byProperty', propertyId] });
+      queryClient.invalidateQueries({
+        queryKey: [...rentalKeys.lists(), 'byProperty', propertyId],
+      });
       queryClient.invalidateQueries({ queryKey: propertyKeys.all });
     },
   });
@@ -96,7 +100,8 @@ export type UpdateRentalParams = {
 async function updateRental(params: UpdateRentalParams): Promise<void> {
   const body: { startDate?: string; endDate?: string | null } = {};
   if (params.startDate !== undefined) body.startDate = params.startDate.toISOString();
-  if (params.endDate !== undefined) body.endDate = params.endDate ? params.endDate.toISOString() : null;
+  if (params.endDate !== undefined)
+    body.endDate = params.endDate ? params.endDate.toISOString() : null;
   const res = await fetch(`/api/rentals/${params.rentalId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -128,7 +133,9 @@ export function useUpdateRentalMutation(propertyId: string) {
     mutationFn: updateRental,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: rentalKeys.all });
-      queryClient.invalidateQueries({ queryKey: [...rentalKeys.lists(), 'byProperty', propertyId] });
+      queryClient.invalidateQueries({
+        queryKey: [...rentalKeys.lists(), 'byProperty', propertyId],
+      });
       queryClient.invalidateQueries({ queryKey: propertyKeys.all });
     },
   });
@@ -162,7 +169,9 @@ export function useDeleteRentalMutation(propertyId: string) {
     mutationFn: deleteRental,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: rentalKeys.all });
-      queryClient.invalidateQueries({ queryKey: [...rentalKeys.lists(), 'byProperty', propertyId] });
+      queryClient.invalidateQueries({
+        queryKey: [...rentalKeys.lists(), 'byProperty', propertyId],
+      });
       queryClient.invalidateQueries({ queryKey: propertyKeys.all });
     },
   });

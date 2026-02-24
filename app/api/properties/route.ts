@@ -3,6 +3,8 @@ import { auth } from '@/auth';
 import { serviceContainer } from '@/src/Shared/infrastructure/ServiceContainer';
 import { createPropertySchema, propertiesListQuerySchema } from '@/zod/property-schemas';
 import { validatePayloadSize, handleApiError } from '@/lib/error-handler';
+import { logMutationSuccess } from '@/lib/logger';
+import { rateLimiters } from '@/lib/rate-limit';
 import { ErrorCode } from '@/lib/errors/error-codes';
 import { getErrorLevelFromStatus } from '@/lib/errors/error-level';
 import type { ErrorResponse } from '@/lib/errors/types';
@@ -110,6 +112,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 403 });
     }
 
+    const rateLimitResult = await rateLimiters.mutations(request, session.user.id);
+    if (!rateLimitResult.success) return rateLimitResult.response;
+
     const sizeError = validatePayloadSize(request);
     if (sizeError) return sizeError;
 
@@ -132,6 +137,14 @@ export async function POST(request: NextRequest) {
     const { name, address } = parsed.data;
     const created = await serviceContainer.property.create.execute(name, address, session.user.id);
 
+    logMutationSuccess({
+      action: 'property_created',
+      entityType: 'Property',
+      entityId: created.id,
+      performedById: session.user.id,
+      endpoint: '/api/properties',
+      method: 'POST',
+    });
     const item: PropertyListItem = toPropertyListItem(created);
     return NextResponse.json(item, { status: 201 });
   } catch (error) {

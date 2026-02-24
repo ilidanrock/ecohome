@@ -131,6 +131,13 @@ export async function rateLimit(
  */
 export const rateLimiters = {
   /**
+   * Rate limiter for generic mutations (create/update/delete properties, rentals, etc.)
+   * 60 requests per minute per user
+   */
+  mutations: (request: NextRequest, userId?: string) =>
+    rateLimit(request, { interval: 60 * 1000, limit: 60 }, userId),
+
+  /**
    * Rate limiter for payment endpoints
    * 100 requests per minute
    */

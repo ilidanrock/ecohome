@@ -99,7 +99,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
 // Validate API key at module load (warn only, actual check happens in functions)
-if (!OPENAI_API_KEY && process.env.NODE_ENV !== 'test') {
+if (!OPENAI_API_KEY && process.env.NODE_ENV !== 'test' && process.env.CI !== 'true') {
   logger.warn('OPENAI_API_KEY is not configured. OCR features will not work.');
 }
 

@@ -51,8 +51,8 @@ export function validateRequiredEnv(): void {
  * This is useful for features that may not be enabled in all environments
  */
 export function validateOptionalEnv(): void {
-  // Only log warnings in non-test environments
-  if (process.env.NODE_ENV === 'test') {
+  // Skip warnings in test or CI (optional features not needed there)
+  if (process.env.NODE_ENV === 'test' || process.env.CI === 'true') {
     return;
   }
 

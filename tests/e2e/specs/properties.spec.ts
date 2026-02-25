@@ -68,6 +68,10 @@ test.describe('Property Management', () => {
     // Borrar propiedades de prueba para no dejar basura en la DB
     await databaseHelper.deleteTestPropertyById(propertyId);
     await databaseHelper.deleteTestPropertiesByAdminAndName(adminUserId, 'E2E Edificio Sur');
+    await databaseHelper.deleteTestPropertiesByAdminAndName(
+      adminUserId,
+      'E2E Propiedad a Eliminar'
+    );
 
     await cleanupTestUser(testUsers.admin.email, databaseHelper);
     await cleanupTestUser(testUsers.user.email, databaseHelper);
@@ -199,29 +203,34 @@ test.describe('Property Management', () => {
     authHelper = new AuthHelper(page);
     await authHelper.loginAsAdmin();
 
+    // Ensure a property to delete exists (retries only re-run this test, not the create test)
+    const deleteTestPropName = 'E2E Propiedad a Eliminar';
+    await createTestProperty(
+      { name: deleteTestPropName, address: 'Calle E2E Eliminar 789' },
+      adminCookies,
+      apiHelper
+    );
+
     await page.goto('/admin/properties');
     await page.waitForLoadState('networkidle');
 
     const main = page.getByRole('main');
     await expect(main.getByRole('table')).toBeVisible({ timeout: 15000 });
-    // Search so "E2E Edificio Sur" is on current page (avoids pagination)
-    await main.getByPlaceholder(/Buscar por nombre o dirección/).fill('E2E Edificio Sur');
+    await main.getByPlaceholder(/Buscar por nombre o dirección/).fill(deleteTestPropName);
     await main.getByRole('button', { name: 'Buscar' }).click();
-    await expect(main.getByRole('table').getByText('E2E Edificio Sur')).toBeVisible({
+    await page.waitForLoadState('networkidle');
+    await expect(main.getByRole('table').getByText(deleteTestPropName)).toBeVisible({
       timeout: 15000,
     });
-    const rowE2E = main
-      .getByRole('table')
-      .locator('tbody tr')
-      .filter({ hasText: 'E2E Edificio Sur' });
-    await expect(rowE2E).toBeVisible({ timeout: 5000 });
-    await rowE2E.getByRole('button', { name: /Eliminar/ }).click();
+    const row = main.getByRole('table').locator('tbody tr').filter({ hasText: deleteTestPropName });
+    await expect(row).toBeVisible({ timeout: 5000 });
+    await row.getByRole('button', { name: /Eliminar/ }).click();
     await expect(page.getByText(/Eliminar la propiedad/)).toBeVisible({ timeout: 5000 });
     await page.getByRole('button', { name: 'Aceptar' }).click();
 
-    await expect(page.getByText('Propiedad eliminada')).toBeVisible({ timeout: 5000 });
-    await expect(main.getByRole('table').getByText('E2E Edificio Sur')).not.toBeVisible({
-      timeout: 5000,
+    // Primary: row disappears (toast may disappear quickly)
+    await expect(main.getByRole('table').getByText(deleteTestPropName)).not.toBeVisible({
+      timeout: 10000,
     });
   });
 

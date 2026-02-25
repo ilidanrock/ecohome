@@ -21,6 +21,7 @@ describe('GetUserInvoices', () => {
       update: vi.fn(),
       create: vi.fn(),
       softDelete: vi.fn(),
+      softDeleteByPropertyId: vi.fn(),
     };
     invoiceRepository = {
       findManyByRentalIds: vi.fn(),

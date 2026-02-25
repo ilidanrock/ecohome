@@ -14,33 +14,33 @@ export class AdminDashboardPage {
   }
 
   async navigateToConsumptionManagement() {
-    // Sidebar link (dashboard main does not contain this link on all pages)
-    const consumptionLink = this.page.getByRole('link', { name: 'Consumo Energético' });
+    // Sidebar + quick links both have this; click first (sidebar)
+    const consumptionLink = this.page.getByRole('link', { name: 'Consumo Energético' }).first();
     await consumptionLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToBilling() {
-    const billingLink = this.page.getByRole('link', { name: 'Reportes' });
+    // Sidebar + quick links both have Reportes; click first (sidebar)
+    const billingLink = this.page.getByRole('link', { name: 'Reportes' }).first();
     await billingLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToPayments() {
-    const paymentsLink = this.page.getByRole('link', { name: 'Pagos' });
+    const paymentsLink = this.page.getByRole('link', { name: 'Pagos' }).first();
     await paymentsLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToProperties() {
-    // Sidebar link (not inside main on dashboard)
-    const propertiesLink = this.page.getByRole('link', { name: 'Propiedades' });
+    const propertiesLink = this.page.getByRole('link', { name: 'Propiedades' }).first();
     await propertiesLink.click();
     await this.page.waitForLoadState('networkidle');
   }
 
   async navigateToUsers() {
-    const usersLink = this.page.getByRole('link', { name: 'Usuarios' });
+    const usersLink = this.page.getByRole('link', { name: 'Usuarios' }).first();
     await usersLink.click();
     await this.page.waitForLoadState('networkidle');
   }

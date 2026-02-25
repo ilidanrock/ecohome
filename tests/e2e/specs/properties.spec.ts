@@ -170,10 +170,12 @@ test.describe('Property Management', () => {
     await page.getByRole('option', { name: /User2/ }).click();
 
     await page.locator('#rental-start').click();
-    const dateComboboxes = page.getByRole('combobox');
-    await dateComboboxes.nth(1).selectOption({ index: 5 });
-    await dateComboboxes.nth(2).selectOption('2024');
-    await page.getByRole('button', { name: '1' }).first().click();
+    // Calendar is in a popover with native <select> for month/year; avoid tenant combobox (input)
+    const openPopover = page.locator('[data-state="open"]').filter({ has: page.locator('select') });
+    await expect(openPopover.locator('select').first()).toBeVisible({ timeout: 5000 });
+    await openPopover.locator('select').first().selectOption({ index: 5 });
+    await openPopover.locator('select').nth(1).selectOption('2024');
+    await openPopover.getByRole('button', { name: '1' }).first().click();
     await page.getByRole('button', { name: 'Añadir inquilino' }).click();
     await expect(page.getByText('Inquilino asignado')).toBeVisible({ timeout: 10000 });
   });
@@ -202,11 +204,17 @@ test.describe('Property Management', () => {
 
     const main = page.getByRole('main');
     await expect(main.getByRole('table')).toBeVisible({ timeout: 15000 });
+    // Search so "E2E Edificio Sur" is on current page (avoids pagination)
+    await main.getByPlaceholder(/Buscar por nombre o dirección/).fill('E2E Edificio Sur');
+    await main.getByRole('button', { name: 'Buscar' }).click();
+    await expect(main.getByRole('table').getByText('E2E Edificio Sur')).toBeVisible({
+      timeout: 15000,
+    });
     const rowE2E = main
       .getByRole('table')
       .locator('tbody tr')
       .filter({ hasText: 'E2E Edificio Sur' });
-    await expect(rowE2E).toBeVisible({ timeout: 15000 });
+    await expect(rowE2E).toBeVisible({ timeout: 5000 });
     await rowE2E.getByRole('button', { name: /Eliminar/ }).click();
     await expect(page.getByText(/Eliminar la propiedad/)).toBeVisible({ timeout: 5000 });
     await page.getByRole('button', { name: 'Aceptar' }).click();

@@ -42,6 +42,7 @@ export type { UserSearchResult } from './users';
 export {
   createRental,
   usePropertyRentalsQuery,
+  useTenantRentalsQuery,
   useCreateRentalMutation,
   useUpdateRentalMutation,
   useDeleteRentalMutation,

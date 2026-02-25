@@ -70,4 +70,11 @@ export interface IRentalRepository {
    * @param userId - The user ID performing the delete
    */
   softDelete(id: string, userId: string): Promise<void>;
+
+  /**
+   * Soft delete all rentals for a property (e.g. when the property is deleted).
+   * @param propertyId - The property ID
+   * @param userId - The user ID performing the delete
+   */
+  softDeleteByPropertyId(propertyId: string, userId: string): Promise<void>;
 }

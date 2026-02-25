@@ -39,6 +39,7 @@ export const rentalKeys = {
   all: ['rentals'] as const,
   lists: () => [...rentalKeys.all, 'list'] as const,
   list: (filters?: Record<string, unknown>) => [...rentalKeys.lists(), filters] as const,
+  tenantList: () => [...rentalKeys.all, 'tenant'] as const,
   details: () => [...rentalKeys.all, 'detail'] as const,
   detail: (id: string) => [...rentalKeys.details(), id] as const,
 };

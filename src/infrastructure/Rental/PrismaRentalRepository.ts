@@ -117,6 +117,13 @@ export class PrismaRentalRepository implements IRentalRepository {
     });
   }
 
+  async softDeleteByPropertyId(propertyId: string, userId: string): Promise<void> {
+    await this.prisma.rental.updateMany({
+      where: { propertyId, deletedAt: null },
+      data: { deletedAt: new Date(), deletedById: userId },
+    });
+  }
+
   /**
    * Map Prisma Rental model to domain Rental entity
    */

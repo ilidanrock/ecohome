@@ -32,6 +32,7 @@ import { CreateRental } from '@/src/application/Rental/CreateRental';
 import { UpdateRental } from '@/src/application/Rental/UpdateRental';
 import { DeleteRental } from '@/src/application/Rental/DeleteRental';
 import { ListRentalsByPropertyId } from '@/src/application/Rental/ListRentalsByPropertyId';
+import { ListRentalsForTenant } from '@/src/application/Rental/ListRentalsForTenant';
 import { GetInvoiceById } from '@/src/application/Invoice/GetInvoiceById';
 import { GetUserInvoices } from '@/src/application/Invoice/GetUserInvoices';
 import { ListElectricityBillsForAdmin } from '@/src/application/ElectricityBill/ListElectricityBillsForAdmin';
@@ -119,6 +120,7 @@ export const serviceContainer = {
     update: new UpdateRental(propertyRepository, rentalRepository, auditLogRepository),
     delete: new DeleteRental(propertyRepository, rentalRepository, auditLogRepository),
     listByPropertyId: new ListRentalsByPropertyId(rentalRepository, userRepository),
+    listForTenant: new ListRentalsForTenant(rentalRepository, propertyRepository),
   },
   invoice: {
     getInvoiceById: new GetInvoiceById(invoiceRepository),
@@ -154,7 +156,7 @@ export const serviceContainer = {
     create: new CreateProperty(propertyRepository, auditLogRepository),
     getById: new GetPropertyById(propertyRepository),
     update: new UpdateProperty(propertyRepository, auditLogRepository),
-    delete: new DeleteProperty(propertyRepository, auditLogRepository),
+    delete: new DeleteProperty(propertyRepository, rentalRepository, auditLogRepository),
   },
   transactionManager,
   payment: {

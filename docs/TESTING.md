@@ -16,7 +16,7 @@ No requiere servidor de desarrollo ni base de datos.
 - **Config:** `vitest.config.ts` (raíz). Entorno `node`, patrones `tests/unit/**/*.test.ts`, alias con `vite-tsconfig-paths`.
 - **Ubicación:** `tests/unit/` refleja la estructura de `src/`:
   - `tests/unit/domain/` — modelos y lógica de dominio (p. ej. `Property/Property.test.ts`).
-  - `tests/unit/application/` — casos de uso (p. ej. `Property/CreateProperty.test.ts`, `DeleteProperty.test.ts`, `ListPropertiesForAdmin.test.ts`, `GetPropertyById.test.ts`, `UpdateProperty.test.ts`; `Invoice/GetUserInvoices.test.ts`; `ElectricityBill/ListElectricityBillsForAdmin.test.ts`; `WaterBill/ListWaterBillsForAdmin.test.ts`).
+  - `tests/unit/application/` — casos de uso (p. ej. `Property/CreateProperty.test.ts`, `DeleteProperty.test.ts` — soft-delete de rentals de la propiedad y luego propiedad; `ListPropertiesForAdmin.test.ts`, `GetPropertyById.test.ts`, `UpdateProperty.test.ts`; `Invoice/GetUserInvoices.test.ts`; `ElectricityBill/ListElectricityBillsForAdmin.test.ts`; `WaterBill/ListWaterBillsForAdmin.test.ts`).
 
 ### Convenciones
 - Un archivo `.test.ts` por caso de uso o clase de dominio.
@@ -48,7 +48,9 @@ Por defecto, Playwright arranca el servidor de desarrollo (`pnpm dev`) si no hay
 - **Listado:** navegación y tabla de propiedades.
 - **Crear propiedad:** formulario "Nueva propiedad" (nombre, dirección, opcionalmente inquilinos).
 - **Asignar inquilino:** desde detalle de propiedad; el date picker se maneja con el popover abierto (`[data-state="open"]`) y los `select` de mes/año dentro del popover para no interferir con el combobox de inquilino.
-- **Eliminar propiedad:** se crea una propiedad de prueba por API al inicio del test (p. ej. nombre "E2E Propiedad a Eliminar"), se busca en la tabla, se elimina y se comprueba que la fila desaparece. En `afterAll` se limpia con el helper de eliminación por nombre para no dejar datos huérfanos en reintentos/CI.
+- **Eliminar propiedad:** se crea una propiedad de prueba por API al inicio del test (p. ej. nombre "E2E Propiedad a Eliminar"), se busca en la tabla, se elimina y se comprueba que la fila desaparece. En backend, al borrar una propiedad también se hace soft-delete de todos sus rentals. En `afterAll` se limpia con el helper de eliminación por nombre para no dejar datos huérfanos en reintentos/CI.
+
+El inquilino ve sus propiedades asignadas en dashboard y `/dashboard/properties` vía GET `/api/tenant/rentals`; solo se listan rentals cuya propiedad existe (no eliminada).
 
 ### Requisitos
 - Variables de entorno de la aplicación configuradas (p. ej. `DATABASE_URL`, `AUTH_SECRET`, `NEXTAUTH_URL`). Opcionalmente variables para usuario E2E (email/contraseña) si los specs dependen de credenciales fijas.

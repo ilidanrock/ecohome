@@ -5,6 +5,34 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { rentalKeys, propertyKeys } from './keys';
 import type { ErrorResponse } from '@/lib/errors/types';
+import type { TenantRentalsResponse } from '@/types';
+
+async function fetchTenantRentals(): Promise<TenantRentalsResponse['rentals']> {
+  const res = await fetch('/api/tenant/rentals', {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(
+      (err as { message?: string }).message || `Failed to fetch tenant rentals (${res.status})`
+    );
+  }
+  const data: TenantRentalsResponse = await res.json();
+  return data.rentals;
+}
+
+/**
+ * Hook to fetch rentals for the current user (tenant) with property details.
+ * Use in tenant dashboard and "Mis propiedades" page.
+ */
+export function useTenantRentalsQuery() {
+  return useQuery({
+    queryKey: rentalKeys.tenantList(),
+    queryFn: fetchTenantRentals,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+  });
+}
 
 export type PropertyRentalItem = {
   id: string;

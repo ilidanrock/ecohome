@@ -36,7 +36,7 @@ The administrator is responsible for managing tenant consumption and overseeing 
 - View payment status in the **billing history** and include this data in the **PDF reports**.
 - **Automatic invoice status updates** when payments cover the total invoice amount.
 - **Upload electricity bills** and automatically generate invoices for all active tenants.
-- **Manage properties**: List, create, and soft-delete properties; admin sees only properties they manage (N:M administrators). API: GET/POST `/api/properties`, DELETE `/api/properties/[id]`. From property detail, edit name/address and **assign or remove tenants** (rentals) in a single form; date pickers use Shadcn Calendar (Spanish locale). Duplicate tenant assignment returns a clear 409 message; re-assigning a previously removed tenant restores the rental.
+- **Manage properties**: List, create, and soft-delete properties; admin sees only properties they manage (N:M administrators). API: GET/POST `/api/properties`, DELETE `/api/properties/[id]`. When a property is deleted, all its rentals are soft-deleted first so tenants no longer see that assignment. From property detail, edit name/address and **assign or remove tenants** (rentals) in a single form; date pickers use Shadcn Calendar (Spanish locale). Duplicate tenant assignment returns a clear 409 message; re-assigning a previously removed tenant restores the rental.
 - **Track meter readings** with previous reading support for accurate consumption calculation.
 - **OCR-powered meter reading extraction**: Automatically extract meter readings from photos using OpenAI Vision (GPT-4o-mini):
   - Upload photos of electricity meters taken on the 6th of each month
@@ -56,6 +56,7 @@ The administrator is responsible for managing tenant consumption and overseeing 
 Tenants can check their personal consumption history and view detailed cost calculations.
 
 #### **Key Features:**  
+- **View assigned properties** (Mis propiedades): list of properties where the tenant is assigned (rentals) with name, address, and date range; GET `/api/tenant/rentals`; dashboard section and page `/dashboard/properties`.
 - Log in and access their **monthly consumption history**.  
 - Access a **multi-step form** to view a detailed breakdown of their consumption and costs.  
 - Download **PDF reports** with the final calculation of their payments, including payment status.  

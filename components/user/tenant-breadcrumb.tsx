@@ -6,6 +6,8 @@ import { ChevronRight, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const routeNames: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/dashboard/properties': 'Mis propiedades',
   '/tenant': 'Dashboard',
   '/tenant/dashboard': 'Dashboard',
   '/tenant/consumption': 'Mi Consumo',
@@ -42,7 +44,7 @@ export function TenantBreadcrumb() {
       <ol className="flex items-center space-x-2">
         <li>
           <Link
-            href="/tenant/dashboard"
+            href="/dashboard"
             className="text-[#343A40]/60 hover:text-[#007BFF] transition-colors"
           >
             <Home className="h-4 w-4" />

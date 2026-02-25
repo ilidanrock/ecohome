@@ -130,3 +130,19 @@ export interface PropertiesListResponse {
   page?: number;
   limit?: number;
 }
+
+/**
+ * Tenant rental with property info (for GET /api/tenant/rentals)
+ */
+export interface TenantRentalWithProperty {
+  rentalId: string;
+  propertyId: string;
+  propertyName: string;
+  propertyAddress: string;
+  startDate: string; // ISO
+  endDate: string | null; // ISO
+}
+
+export interface TenantRentalsResponse {
+  rentals: TenantRentalWithProperty[];
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import type React from 'react';
+import { useEffect } from 'react';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -15,6 +16,7 @@ import {
   LogOut,
   Leaf,
   User,
+  Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { signOut, useSession } from 'next-auth/react';
@@ -33,10 +35,12 @@ import {
   SidebarProvider,
   SidebarTrigger,
   SidebarInset,
+  useSidebar,
 } from '@/components/ui/sidebar';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
+  { name: 'Mis propiedades', href: '/dashboard/properties', icon: Building2 },
   { name: 'Mi Consumo', href: '/tenant/consumption', icon: BarChart3 },
   { name: 'Energía', href: '/tenant/energy', icon: Zap },
   { name: 'Agua', href: '/tenant/water', icon: Droplets },
@@ -58,6 +62,12 @@ type TenantSidebarProps = {
 export function TenantSidebar(_props: TenantSidebarProps = {}) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { setOpenMobile } = useSidebar();
+
+  // Cerrar el sheet del sidebar en móvil al navegar para que el usuario vea el contenido
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
 
   return (
     <Sidebar

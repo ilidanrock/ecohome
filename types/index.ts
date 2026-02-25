@@ -30,6 +30,8 @@ export type {
   WaterBillsListResponse,
   PropertyListItem,
   PropertiesListResponse,
+  TenantRentalWithProperty,
+  TenantRentalsResponse,
 } from './api';
 
 // UI Types

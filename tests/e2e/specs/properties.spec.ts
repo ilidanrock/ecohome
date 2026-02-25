@@ -203,6 +203,7 @@ test.describe('Property Management', () => {
     authHelper = new AuthHelper(page);
     await authHelper.loginAsAdmin();
 
+    // Backend: deleting a property also soft-deletes all its rentals (no orphan assignments).
     // Ensure a property to delete exists (retries only re-run this test, not the create test)
     const deleteTestPropName = 'E2E Propiedad a Eliminar';
     await createTestProperty(

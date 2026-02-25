@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Zap, Droplets, FileText, BarChart3, Lightbulb } from 'lucide-react';
+import { Zap, Droplets, FileText, BarChart3, Lightbulb, Building2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuickStatsQuery, useInvoicesQuery } from '@/lib/queries';
+import { useQuickStatsQuery, useInvoicesQuery, useTenantRentalsQuery } from '@/lib/queries';
+import { formatDate } from '@/lib/format';
 
 const quickLinks = [
   { name: 'Mi Consumo', href: '/tenant/consumption', icon: BarChart3 },
@@ -23,6 +24,11 @@ export function TenantDashboardContent() {
     isLoading: invoicesLoading,
     isError: invoicesError,
   } = useInvoicesQuery();
+  const {
+    data: tenantRentals,
+    isLoading: rentalsLoading,
+    isError: rentalsError,
+  } = useTenantRentalsQuery();
 
   const name = session?.user?.name ?? session?.user?.email ?? 'Usuario';
   const firstName = typeof name === 'string' ? name.split(/\s+/)[0] : 'Usuario';
@@ -30,17 +36,19 @@ export function TenantDashboardContent() {
   const unpaidTotal = unpaid.reduce((sum, i) => sum + i.totalCost, 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Bienvenida */}
       <section>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Hola, {firstName}</h1>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">
+        <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 sm:text-2xl">
+          Hola, {firstName}
+        </h1>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400 sm:text-base">
           Resumen de tu consumo y facturación
         </p>
       </section>
 
       {/* Grid: Consumo + Facturación */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Card Consumo */}
         <Card className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
           <CardHeader className="pb-2">
@@ -131,24 +139,86 @@ export function TenantDashboardContent() {
         </Card>
       </section>
 
+      {/* Mis propiedades asignadas */}
+      <section>
+        <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-slate-100 sm:mb-4 sm:text-lg">
+          Mis propiedades asignadas
+        </h2>
+        {rentalsLoading && <Skeleton className="h-24 w-full rounded-lg" />}
+        {rentalsError && (
+          <p className="text-sm text-amber-600 dark:text-amber-400">
+            No se pudo cargar la lista de propiedades. Reintenta más tarde.
+          </p>
+        )}
+        {!rentalsLoading && !rentalsError && tenantRentals && tenantRentals.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Tienes {tenantRentals.length} propiedad{tenantRentals.length !== 1 ? 'es' : ''}{' '}
+              asignada
+              {tenantRentals.length !== 1 ? 's' : ''}.
+            </p>
+            <ul className="grid grid-cols-1 gap-2 sm:gap-3 sm:grid-cols-2">
+              {tenantRentals.slice(0, 4).map((r) => (
+                <li key={r.rentalId}>
+                  <Card className="border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                    <CardContent className="pt-4">
+                      <div className="flex items-start gap-3">
+                        <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-ecoblue" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {r.propertyName}
+                          </p>
+                          <p className="text-sm text-slate-600 dark:text-slate-400 truncate">
+                            {r.propertyAddress}
+                          </p>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-500">
+                            Desde {formatDate(r.startDate)}
+                            {r.endDate ? ` hasta ${formatDate(r.endDate)}` : ' (vigente)'}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </li>
+              ))}
+            </ul>
+            {tenantRentals.length > 4 && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/properties">Ver todas ({tenantRentals.length})</Link>
+              </Button>
+            )}
+            {tenantRentals.length <= 4 && (
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/properties">Ver mis propiedades</Link>
+              </Button>
+            )}
+          </div>
+        )}
+        {!rentalsLoading && !rentalsError && tenantRentals && tenantRentals.length === 0 && (
+          <p className="text-sm text-slate-600 dark:text-slate-400">
+            Aún no tienes propiedades asignadas. Contacta al administrador.
+          </p>
+        )}
+      </section>
+
       {/* Accesos rápidos */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="mb-3 text-base font-semibold text-slate-900 dark:text-slate-100 sm:mb-4 sm:text-lg">
           Accesos rápidos
         </h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-4">
           {quickLinks.map((link) => {
             const Icon = link.icon;
             return (
               <Button
                 key={link.href}
                 variant="outline"
-                className="h-auto flex-col gap-2 border-slate-200 py-4 text-slate-700 dark:border-slate-700 dark:text-slate-300"
+                className="h-auto flex-col gap-1.5 border-slate-200 py-3 text-slate-700 dark:border-slate-700 dark:text-slate-300 sm:gap-2 sm:py-4"
                 asChild
               >
                 <Link href={link.href}>
-                  <Icon className="h-5 w-5" />
-                  <span className="text-sm">{link.name}</span>
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="text-xs sm:text-sm">{link.name}</span>
                 </Link>
               </Button>
             );

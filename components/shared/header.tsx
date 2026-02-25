@@ -44,7 +44,7 @@ export function Header({
       role="banner"
       aria-label="Navegación principal"
     >
-      <div className="flex flex-1 gap-x-3 sm:gap-x-4 lg:gap-x-6 self-stretch items-center">
+      <div className="flex min-w-0 flex-1 gap-x-2 sm:gap-x-4 lg:gap-x-6 self-stretch items-center">
         {/* Mobile menu button - Solo visible en mobile y si hay callback */}
         {onOpenSidebar && (
           <button
@@ -63,14 +63,16 @@ export function Header({
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <HeaderSearch
-          placeholder={searchPlaceholder}
-          onSearch={onSearch}
-          maxWidth={isAdmin ? 'xl' : 'md'}
-        />
+        <div className="min-w-0 flex-1">
+          <HeaderSearch
+            placeholder={searchPlaceholder}
+            onSearch={onSearch}
+            maxWidth={isAdmin ? 'xl' : 'md'}
+          />
+        </div>
       </div>
 
-      <div className="flex items-center gap-x-2 sm:gap-x-3 lg:gap-x-4">
+      <div className="flex shrink-0 items-center gap-x-2 sm:gap-x-3 lg:gap-x-4">
         {/* Quick Stats - Solo para usuarios no admin */}
         {!isAdmin && quickStats.length > 0 && (
           <div className="hidden md:flex items-center gap-2">

@@ -198,7 +198,7 @@ Estas son las herramientas y librerías que realmente se usan actualmente en el 
   ```
 - **Post-instalación** (automático): genera Prisma Client.  
 - **Linter y formato**: `pnpm lint`, `pnpm format`, `pnpm format:check`
-- **Tests E2E**: `pnpm test`
+- **Tests**: `pnpm test` (E2E con Playwright), `pnpm test:unit` (unitarios con Vitest)
 - **Migraciones de base de datos**: `pnpm prisma migrate dev`
 > **Nota importante**: El proyecto usa **pnpm** exclusivamente. No uses npm o yarn. Los workflows de CI/CD también usan pnpm.
 > 
@@ -213,9 +213,30 @@ Estas son las herramientas y librerías que realmente se usan actualmente en el 
 - **format:check**: `prettier --check .`  
 - **lint**: `next lint --fix && pnpm format`  
 - **prepare**: `husky`  
-- **test**: `npx playwright test`
+- **test**: `npx playwright test` (E2E; arranca el servidor de desarrollo si no está en marcha)
+- **test:unit**: `vitest run` (tests unitarios de dominio y aplicación)
 - **code-review**: Revisa cambios staged con OpenAI
 - **code-review:file**: Revisa un archivo específico con OpenAI
+
+---
+
+## 🧪 Testing
+
+### Unit tests (Vitest)
+- **Comando:** `pnpm test:unit`
+- **Ubicación:** `tests/unit/` (estructura paralela a `src/`: dominio, aplicación).
+- **Alcance:** Casos de uso de aplicación y lógica de dominio; no requiere servidor ni base de datos.
+- **Configuración:** `vitest.config.ts` (entorno Node, `vite-tsconfig-paths` para alias).
+
+### E2E tests (Playwright)
+- **Comando:** `pnpm test` (por defecto arranca `pnpm dev` si no hay servidor).
+- **Ubicación:**
+  - Specs: `tests/e2e/specs/*.spec.ts` (auth, billing, consumption, dashboard, payments, properties).
+  - Fixtures y helpers: `tests/e2e/fixtures/`, `tests/e2e/support/`, `tests/e2e/pages/`.
+- **Configuración:** `tests/e2e/playwright.config.ts` (Chromium, Firefox, WebKit; en CI: 1 worker, 2 reintentos).
+- **Requisitos:** Variables de entorno para la app (p. ej. `DATABASE_URL`, `AUTH_SECRET`, `NEXTAUTH_URL`). Los tests de propiedades crean/eliminan datos de prueba vía API (p. ej. propiedad "E2E Propiedad a Eliminar") y limpian en `afterAll`.
+
+Antes de abrir un PR, ejecuta `pnpm lint`, `pnpm test:unit` y `pnpm test` (o confía en el pipeline de CI). Más detalles en [docs/TESTING.md](docs/TESTING.md).
 
 ---
 

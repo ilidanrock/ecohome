@@ -148,12 +148,13 @@ async function deleteProperty(id: string): Promise<void> {
 
 /**
  * Hook to soft-delete a property (admin). Invalidates list and detail on success.
+ * Pass the property id to mutate(id) so the correct URL is always used.
  */
-export function useDeletePropertyMutation(propertyId: string) {
+export function useDeletePropertyMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => deleteProperty(propertyId),
-    onSuccess: () => {
+    mutationFn: (propertyId: string) => deleteProperty(propertyId),
+    onSuccess: (_, propertyId) => {
       queryClient.invalidateQueries({ queryKey: propertyKeys.all });
       queryClient.invalidateQueries({ queryKey: propertyKeys.detail(propertyId) });
     },

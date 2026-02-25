@@ -165,11 +165,11 @@ export function AdminPropertiesContent() {
   const from = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const to = Math.min(page * PAGE_SIZE, total);
 
-  const deleteMutation = useDeletePropertyMutation(propertyToDelete?.id ?? '');
+  const deleteMutation = useDeletePropertyMutation();
 
   const handleConfirmDeleteProperty = () => {
     if (!propertyToDelete) return;
-    deleteMutation.mutate(undefined, {
+    deleteMutation.mutate(propertyToDelete.id, {
       onSuccess: () => {
         ToastService.success('Propiedad eliminada');
         setPropertyToDelete(null);

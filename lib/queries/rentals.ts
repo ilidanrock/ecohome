@@ -44,7 +44,7 @@ export type CreateRentalParams = {
   endDate?: Date | null;
 };
 
-async function createRental(params: CreateRentalParams): Promise<{ id: string }> {
+export async function createRental(params: CreateRentalParams): Promise<{ id: string }> {
   const res = await fetch('/api/rentals', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

@@ -40,12 +40,13 @@ export type { UserSearchResult } from './users';
 
 // Rentals (property tenants)
 export {
+  createRental,
   usePropertyRentalsQuery,
   useCreateRentalMutation,
   useUpdateRentalMutation,
   useDeleteRentalMutation,
 } from './rentals';
-export type { PropertyRentalItem } from './rentals';
+export type { CreateRentalParams, PropertyRentalItem } from './rentals';
 
 // Re-export query types from centralized types
 export type { ConsumptionResponse } from '@/types';

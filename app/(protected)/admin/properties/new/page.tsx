@@ -15,7 +15,7 @@ export default async function NewPropertyPage() {
   }
 
   return (
-    <div className="w-full min-w-0 max-w-2xl mx-auto">
+    <div className="w-full min-w-0 max-w-5xl mx-auto">
       <NewPropertyForm />
     </div>
   );

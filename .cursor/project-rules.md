@@ -356,10 +356,28 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 - Keep `.env.local` out of version control.
 
 ## Testing & QA
-- E2E tests use Playwright (`tests/e2e`). Add new specs when modifying auth flows or protected dashboards.
-- For new domain/application logic, add unit tests where possible (Mocha/Jest not set up—prefer Playwright or lightweight integration tests).
-- Capture regression scenarios for auth/email/role flows.
+
+### Unit tests (Vitest)
+- **Runner:** Vitest (`pnpm test:unit`). Config: `vitest.config.ts`.
+- **Location:** `tests/unit/` — mirror `src/` structure (e.g. `tests/unit/application/Property/CreateProperty.test.ts`).
+- **Scope:** Application use cases and domain logic. Test services in isolation with mocked repositories where appropriate.
+- **Convention:** One `.test.ts` per use case or domain class; use `describe`/`it`; prefer clear test names in Spanish or English.
+- **Run:** `pnpm test:unit` (no dev server required).
+
+### E2E tests (Playwright)
+- **Runner:** Playwright (`pnpm test`). Config: `tests/e2e/playwright.config.ts`.
+- **Location:**
+  - Specs: `tests/e2e/specs/*.spec.ts` (auth, billing, consumption, dashboard, payments, properties).
+  - Fixtures: `tests/e2e/fixtures/` (users, properties, rentals, bills, etc.) for test data creation via API.
+  - Support: `tests/e2e/support/` (`api.ts`, `auth.ts`, `database.ts`) and `tests/e2e/pages/` for page objects.
+- **Convention:** Use `ApiHelper` for setup/teardown (create property, rental, etc.); use `AuthHelper` for login; scope selectors to avoid flakiness (e.g. `getByRole('main').getByRole('table')` for table content; for date pickers use the open popover `[data-state="open"]` and `select` inside it).
+- **CI:** Runs with 1 worker, 2 retries, headless; requires `DATABASE_URL`, `AUTH_SECRET`, `NEXTAUTH_URL`, and optional E2E user env vars. Delete operations must use the correct API path (e.g. `DELETE /api/properties/[id]`); pass the entity id to the mutation at call time (e.g. `mutate(propertyId)`) so the URL is never wrong.
+- **Run:** `pnpm test` (starts dev server automatically unless `reuseExistingServer`).
+
+### General
+- Capture regression scenarios for auth, email, role, and property/rental flows.
 - **Store Testing**: When adding new stores, test state transitions and persistence (if applicable).
+- Before PR: run `pnpm lint` and `pnpm test:unit` and `pnpm test` (or rely on CI).
 
 ## Workflow Expectations
 - Before opening a PR: `pnpm lint`, `pnpm test`.
@@ -380,6 +398,9 @@ Frontend Fetch/TanStack Query → Interceptor → ToastService.show()
 - **Domain Interfaces**: Repository interfaces remain in `src/domain/*/` as they are part of the domain layer.
 
 ## Recent Improvements (2025)
+- **New property form**: Form "Nueva propiedad" matches "Detalle de la propiedad" layout and structure (Building2 icon, grid for name/address, "Inquilinos asignados" section with table or empty message, "Nueva asignación" block with TenantCombobox and date pickers). Admins can assign tenants when creating a property; assignments are created via API after the property is created. Page and card use `max-w-5xl`. Use `createRental` from `lib/queries` (exported) for post-create assignments.
+- **Delete property mutation**: `useDeletePropertyMutation()` no longer takes `propertyId`; call `mutate(propertyId)` so the request is always `DELETE /api/properties/[id]` and never `DELETE /api/properties` (which returns 405). Ensures the correct URL is used regardless of render timing.
+- **E2E properties spec**: Assign-tenant test uses calendar popover (`[data-state="open"]` + `select`) for month/year to avoid targeting the tenant combobox; delete-property test creates a dedicated property via API at test start and asserts row disappearance so it passes on retries (CI only re-runs the failed test).
 - **Rentals CRUD from property detail**: Assign tenant from admin property detail via combobox with server-side user search; single form for property data and tenant assignments (no separate “edit property” page). “Guardar cambios” only for property name/address changes; “Añadir inquilino” creates/restores rental separately. API returns 409 with message “Este inquilino ya está asignado a esta propiedad.” when duplicate (userId + propertyId); client shows that message via toast (not INTERNAL_ERROR). Reassigning a previously soft-deleted rental restores the rental (clear deletedAt/deletedById, update dates) instead of returning conflict.
 - **Toasts & confirmations**: Global toasts via `ToastService`; confirmations via reusable `ConfirmDialog` (no `window.confirm`).
 - **Audit log**: `AuditLog` model, `IAuditLogRepository` + `PrismaAuditLogRepository`, recording in Rental and Property use cases after mutations. Registered in ServiceContainer.

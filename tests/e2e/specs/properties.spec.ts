@@ -89,9 +89,14 @@ test.describe('Property Management', () => {
     await expect(page.getByRole('link', { name: /Nueva propiedad/ })).toBeVisible();
     // Wait for list to load (table on desktop or cards on mobile)
     await expect(
-      page.getByRole('main').getByRole('table').or(page.getByRole('main').getByRole('button').filter({ hasText: 'Test Property' }))
+      page
+        .getByRole('main')
+        .getByRole('table')
+        .or(page.getByRole('main').getByRole('button').filter({ hasText: 'Test Property' }))
     ).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('main').getByText('Test Property').first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('main').getByText('Test Property').first()).toBeVisible({
+      timeout: 5000,
+    });
     await expect(page.getByRole('main').getByText('123 Test Street').first()).toBeVisible();
   });
 
@@ -102,7 +107,9 @@ test.describe('Property Management', () => {
     await page.goto('/admin/properties/new');
     await page.waitForLoadState('networkidle');
 
-    await expect(page.getByRole('main').getByText('Nueva propiedad').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('main').getByText('Nueva propiedad').first()).toBeVisible({
+      timeout: 10000,
+    });
     await expect(page.locator('#name')).toBeVisible({ timeout: 5000 });
     await page.locator('#name').fill('E2E Edificio Sur');
     await page.locator('#address').fill('Calle E2E 456');
@@ -110,7 +117,9 @@ test.describe('Property Management', () => {
 
     await expect(page).toHaveURL(/\/admin\/properties(?!\/)/, { timeout: 15000 });
     await page.waitForLoadState('networkidle');
-    await expect(page.getByRole('main').getByText('E2E Edificio Sur').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('main').getByText('E2E Edificio Sur').first()).toBeVisible({
+      timeout: 15000,
+    });
   });
 
   test('ADMIN puede abrir detalle de propiedad', async ({ page }) => {
@@ -155,7 +164,9 @@ test.describe('Property Management', () => {
     await page.goto(`/admin/properties/${propertyId}`);
     await page.waitForLoadState('networkidle');
 
-    await expect(page.getByRole('main').getByText('Detalle de la propiedad')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('main').getByText('Detalle de la propiedad')).toBeVisible({
+      timeout: 10000,
+    });
     // Tenant combobox shows "Buscar por nombre o email..." when empty; open it first
     const tenantCombobox = page.getByRole('combobox', { name: /Buscar por nombre o email/ });
     await tenantCombobox.click();
@@ -203,7 +214,9 @@ test.describe('Property Management', () => {
     await page.getByRole('button', { name: 'Aceptar' }).click();
 
     await expect(page.getByText('Propiedad eliminada')).toBeVisible({ timeout: 5000 });
-    await expect(page.getByRole('main').getByText('E2E Edificio Sur').first()).not.toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('main').getByText('E2E Edificio Sur').first()).not.toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test('USER no puede acceder a listado de propiedades', async ({ page }) => {
